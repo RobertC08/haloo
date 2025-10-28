@@ -1,0 +1,161 @@
+/**
+ * Shop Layout Styles
+ * Styles for WooCommerce shop page layout and product grid
+ */
+
+/* Create flex layout for filter-products wrapper - only on shop pages */
+.woocommerce-shop .shopwell-filter-products-wrapper,
+.tax-product_cat .shopwell-filter-products-wrapper,
+.tax-product_tag .shopwell-filter-products-wrapper,
+.post-type-archive-product .shopwell-filter-products-wrapper {
+    display: block !important;
+    overflow: hidden !important;
+    padding-bottom: 2rem !important;
+}
+
+.shopwell-result-count{
+    padding-left: 20px !important;
+}
+
+/* Main products area - only on shop pages */
+.woocommerce-shop .woocommerce-loop,
+.tax-product_cat .woocommerce-loop,
+.tax-product_tag .woocommerce-loop,
+.post-type-archive-product .woocommerce-loop {
+    margin-left: 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Ensure products grid displays properly */
+.woocommerce-shop .woocommerce-loop ul.products,
+.tax-product_cat .woocommerce-loop ul.products,
+.tax-product_tag .woocommerce-loop ul.products,
+.post-type-archive-product .woocommerce-loop ul.products {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+    gap: 20px !important;
+    width: 100% !important;
+}
+
+/* Fix excessive height of page header elements */
+.woocommerce-shop .swiper-wrapper,
+.tax-product_cat .swiper-wrapper,
+.tax-product_tag .swiper-wrapper,
+.post-type-archive-product .swiper-wrapper,
+.woocommerce-shop .page-header--products,
+.tax-product_cat .page-header--products,
+.tax-product_tag .page-header--products,
+.post-type-archive-product .page-header--products {
+    height: auto !important;
+}
+
+/* Ensure swiper container doesn't take full height */
+.woocommerce-shop .swiper,
+.tax-product_cat .swiper,
+.tax-product_tag .swiper,
+.post-type-archive-product .swiper {
+    height: auto !important;
+    min-height: auto !important;
+}
+
+/* Hide category slider bar from shop page */
+.woocommerce-shop .catalog-top-categories,
+.woocommerce-shop .catalog-top-categories__layout-v1,
+.tax-product_cat .catalog-top-categories,
+.tax-product_cat .catalog-top-categories__layout-v1,
+.tax-product_tag .catalog-top-categories,
+.tax-product_tag .catalog-top-categories__layout-v1,
+.post-type-archive-product .catalog-top-categories,
+.post-type-archive-product .catalog-top-categories__layout-v1 {
+    display: none !important;
+}
+
+/* Ensure proper spacing for catalog toolbar - only on shop pages */
+/* Higher specificity to override theme styles */
+body.woocommerce-shop .catalog-toolbar--top,
+body.tax-product_cat .catalog-toolbar--top,
+body.tax-product_tag .catalog-toolbar--top,
+body.post-type-archive-product .catalog-toolbar--top {
+    color: #000 !important;
+    margin-left: 0 !important;
+    padding-left: 4px !important;
+}
+
+.woocommerce-shop .remove-filtered{
+    margin-left: 20px !important;
+}
+
+/* More specific selectors for catalog toolbar text color */
+/* Higher specificity to override theme styles */
+body.woocommerce-shop .catalog-toolbar--top *,
+body.tax-product_cat .catalog-toolbar--top *,
+body.tax-product_tag .catalog-toolbar--top *,
+body.post-type-archive-product .catalog-toolbar--top *,
+body.woocommerce-shop .catalog-toolbar--top span,
+body.tax-product_cat .catalog-toolbar--top span,
+body.tax-product_tag .catalog-toolbar--top span,
+body.post-type-archive-product .catalog-toolbar--top span,
+body.woocommerce-shop .catalog-toolbar--top div,
+body.tax-product_cat .catalog-toolbar--top div,
+body.tax-product_tag .catalog-toolbar--top div,
+body.post-type-archive-product .catalog-toolbar--top div {
+    color: #000 !important;
+}
+
+/* Target specific catalog order elements */
+.woocommerce-shop .catalog-order,
+.tax-product_cat .catalog-order,
+.tax-product_tag .catalog-order,
+.post-type-archive-product .catalog-order,
+.woocommerce-shop .catalog-order *,
+.tax-product_cat .catalog-order *,
+.tax-product_tag .catalog-order *,
+.post-type-archive-product .catalog-order * {
+    color: #000 !important;
+}
+
+/* High specificity override for any remaining elements */
+body.woocommerce-shop .catalog-toolbar--top,
+body.tax-product_cat .catalog-toolbar--top,
+body.tax-product_tag .catalog-toolbar--top,
+body.post-type-archive-product .catalog-toolbar--top,
+body.woocommerce-shop .catalog-toolbar--top *,
+body.tax-product_cat .catalog-toolbar--top *,
+body.tax-product_tag .catalog-toolbar--top *,
+body.post-type-archive-product .catalog-toolbar--top * {
+    color: #000 !important;
+}
+
+/* Override any theme colors that might be interfering */
+.woocommerce-shop .catalog-toolbar--top .woocommerce-result-count,
+.tax-product_cat .catalog-toolbar--top .woocommerce-result-count,
+.tax-product_tag .catalog-toolbar--top .woocommerce-result-count,
+.post-type-archive-product .catalog-toolbar--top .woocommerce-result-count {
+    color: #000 !important;
+}
+
+/* Adjust page header if it exists - only on shop pages */
+.woocommerce-shop .page-header--products,
+.tax-product_cat .page-header--products,
+.tax-product_tag .page-header--products,
+.post-type-archive-product .page-header--products {
+    margin-left: 0 !important;
+}
+
+/* Adjust top categories if they exist - only on shop pages */
+.woocommerce-shop .catalog-top-categories,
+.tax-product_cat .catalog-top-categories,
+.tax-product_tag .catalog-top-categories,
+.post-type-archive-product .catalog-top-categories {
+    margin-left: 0 !important;
+}
+
+/* Adjust breadcrumbs - only on shop pages */
+.woocommerce-shop .woocommerce-breadcrumb,
+.tax-product_cat .woocommerce-breadcrumb,
+.tax-product_tag .woocommerce-breadcrumb,
+.post-type-archive-product .woocommerce-breadcrumb {
+    margin-left: 16px !important;
+}

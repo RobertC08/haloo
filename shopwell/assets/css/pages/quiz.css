@@ -1,0 +1,559 @@
+/**
+ * Quiz Page Styles
+ * Custom styles for the smartphone quiz page template
+ */
+
+.quiz-container {
+    max-width: 900px;
+    margin: 0px auto;
+    padding: 20px 40px;
+    background: #fff;
+    border-radius: 20px;
+}
+
+.quiz-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.quiz-title {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: #2A322F;
+    margin-bottom: 15px;
+}
+
+.quiz-subtitle {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.quiz-progress {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+
+.quiz-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #66fa95, #4CAF50);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.question-container {
+    display: none;
+    animation: fadeIn 0.5s ease-in;
+}
+
+.question-container.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(30px);
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0);
+    }
+}
+
+.question-title {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: #2A322F;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.options-container {
+    display: grid;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.option {
+    padding: 24px 28px;
+    border: 2px solid #e9ecef;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #fff;
+    position: relative;
+}
+
+.option::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.option:hover {
+    border-color: #66fa95;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 250, 149, 0.2);
+}
+
+.option.selected {
+    border-color: #66fa95;
+    background: linear-gradient(135deg, #66fa95, #4CAF50);
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(102, 250, 149, 0.3);
+}
+
+.option.selected::before {
+    background: #fff;
+    border-color: #fff;
+    box-shadow: inset 0 0 0 4px #4CAF50;
+}
+
+.option-text {
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin: 0;
+    padding-left: 35px;
+    line-height: 1.5;
+    color: black;
+}
+
+.quiz-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.btn-quiz {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-quiz:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-prev {
+    background: #f8f9fa;
+    color: #666;
+    border: 2px solid #e9ecef;
+}
+
+.btn-prev:hover:not(:disabled) {
+    background: #e9ecef;
+}
+
+.btn-next {
+    background: linear-gradient(135deg, #66fa95, #4CAF50);
+    color: #fff;
+}
+
+.btn-next:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 250, 149, 0.3);
+}
+
+.quiz-counter {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.results-container {
+    display: none;
+    text-align: center;
+    padding: 20px 20px;
+}
+
+.results-title {
+    font-size: 2rem;
+    font-weight: 300;
+    color: #2A322F;
+    margin-bottom: 20px;
+}
+
+.recommended-phone {
+    background: #fff;
+    border: 3px solid #66fa95;
+    color: #2A322F;
+    padding: 40px;
+    border-radius: 16px;
+    margin: 30px 0;
+    box-shadow: 0 15px 40px rgba(102, 250, 149, 0.2);
+    animation: fadeUp 0.6s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.recommended-phone::before {
+    content: '⭐ Cea mai bună alegere';
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #66fa95, #4CAF50);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.phone-name {
+    font-size: 1.8rem;
+    font-weight: 300;
+    margin-bottom: 10px;
+    color: #2A322F;
+}
+
+.phone-description {
+    font-size: 1.2rem;
+    color: #4CAF50;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.phone-features {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.phone-features li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(42, 50, 47, 0.1);
+}
+
+.phone-features li:last-child {
+    border-bottom: none;
+}
+
+.phone-stock {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.phone-stock:contains("În stoc") {
+    background: rgba(102, 250, 149, 0.2);
+    color: #2A322F;
+}
+
+.phone-stock:contains("Stoc epuizat") {
+    background: rgba(255, 0, 0, 0.1);
+    color: #d32f2f;
+}
+
+.btn-shop {
+    background: linear-gradient(135deg, #66fa95, #4CAF50);
+    color: #fff;
+    padding: 15px 40px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-shop:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 250, 149, 0.4);
+    color: #fff;
+}
+
+.alternative-phones {
+    margin-top: 40px;
+}
+
+.alternative-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2A322F;
+    margin-bottom: 20px;
+}
+
+.alternative-phone {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.alternative-phone:hover {
+    border-color: #66fa95;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 250, 149, 0.1);
+}
+
+.alternative-phone-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2A322F;
+    margin-bottom: 8px;
+}
+
+.alternative-phone-description {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.alternative-phone-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.alternative-phone-features li {
+    padding: 4px 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.btn-alternative {
+    background: #f8f9fa;
+    color: #2A322F;
+    padding: 10px 25px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    border: 2px solid #e9ecef;
+}
+
+.btn-alternative:hover {
+    background: #66fa95;
+    color: #fff;
+    border-color: #66fa95;
+    transform: translateY(-2px);
+}
+
+.restart-quiz {
+    background: #f8f9fa;
+    color: #666;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 30px;
+    transition: all 0.3s ease;
+    border: 2px solid #e9ecef;
+}
+
+.restart-quiz:hover {
+    background: #e9ecef;
+    color: #2A322F;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .quiz-container {
+        padding: 15px 20px;
+        margin: 10px;
+        border-radius: 15px;
+    }
+    
+    .quiz-title {
+        font-size: 2rem;
+    }
+    
+    .quiz-subtitle {
+        font-size: 1rem;
+    }
+    
+    .question-title {
+        font-size: 1.3rem;
+    }
+    
+    .option {
+        padding: 20px 24px;
+    }
+    
+    .option-text {
+        font-size: 1rem;
+        padding-left: 30px;
+    }
+    
+    .option::before {
+        left: 15px;
+        width: 18px;
+        height: 18px;
+    }
+    
+    .recommended-phone {
+        padding: 30px 20px;
+    }
+    
+    .phone-name {
+        font-size: 1.5rem;
+    }
+    
+    .phone-description {
+        font-size: 1.1rem;
+    }
+    
+    .btn-shop {
+        padding: 12px 30px;
+    }
+    
+    .alternative-phone {
+        padding: 20px;
+    }
+    
+    .alternative-phone-name {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .quiz-container {
+        padding: 10px 15px;
+        margin: 5px;
+    }
+    
+    .quiz-title {
+        font-size: 1.8rem;
+    }
+    
+    .quiz-subtitle {
+        font-size: 0.95rem;
+    }
+    
+    .question-title {
+        font-size: 1.2rem;
+    }
+    
+    .option {
+        padding: 18px 20px;
+    }
+    
+    .option-text {
+        font-size: 0.95rem;
+        padding-left: 28px;
+    }
+    
+    .option::before {
+        left: 12px;
+        width: 16px;
+        height: 16px;
+    }
+    
+    .btn-quiz {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .recommended-phone {
+        padding: 25px 15px;
+    }
+    
+    .phone-name {
+        font-size: 1.3rem;
+    }
+    
+    .phone-description {
+        font-size: 1rem;
+    }
+    
+    .btn-shop {
+        padding: 10px 25px;
+        font-size: 0.9rem;
+    }
+    
+    .alternative-phone {
+        padding: 15px;
+    }
+    
+    .alternative-phone-name {
+        font-size: 1.1rem;
+    }
+}
+
+/* Focus states for accessibility */
+.option:focus {
+    outline: 2px solid #66fa95;
+    outline-offset: 2px;
+}
+
+.btn-quiz:focus {
+    outline: 2px solid #66fa95;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .option {
+        border: 3px solid #000;
+    }
+    
+    .recommended-phone {
+        border: 4px solid #000;
+    }
+    
+    .alternative-phone {
+        border: 3px solid #000;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .option,
+    .btn-quiz,
+    .recommended-phone,
+    .alternative-phone {
+        transition: none;
+    }
+    
+    .option:hover,
+    .btn-quiz:hover,
+    .recommended-phone:hover,
+    .alternative-phone:hover {
+        transform: none;
+    }
+    
+    .quiz-progress-bar {
+        transition: none;
+    }
+    
+    .question-container {
+        animation: none;
+    }
+    
+    .recommended-phone {
+        animation: none;
+    }
+}

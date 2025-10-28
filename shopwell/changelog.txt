@@ -1,0 +1,48 @@
+= 1.0.9 - 17 September 2025  =
+* [Fixed]: Styling issues with block style.
+* [Fixed]: Styling issues with the WooCommerce checkout coupon form.
+* [Fixed]: Product images not displaying correctly on the WooCommerce checkout page.
+
+= 1.0.8 - 01 September 2025  =
+* [Fixed]: Mobile navigation icon style
+* [Fixed]: JS error in search box (instanceSearch function)
+* [Fixed]: Wishlist & Compare warning
+
+= 1.0.7 - 25 August 2025  =
+* [Updated]: WooCommerce 10.1 templates
+* [Enhanced]: Auto-focus added to mobile search field
+* [Enhanced]: Faster performance for AJAX search
+* [Fixed]: Quick-view not working with Product Card v3
+* [Fixed]: JS error in single-product.js (shopwell_countdown function)
+* [Fixed]: Hamburger menu title still redirected despite setting disabled
+
+= 1.0.6 - 28 July 2025  =
+* [Fixed]: WooCommerce-10.0.0 templates udpates.
+
+= 1.0.5 - 13 Jun 2025  =
+* [Fixed]: Product card layout 1 mobile screen add to card button style.
+* [Fixed]: Mega Menu Widget Image/Banner Hover Style.
+* [Fixed]: Button text for WC Boost Wishlist and Compare can now be customized via the WordPress Customizer.
+* [Fixed]: Top categories issue on shop page.
+* [Fixed]: WooCommerce-9.9.0 templates udpates.
+
+= 1.0.4 =
+* [New]: Allow users to select a prebuilt header for mobile screen from Customizing ▸ Mobile ▸ Header Layout ▸ Prebuilt Heade.
+* [New]: Show wishlist and compare Ajax counter in header.
+* [Fixed]: Product preview in Elementor editor mode.
+
+= 1.0.3 =
+* [Fixed]: Theme URI added.
+* [New]: Upsell button added in customizer.
+
+= 1.0.2 =
+* [Fixed]: More than one text domain.
+
+= 1.0.1 =
+* [Fixed]: Accessibility issues.
+* [Fixed]: Skip content link not exists.
+* [Fixed]: Invalid theme tags.
+* [udpate]: Screenshot.
+
+= 1.0.0 =
+* Initial release 🚀

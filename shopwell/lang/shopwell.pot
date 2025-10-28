@@ -1,0 +1,3464 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Shopwell\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-09 23:36+0530\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"X-Generator: Poedit 3.0.1\n"
+"X-Loco-Version: 2.6.6; wp-6.4.3\n"
+"X-Domain: shopwell\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.js\n"
+
+#: 404.php:19
+msgid "Oops!"
+msgstr ""
+
+#: 404.php:21 404.php:35
+msgid "We&rsquo;re sorry! This page is currently unavailable. Please try again later."
+msgstr ""
+
+#: 404.php:24 404.php:38
+msgid "Go to Homepage"
+msgstr ""
+
+#: 404.php:29
+msgid "404 Image"
+msgstr ""
+
+#: 404.php:32
+msgid "404"
+msgstr ""
+
+#: 404.php:34 inc/page-header.php:214
+msgid "Page Not Found"
+msgstr ""
+
+#: comments.php:34
+#, php-format
+msgctxt "comments title"
+msgid "Comment (%1$s)"
+msgid_plural "Comments (%1$s)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: comments.php:58
+msgid "Comments are closed."
+msgstr ""
+
+#: comments.php:60
+msgid "Comment"
+msgstr ""
+
+#: dokan/store-lists-filter.php:28 inc/woocommerce/catalog.php:816
+#: inc/woocommerce/catalog.php:833
+msgid "Filter"
+msgstr ""
+
+#: dokan/store-lists-filter.php:35
+#, php-format
+msgid "Total store showing: %s"
+msgid_plural "Total stores showing: %s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: dokan/store-lists-filter.php:45 dokan/store-lists-filter.php:47
+#: template-parts/panels/mobile-orderby.php:19
+msgid "Sort by"
+msgstr ""
+
+#: dokan/store-lists-filter.php:73
+msgid "Search Vendors"
+msgstr ""
+
+#: dokan/store-lists-filter.php:82
+msgid "Cancel"
+msgstr ""
+
+#: dokan/store-lists-filter.php:83
+msgid "Apply"
+msgstr ""
+
+#: dokan/vendor-store-info.php:30
+#, php-format
+msgid "%s Review"
+msgid_plural "%s Reviews"
+msgstr[0] ""
+msgstr[1] ""
+
+#: footer.php:39
+msgid "Footer widget."
+msgstr ""
+
+#: footer.php:47
+msgid "Click here to assign a widget."
+msgstr ""
+
+#: header.php:26
+msgid "Skip to content"
+msgstr ""
+
+#: inc/admin/dashboard/helpers.php:53
+msgid "Dismiss"
+msgstr ""
+
+#: inc/admin/dashboard/helpers.php:251
+msgid "How to use"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:155
+msgid "Install"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:156
+msgid "Installing..."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:157
+msgid "Activating..."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:158
+msgid "Deactivating..."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:159
+msgid "Active"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:160
+msgid "Retry"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:161
+msgid "Please Wait..."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:162
+msgid "Importing... Please Wait..."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:163
+msgid "Currently processing: "
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:164
+msgid "Import"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:165
+msgid "Import Demo"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:166
+msgid "The demo importer is still working. Closing this window may result in failed import."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:167
+msgid "Import Complete!"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:168
+msgid "The demo has been imported."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:168
+msgid "Visit site."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:197
+#: inc/admin/dashboard/shopwell-dashboard.php:78
+msgid "Shopwell Theme"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:240
+msgid "Customize"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:241
+#: inc/admin/dashboard/shopwell-admin.php:264
+#: inc/admin/dashboard/shopwell-dashboard.php:221
+msgid "Help Articles"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:265
+msgid "Join Facebook Group"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:266
+msgid "Leave a Review"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:310
+#, php-format
+msgid "Shopwell theme recommends the following plugins: %1$s."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-admin.php:321
+msgid "Install Now"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:89
+msgid "Plugins"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:103
+#: inc/admin/dashboard/shopwell-dashboard.php:458
+msgid "Changelog"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:128
+msgid "Getting Started"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:135
+#: inc/admin/dashboard/shopwell-dashboard.php:139
+msgid "Install Plugins"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:136
+msgid "Explore recommended plugins. These free plugins provide additional features and customization options."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:146
+msgid "Start with a Template"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:147
+msgid "Don&rsquo;t want to start from scratch? Import a pre-built demo website in 1-click and get a head start."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:154
+msgid "Activate Hester Core"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:159
+msgid "Install Hester Core"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:164
+msgid "Browse Demos"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:184
+msgid "Upload Your Logo"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:185
+msgid "Kick off branding your new site by uploading your logo. Simply upload your logo and customize as you need."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:188
+msgid "Upload Logo"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:195
+msgid "Change Menus"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:196
+msgid "Customize menu links and choose what&rsquo;s displayed in available theme menu locations."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:199
+msgid "Go to Menus"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:206
+#: inc/admin/dashboard/shopwell-dashboard.php:210
+msgid "Change Colors"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:207
+msgid "Replace the default theme colors and make your website color scheme match your brand design."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:217
+#: inc/customizer/settings.php:380
+msgid "Need Help?"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:218
+msgid "Head over to our site to learn more about the Shopwell theme, read help articles and get support."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:232
+msgid "Let‘s customize your website"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:233
+msgid "There are many changes you can make to customize your website. Explore Shopwell customization options and make it unique."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:236
+msgid "Start Customizing"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:263
+#: inc/admin/dashboard/shopwell-dashboard.php:452
+msgid "Recommended Plugins"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:275
+#: inc/customizer/ui/plugin-install-helper/class-shopwell-customizer-plugin-install-helper.php:128
+msgid "Deactivate"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:277
+msgid "Plugin activated"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:280
+#: inc/customizer/ui/plugin-install-helper/class-shopwell-customizer-plugin-install-helper.php:113
+#: inc/customizer/ui/plugin-install-helper/class-shopwell-customizer-plugin-install-helper.php:133
+msgid "Activate"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:285
+msgid "Install & Activate"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:334
+msgid "Changelog file not found."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:336
+msgid "Changelog file not readable."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:353
+msgid "Shopwell Theme Changelog"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:446
+msgid "About"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:481
+#: inc/admin/dashboard/shopwell-dashboard.php:512
+msgid "Missing plugin data"
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:495
+msgid "Failed to activate plugin. Missing plugin data."
+msgstr ""
+
+#: inc/admin/dashboard/shopwell-dashboard.php:525
+msgid "Failed to deactivate plugin. Missing plugin data."
+msgstr ""
+
+#: inc/admin/meta-boxes.php:93
+msgid "Display Settings"
+msgstr ""
+
+#: inc/admin/meta-boxes.php:99
+msgid "Meta Options"
+msgstr ""
+
+#: inc/admin/meta-boxes.php:105
+msgid "Hide Page Header"
+msgstr ""
+
+#: inc/admin/meta-boxes.php:111
+msgid "Hide Title"
+msgstr ""
+
+#: inc/admin/meta-boxes.php:118
+msgid "Hide Breadcrumb"
+msgstr ""
+
+#: inc/admin/meta-boxes.php:125
+msgid "Content Top Spacing"
+msgstr ""
+
+#: inc/admin/meta-boxes.php:129 inc/admin/meta-boxes.php:138
+#: inc/customizer/controls/gallery/class-shopwell-customizer-control-gallery.php:53
+#: inc/customizer/settings.php:93 inc/customizer/settings.php:521
+#: inc/customizer/settings.php:1117 inc/customizer/settings.php:1154
+#: inc/woocommerce/catalog.php:745 inc/woocommerce/catalog.php:852
+#: inc/woocommerce/product.php:154
+msgid "Default"
+msgstr ""
+
+#: inc/admin/meta-boxes.php:130 inc/admin/meta-boxes.php:139
+msgid "No spacing"
+msgstr ""
+
+#: inc/admin/meta-boxes.php:134
+msgid "Content Bottom Spacing"
+msgstr ""
+
+#: inc/admin/meta-boxes.php:143
+msgid "Category Menu Display"
+msgstr ""
+
+#: inc/admin/meta-boxes.php:147
+msgid "On Click"
+msgstr ""
+
+#: inc/admin/meta-boxes.php:148
+msgid "On Page Load"
+msgstr ""
+
+#: inc/admin/utilities/shopwell-plugin-utilities.php:91
+#: inc/admin/utilities/shopwell-plugin-utilities.php:145
+msgid "Current user can't activate plugins"
+msgstr ""
+
+#: inc/admin/utilities/shopwell-plugin-utilities.php:99
+#: inc/admin/utilities/shopwell-plugin-utilities.php:153
+msgid "Missing plugin data."
+msgstr ""
+
+#: inc/admin/utilities/shopwell-plugin-utilities.php:114
+#, php-format
+msgid "Plugin %s is not installed."
+msgstr ""
+
+#: inc/admin/utilities/shopwell-plugin-utilities.php:168
+#, php-format
+msgid "Plugin %s is not active."
+msgstr ""
+
+#: inc/blog/archive.php:125
+#, php-format
+msgid "Search Results for: %s"
+msgstr ""
+
+#: inc/blog/main.php:343 inc/blog/posts-heading.php:42
+#: inc/blog/posts-heading.php:76
+msgid "Recent Posts"
+msgstr ""
+
+#: inc/blog/navigation.php:57
+msgid "Load More"
+msgstr ""
+
+#: inc/blog/navigation.php:78
+msgid "Next posts navigation"
+msgstr ""
+
+#: inc/blog/navigation.php:80
+msgid "Loading more...."
+msgstr ""
+
+#: inc/blog/navigation.php:107
+msgid "Posts"
+msgstr ""
+
+#: inc/blog/navigation.php:107
+msgid "Post"
+msgstr ""
+
+#: inc/blog/navigation.php:120 inc/woocommerce/catalog.php:968
+msgid "Showing"
+msgstr ""
+
+#: inc/blog/navigation.php:122 inc/woocommerce/catalog.php:970
+msgid "of"
+msgstr ""
+
+#: inc/blog/post-trending.php:81 inc/blog/post.php:360
+msgid "Read More"
+msgstr ""
+
+#: inc/blog/post.php:283
+#, php-format
+msgctxt "post author"
+msgid "By %s"
+msgstr ""
+
+#: inc/blog/post.php:393 template-parts/buttons/product-share.php:12
+#: template-parts/modals/socials.php:14
+msgid "Share"
+msgstr ""
+
+#: inc/blog/posts-heading.php:79
+msgid "Popular Posts"
+msgstr ""
+
+#: inc/blog/posts-heading.php:82 inc/customizer/settings.php:1063
+#: template-parts/post/featured-posts.php:27
+msgid "Featured Posts"
+msgstr ""
+
+#: inc/breadcrumb.php:132 template-parts/navigation-bar/home.php:11
+msgid "Home"
+msgstr ""
+
+#: inc/breadcrumb.php:133
+msgid "Archives"
+msgstr ""
+
+#: inc/breadcrumb.php:134 inc/customizer/settings.php:192
+msgid "Blog"
+msgstr ""
+
+#: inc/breadcrumb.php:135
+msgid "Search results for"
+msgstr ""
+
+#: inc/breadcrumb.php:136
+msgid "Not Found"
+msgstr ""
+
+#: inc/breadcrumb.php:137
+msgid "Portfolio"
+msgstr ""
+
+#: inc/breadcrumb.php:138
+msgid "Author:"
+msgstr ""
+
+#: inc/breadcrumb.php:139
+msgid "Daily:"
+msgstr ""
+
+#: inc/breadcrumb.php:140
+msgid "Monthly:"
+msgstr ""
+
+#: inc/breadcrumb.php:141
+msgid "Yearly:"
+msgstr ""
+
+#: inc/breadcrumb.php:316 inc/breadcrumb.php:322 inc/breadcrumb.php:328
+#, php-format
+msgid "%1$s %2$s"
+msgstr ""
+
+#: inc/comments.php:64 woocommerce/single-product-reviews.php:94
+msgid "Name"
+msgstr ""
+
+#: inc/comments.php:68 woocommerce/myaccount/form-lost-password.php:31
+#: woocommerce/single-product-reviews.php:101
+msgid "Email"
+msgstr ""
+
+#: inc/comments.php:150
+#, php-format
+msgid "%1$s at %2$s"
+msgstr ""
+
+#: inc/comments.php:154
+msgid "Your comment is awaiting moderation."
+msgstr ""
+
+#: inc/comments.php:163 woocommerce/myaccount/my-address.php:66
+msgid "Edit"
+msgstr ""
+
+#: inc/customizer/controls/alignment/class-shopwell-customizer-control-alignment.php:44
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:117
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:604
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:771
+msgid "Top Left"
+msgstr ""
+
+#: inc/customizer/controls/alignment/class-shopwell-customizer-control-alignment.php:45
+msgid "Top"
+msgstr ""
+
+#: inc/customizer/controls/alignment/class-shopwell-customizer-control-alignment.php:46
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:118
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:605
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:772
+msgid "Top Right"
+msgstr ""
+
+#: inc/customizer/controls/alignment/class-shopwell-customizer-control-alignment.php:47
+#: inc/woocommerce/customizer.php:334
+msgid "Left"
+msgstr ""
+
+#: inc/customizer/controls/alignment/class-shopwell-customizer-control-alignment.php:48
+#: inc/woocommerce/customizer.php:333
+msgid "Center"
+msgstr ""
+
+#: inc/customizer/controls/alignment/class-shopwell-customizer-control-alignment.php:49
+msgid "Right"
+msgstr ""
+
+#: inc/customizer/controls/alignment/class-shopwell-customizer-control-alignment.php:50
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:120
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:607
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:774
+msgid "Bottom Left"
+msgstr ""
+
+#: inc/customizer/controls/alignment/class-shopwell-customizer-control-alignment.php:51
+msgid "Bottom"
+msgstr ""
+
+#: inc/customizer/controls/alignment/class-shopwell-customizer-control-alignment.php:52
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:121
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:608
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:775
+msgid "Bottom Right"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:59
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:120
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:125
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:314
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:197
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:801
+msgid "No image selected"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:60
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:126
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:198
+msgid "Less Settings"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:61
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:131
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:127
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:326
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:199
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:813
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:118
+msgid "Advanced"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:62
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:128
+#: inc/customizer/controls/image/class-shopwell-customizer-control-image.php:53
+#: inc/customizer/controls/image/class-shopwell-customizer-control-image.php:99
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:200
+msgid "Select Image"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:63
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:129
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:201
+msgid "Use This Image"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:125
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:321
+#: inc/customizer/controls/gallery/class-shopwell-customizer-control-gallery.php:54
+#: inc/customizer/controls/image/class-shopwell-customizer-control-image.php:54
+#: inc/customizer/controls/image/class-shopwell-customizer-control-image.php:100
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:462
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:482
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:808
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:1023
+#: inc/woocommerce/compare.php:137 inc/woocommerce/wishlist.php:145
+#: woocommerce/cart/cart.php:109
+msgid "Remove"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:147
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:340
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:827
+msgid "No Repeat"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:148
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:341
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:828
+msgid "Repeat All"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:149
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:342
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:829
+msgid "Repeat Horizontally"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:150
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:343
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:830
+msgid "Repeat Vertically"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:157
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:350
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:837
+msgid "Background Position"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:160
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:353
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:840
+msgid "Horizontal"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:178
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:372
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:860
+msgid "Vertical"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:199
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:394
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:883
+msgid "Background Size"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:202
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:397
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:886
+msgid "Cover"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:205
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:400
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:889
+msgid "Contain"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:208
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:403
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:892
+msgid "Auto"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:215
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:410
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:899
+msgid "Background Attachment"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:218
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:413
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:902
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:128
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:132
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:154
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:161
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:168
+msgid "Inherit"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:221
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:416
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:905
+msgid "Scroll"
+msgstr ""
+
+#: inc/customizer/controls/background/class-shopwell-customizer-control-background.php:224
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:419
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:908
+msgid "Fixed"
+msgstr ""
+
+#: inc/customizer/controls/class-shopwell-customizer-control.php:58
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:231
+msgid "Desktop"
+msgstr ""
+
+#: inc/customizer/controls/class-shopwell-customizer-control.php:62
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:235
+msgid "Tablet"
+msgstr ""
+
+#: inc/customizer/controls/class-shopwell-customizer-control.php:66
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:239
+#: inc/customizer/settings.php:200
+msgid "Mobile"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:102
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:107
+msgid "Type"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:104
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:489
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:675
+msgid "Color 1"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:105
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:517
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:703
+msgid "Color 2"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:106
+msgid "Location"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:108
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:549
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:734
+msgid "Linear"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:109
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:550
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:735
+msgid "Radial"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:110
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:557
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:742
+msgid "Angle"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:111
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:579
+msgid "Position"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:113
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:600
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:767
+msgid "Center Center"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:114
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:601
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:768
+msgid "Center Left"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:115
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:602
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:769
+msgid "Center Right"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:116
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:603
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:770
+msgid "Top Center"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:119
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:606
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:773
+msgid "Bottom Center"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:132
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:981
+msgid "Solid"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:133
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:982
+msgid "Dotted"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:134
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:983
+msgid "Dashed"
+msgstr ""
+
+#: inc/customizer/controls/design-options/class-shopwell-customizer-control-design-options.php:427
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:916
+msgid "Overlay Color"
+msgstr ""
+
+#: inc/customizer/controls/gallery/class-shopwell-customizer-control-gallery.php:51
+msgid "Select Images"
+msgstr ""
+
+#: inc/customizer/controls/gallery/class-shopwell-customizer-control-gallery.php:52
+msgid "Modify Gallery"
+msgstr ""
+
+#: inc/customizer/controls/gallery/class-shopwell-customizer-control-gallery.php:55
+msgid "No images selected"
+msgstr ""
+
+#: inc/customizer/controls/gallery/class-shopwell-customizer-control-gallery.php:56
+msgid "Select Gallery Images"
+msgstr ""
+
+#: inc/customizer/controls/gallery/class-shopwell-customizer-control-gallery.php:57
+msgid "Choose Images"
+msgstr ""
+
+#: inc/customizer/controls/image/class-shopwell-customizer-control-image.php:50
+msgid "Select or Upload Image"
+msgstr ""
+
+#: inc/customizer/controls/image/class-shopwell-customizer-control-image.php:51
+msgid "Use this image"
+msgstr ""
+
+#: inc/customizer/controls/image/class-shopwell-customizer-control-image.php:52
+#: inc/customizer/controls/image/class-shopwell-customizer-control-image.php:99
+msgid "Change Image"
+msgstr ""
+
+#: inc/customizer/controls/info/class-shopwell-customizer-control-info.php:103
+msgid "Learn More"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:124
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:312
+msgid "Item"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:190
+msgid "Add new item"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:408
+msgid "Select Link"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:463
+#: woocommerce/myaccount/my-address.php:62
+msgid "Add"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:463
+msgid "Change"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:495
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:524
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:682
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:710
+msgid "Color location"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:546
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:731
+msgid "Gradient type"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:647
+msgid "Background type"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:662
+msgid "Background color"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:763
+msgid "Gradient position"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:810
+msgid "Select image"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:1025
+#: template-parts/modals/aws-search.php:26 template-parts/modals/search.php:34
+msgid "Close"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:1047
+#: inc/customizer/settings.php:121 inc/customizer/settings.php:154
+#: inc/customizer/settings.php:267 inc/help-center/page-header.php:137
+#: template-parts/header/search-icon.php:23
+#: template-parts/searchs/button.php:16
+msgid "Search"
+msgstr ""
+
+#: inc/customizer/controls/repeater/class-shopwell-customizer-control-repeater.php:1051
+msgid "Font Awesome"
+msgstr ""
+
+#: inc/customizer/controls/spacing/class-shopwell-customizer-control-spacing.php:45
+msgid "Link values"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:119
+msgid "Font Family"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:120
+msgid "Languages"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:121
+msgid "Weight"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:122
+msgid "Size"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:123
+msgid "Style"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:124
+msgid "Transform"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:125
+msgid "Decoration"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:126
+msgid "Line Height"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:127
+msgid "Letter Spacing"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:129
+msgid "Default System Font"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:130
+msgid "Color"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:133
+msgid "Thin 100"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:134
+msgid "Thin 100 Italic"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:135
+msgid "Extra-Thin 200"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:136
+msgid "Extra-Thin 200 Italic"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:137
+msgid "Light 300"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:138
+msgid "Light 300 Italic"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:139
+msgid "Normal 400"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:140
+msgid "Normal 400 Italic"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:141
+msgid "Medium 500"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:142
+msgid "Medium 500 Italic"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:143
+msgid "Semi-Bold 600"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:144
+msgid "Semi-Bold 600 Italic"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:145
+msgid "Bold 700"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:146
+msgid "Bold 700 Italic"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:147
+msgid "Extra-Bold 800"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:148
+msgid "Extra-Bold 800 Italic"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:149
+msgid "Black 900"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:150
+msgid "Black 900 Italic"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:155
+msgid "Uppercase"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:156
+msgid "Lowercase"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:157
+msgid "Capitalize"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:158
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:165
+#: inc/woocommerce/customizer.php:745 inc/woocommerce/product.php:155
+msgid "None"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:162
+msgid "Underline"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:163
+msgid "Overline"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:164
+msgid "Line Through"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:169
+msgid "Normal"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:170
+msgid "Italic"
+msgstr ""
+
+#: inc/customizer/controls/typography/class-shopwell-customizer-control-typography.php:171
+msgid "Oblique"
+msgstr ""
+
+#: inc/customizer/controls/widget/class-shopwell-customizer-control-widget.php:160
+msgid "Add Widget"
+msgstr ""
+
+#: inc/customizer/customizer.php:128
+msgid "Logos &amp; Site Title"
+msgstr ""
+
+#: inc/customizer/customizer.php:132
+msgid "Upload your logo image here."
+msgstr ""
+
+#: inc/customizer/customizer.php:150
+msgid "Enter the name of your site here."
+msgstr ""
+
+#: inc/customizer/customizer.php:156
+msgid "A tagline is a short phrase, or sentence, used to convey the essence of the site."
+msgstr ""
+
+#: inc/customizer/customizer.php:478
+msgid "Select a category"
+msgstr ""
+
+#: inc/customizer/settings.php:66 inc/customizer/settings.php:115
+#: inc/customizer/settings.php:147
+msgid "Select an Item"
+msgstr ""
+
+#: inc/customizer/settings.php:67 inc/customizer/settings.php:122
+#: inc/customizer/settings.php:291 inc/customizer/settings.php:411
+#: inc/customizer/settings.php:998 inc/theme.php:285
+msgid "Primary Menu"
+msgstr ""
+
+#: inc/customizer/settings.php:68 inc/customizer/settings.php:123
+#: inc/customizer/settings.php:295 inc/theme.php:286
+msgid "Secondary Menu"
+msgstr ""
+
+#: inc/customizer/settings.php:69 inc/customizer/settings.php:130
+#: inc/customizer/settings.php:155 inc/helper.php:668
+#: template-parts/panels/preferences-menu.php:14
+msgid "Language"
+msgstr ""
+
+#: inc/customizer/settings.php:70 inc/customizer/settings.php:131
+#: inc/customizer/settings.php:156 inc/woocommerce/currency.php:144
+#: inc/woocommerce/currency.php:195
+#: template-parts/panels/preferences-menu.php:31
+msgid "Currency"
+msgstr ""
+
+#: inc/customizer/settings.php:71
+msgid "Language/Currency"
+msgstr ""
+
+#: inc/customizer/settings.php:72 inc/customizer/settings.php:126
+msgid "Socials"
+msgstr ""
+
+#: inc/customizer/settings.php:73 inc/customizer/settings.php:125
+#: inc/customizer/settings.php:153
+msgid "Hamburger Menu"
+msgstr ""
+
+#: inc/customizer/settings.php:94
+msgid "Header V1"
+msgstr ""
+
+#: inc/customizer/settings.php:95
+msgid "Header V2"
+msgstr ""
+
+#: inc/customizer/settings.php:116 inc/customizer/settings.php:148
+#: inc/customizer/settings.php:263
+msgid "Logo"
+msgstr ""
+
+#: inc/customizer/settings.php:117 inc/customizer/settings.php:149
+#: inc/customizer/settings.php:283 inc/header/main.php:897
+#: inc/header/main.php:901 inc/header/mobile.php:668
+#: template-parts/navigation-bar/cart.php:33
+msgid "Cart"
+msgstr ""
+
+#: inc/customizer/settings.php:118 inc/customizer/settings.php:150
+#: inc/customizer/settings.php:275 inc/customizer/settings.php:1335
+#: inc/header/main.php:809 inc/header/main.php:814
+#: inc/woocommerce/catalog.php:1044 inc/woocommerce/customizer.php:298
+#: inc/woocommerce/wishlist.php:134
+#: template-parts/navigation-bar/wishlist.php:22
+msgid "Wishlist"
+msgstr ""
+
+#: inc/customizer/settings.php:119 inc/customizer/settings.php:151
+#: inc/customizer/settings.php:279 inc/customizer/settings.php:1339
+#: inc/header/main.php:850 inc/header/main.php:855
+#: inc/woocommerce/compare.php:126 inc/woocommerce/compare.php:175
+#: inc/woocommerce/customizer.php:314
+#: template-parts/navigation-bar/compare.php:27
+msgid "Compare"
+msgstr ""
+
+#: inc/customizer/settings.php:120 inc/customizer/settings.php:152
+#: inc/customizer/settings.php:271 inc/header/main.php:744
+#: inc/header/main.php:749 inc/header/main.php:756
+#: template-parts/header/account.php:64
+#: template-parts/navigation-bar/account.php:15
+#: template-parts/panels/account.php:29
+msgid "Account"
+msgstr ""
+
+#: inc/customizer/settings.php:124 inc/customizer/settings.php:299
+#: inc/customizer/settings.php:1330 inc/theme.php:287
+msgid "Category Menu"
+msgstr ""
+
+#: inc/customizer/settings.php:127 inc/customizer/settings.php:319
+msgid "Return Button"
+msgstr ""
+
+#: inc/customizer/settings.php:128 inc/customizer/settings.php:311
+msgid "Custom Text"
+msgstr ""
+
+#: inc/customizer/settings.php:129 inc/customizer/settings.php:315
+msgid "Empty Space"
+msgstr ""
+
+#: inc/customizer/settings.php:132 inc/customizer/settings.php:157
+#: inc/customizer/settings.php:303 inc/customizer/settings.php:1331
+#: template-parts/modals/preferences.php:16
+#: template-parts/panels/preferences-menu.php:10
+msgid "Preferences"
+msgstr ""
+
+#: inc/customizer/settings.php:133 inc/customizer/settings.php:158
+#: inc/customizer/settings.php:307
+msgid "View History"
+msgstr ""
+
+#: inc/customizer/settings.php:180
+msgid "General"
+msgstr ""
+
+#: inc/customizer/settings.php:184
+msgid "Typography"
+msgstr ""
+
+#: inc/customizer/settings.php:188
+msgid "Header"
+msgstr ""
+
+#: inc/customizer/settings.php:196
+msgid "Page"
+msgstr ""
+
+#: inc/customizer/settings.php:207
+msgid "Styling"
+msgstr ""
+
+#: inc/customizer/settings.php:211
+msgid "API Keys"
+msgstr ""
+
+#: inc/customizer/settings.php:215 inc/customizer/settings.php:562
+msgid "Back To Top"
+msgstr ""
+
+#: inc/customizer/settings.php:219
+msgid "Share Socials"
+msgstr ""
+
+#: inc/customizer/settings.php:223
+msgid "Main"
+msgstr ""
+
+#: inc/customizer/settings.php:227
+msgid "Headings"
+msgstr ""
+
+#: inc/customizer/settings.php:231
+msgid "Header Logo Text"
+msgstr ""
+
+#: inc/customizer/settings.php:235
+msgid "Topbar"
+msgstr ""
+
+#: inc/customizer/settings.php:239 inc/customizer/settings.php:391
+msgid "Header Layout"
+msgstr ""
+
+#: inc/customizer/settings.php:243
+msgid "Header Main"
+msgstr ""
+
+#: inc/customizer/settings.php:247
+msgid "Header Bottom"
+msgstr ""
+
+#: inc/customizer/settings.php:251 inc/customizer/settings.php:760
+msgid "Sticky Header"
+msgstr ""
+
+#: inc/customizer/settings.php:255
+msgid "Header Background"
+msgstr ""
+
+#: inc/customizer/settings.php:259 inc/customizer/settings.php:797
+msgid "Campaign Bar"
+msgstr ""
+
+#: inc/customizer/settings.php:287
+msgid "Hamburger"
+msgstr ""
+
+#: inc/customizer/settings.php:325
+msgid "Footer"
+msgstr ""
+
+#: inc/customizer/settings.php:332 inc/customizer/settings.php:350
+#: inc/customizer/settings.php:402 inc/customizer/settings.php:456
+#: inc/customizer/settings.php:707
+msgid "Prebuilt Header"
+msgstr ""
+
+#: inc/customizer/settings.php:336
+msgid "Blog Header"
+msgstr ""
+
+#: inc/customizer/settings.php:340
+msgid "Blog Archive"
+msgstr ""
+
+#: inc/customizer/settings.php:344
+msgid "Blog Single"
+msgstr ""
+
+#: inc/customizer/settings.php:358 inc/woocommerce/customizer.php:111
+msgid "Page Header"
+msgstr ""
+
+#: inc/customizer/settings.php:367
+msgid "RTL"
+msgstr ""
+
+#: inc/customizer/settings.php:373
+msgid "Need more features?"
+msgstr ""
+
+#: inc/customizer/settings.php:375
+msgid "Upgrade to pro"
+msgstr ""
+
+#: inc/customizer/settings.php:382
+msgid "See the docs"
+msgstr ""
+
+#: inc/customizer/settings.php:403
+msgid "Select a prebuilt header for pages"
+msgstr ""
+
+#: inc/customizer/settings.php:422
+msgid "Enable Page Header"
+msgstr ""
+
+#: inc/customizer/settings.php:423
+msgid "Enable to show a page header for the page below the site header"
+msgstr ""
+
+#: inc/customizer/settings.php:429 inc/woocommerce/customizer.php:683
+#: inc/woocommerce/customizer.php:697
+msgid "Page Header Elements"
+msgstr ""
+
+#: inc/customizer/settings.php:433 inc/customizer/settings.php:1018
+#: inc/woocommerce/customizer.php:686 inc/woocommerce/customizer.php:700
+msgid "BreadCrumb"
+msgstr ""
+
+#: inc/customizer/settings.php:436 inc/customizer/settings.php:1021
+#: inc/woocommerce/customizer.php:689 inc/woocommerce/customizer.php:703
+msgid "Title"
+msgstr ""
+
+#: inc/customizer/settings.php:439 inc/customizer/settings.php:1024
+msgid "Select which elements you want to show."
+msgstr ""
+
+#: inc/customizer/settings.php:472
+msgid "Logo Width"
+msgstr ""
+
+#: inc/customizer/settings.php:487
+msgid "Logo Height"
+msgstr ""
+
+#: inc/customizer/settings.php:503
+msgid "Display Tagline"
+msgstr ""
+
+#: inc/customizer/settings.php:519
+msgid "Shape"
+msgstr ""
+
+#: inc/customizer/settings.php:522
+msgid "Sharp"
+msgstr ""
+
+#: inc/customizer/settings.php:523
+msgid "Smooth"
+msgstr ""
+
+#: inc/customizer/settings.php:524
+msgid "Round"
+msgstr ""
+
+#: inc/customizer/settings.php:525
+msgid "Circle"
+msgstr ""
+
+#: inc/customizer/settings.php:531
+msgid "Primary Color"
+msgstr ""
+
+#: inc/customizer/settings.php:536
+msgid "Text on Primary Color"
+msgstr ""
+
+#: inc/customizer/settings.php:538
+msgid "Light"
+msgstr ""
+
+#: inc/customizer/settings.php:539
+msgid "Dark"
+msgstr ""
+
+#: inc/customizer/settings.php:540
+msgid "Custom"
+msgstr ""
+
+#: inc/customizer/settings.php:546
+msgid "Custom Color"
+msgstr ""
+
+#: inc/customizer/settings.php:563
+msgid "Check this to show back to top."
+msgstr ""
+
+#: inc/customizer/settings.php:573
+msgid "Body & Content"
+msgstr ""
+
+#: inc/customizer/settings.php:579
+msgid "Body"
+msgstr ""
+
+#: inc/customizer/settings.php:580
+msgid "Customize the body font"
+msgstr ""
+
+#: inc/customizer/settings.php:594
+msgid "HEADINGS (H1 - H6)"
+msgstr ""
+
+#: inc/customizer/settings.php:601
+msgid "Heading 1"
+msgstr ""
+
+#: inc/customizer/settings.php:602
+msgid "Customize the H1 font"
+msgstr ""
+
+#: inc/customizer/settings.php:616
+msgid "Heading 2"
+msgstr ""
+
+#: inc/customizer/settings.php:617
+msgid "Customize the H2 font"
+msgstr ""
+
+#: inc/customizer/settings.php:630
+msgid "Heading 3"
+msgstr ""
+
+#: inc/customizer/settings.php:631
+msgid "Customize the H3 font"
+msgstr ""
+
+#: inc/customizer/settings.php:644
+msgid "Heading 4"
+msgstr ""
+
+#: inc/customizer/settings.php:645
+msgid "Customize the H4 font"
+msgstr ""
+
+#: inc/customizer/settings.php:658
+msgid "Heading 5"
+msgstr ""
+
+#: inc/customizer/settings.php:659
+msgid "Customize the H5 font"
+msgstr ""
+
+#: inc/customizer/settings.php:672
+msgid "Heading 6"
+msgstr ""
+
+#: inc/customizer/settings.php:673
+msgid "Customize the H6 font"
+msgstr ""
+
+#: inc/customizer/settings.php:690
+msgid "Logo Font"
+msgstr ""
+
+#: inc/customizer/settings.php:708
+msgid "Select a prebuilt header present"
+msgstr ""
+
+#: inc/customizer/settings.php:722
+msgid "Enable menu cutoff"
+msgstr ""
+
+#: inc/customizer/settings.php:735
+msgid "Menu cutoff up to"
+msgstr ""
+
+#: inc/customizer/settings.php:762
+msgid "No sticky"
+msgstr ""
+
+#: inc/customizer/settings.php:763
+msgid "Sticky"
+msgstr ""
+
+#: inc/customizer/settings.php:774
+msgid "Background Color"
+msgstr ""
+
+#: inc/customizer/settings.php:781 inc/customizer/settings.php:870
+#: inc/customizer/settings.php:971
+msgid "Text Color"
+msgstr ""
+
+#: inc/customizer/settings.php:788
+msgid "Border Color"
+msgstr ""
+
+#: inc/customizer/settings.php:798
+msgid "Display a bar before, after the site header."
+msgstr ""
+
+#: inc/customizer/settings.php:805
+msgid "Campaign Items"
+msgstr ""
+
+#: inc/customizer/settings.php:807
+msgid "[live_title]"
+msgstr ""
+
+#: inc/customizer/settings.php:808
+msgid "Add Campaign"
+msgstr ""
+
+#: inc/customizer/settings.php:811
+#, php-format
+msgid "Upgrade to %s to add more items and unlock additional premium features!"
+msgstr ""
+
+#: inc/customizer/settings.php:820
+msgid "Icon"
+msgstr ""
+
+#: inc/customizer/settings.php:824 inc/woocommerce/customizer.php:414
+msgid "Text"
+msgstr ""
+
+#: inc/customizer/settings.php:828
+msgid "Link"
+msgstr ""
+
+#: inc/customizer/settings.php:845 inc/customizer/settings.php:948
+msgid "Background"
+msgstr ""
+
+#: inc/customizer/settings.php:848 inc/customizer/settings.php:951
+msgid "Solid Color"
+msgstr ""
+
+#: inc/customizer/settings.php:849 inc/customizer/settings.php:952
+msgid "Gradient"
+msgstr ""
+
+#: inc/customizer/settings.php:850 inc/customizer/settings.php:953
+msgid "Image"
+msgstr ""
+
+#: inc/customizer/settings.php:867 inc/customizer/settings.php:968
+msgid "Font Color"
+msgstr ""
+
+#: inc/customizer/settings.php:871 inc/customizer/settings.php:972
+msgid "Link Color"
+msgstr ""
+
+#: inc/customizer/settings.php:872 inc/customizer/settings.php:973
+msgid "Link Hover Color"
+msgstr ""
+
+#: inc/customizer/settings.php:891
+msgid "Search Bar"
+msgstr ""
+
+#: inc/customizer/settings.php:893
+msgid "Default of the theme"
+msgstr ""
+
+#: inc/customizer/settings.php:894
+msgid "Using a shortcode"
+msgstr ""
+
+#: inc/customizer/settings.php:901
+msgid "Shortcode"
+msgstr ""
+
+#: inc/customizer/settings.php:902
+msgid "Add search form using shortcode such as [fibosearch]"
+msgstr ""
+
+#: inc/customizer/settings.php:917
+msgid "Content"
+msgstr ""
+
+#: inc/customizer/settings.php:918
+msgid "The content of the Header Custom Text"
+msgstr ""
+
+#: inc/customizer/settings.php:935
+msgid "Footer Copyright"
+msgstr ""
+
+#: inc/customizer/settings.php:991
+msgid "Prebuilt Header Blog"
+msgstr ""
+
+#: inc/customizer/settings.php:992
+msgid "Select a prebuilt header for blog page"
+msgstr ""
+
+#: inc/customizer/settings.php:1008
+msgid "Enable Blog Header"
+msgstr ""
+
+#: inc/customizer/settings.php:1009
+msgid "Enable the blog header on blog pages."
+msgstr ""
+
+#: inc/customizer/settings.php:1014
+msgid "Blog Header Elements"
+msgstr ""
+
+#: inc/customizer/settings.php:1041
+msgid "Trending Posts"
+msgstr ""
+
+#: inc/customizer/settings.php:1042
+msgid "Display the trending posts section on blog page"
+msgstr ""
+
+#: inc/customizer/settings.php:1050
+msgid "Trending Tag"
+msgstr ""
+
+#: inc/customizer/settings.php:1051
+msgid "Specify the tag you will use on posts to be displayed as Trending Content"
+msgstr ""
+
+#: inc/customizer/settings.php:1064
+msgid "Display the Featured Posts section on blog page"
+msgstr ""
+
+#: inc/customizer/settings.php:1072
+msgid "Featured Tag"
+msgstr ""
+
+#: inc/customizer/settings.php:1073
+msgid "Specify the tag you will use on posts to be displayed as Featured Posts"
+msgstr ""
+
+#: inc/customizer/settings.php:1084
+msgid "See All Link"
+msgstr ""
+
+#: inc/customizer/settings.php:1096
+msgid "Total Number"
+msgstr ""
+
+#: inc/customizer/settings.php:1097
+msgid "Total number of the post"
+msgstr ""
+
+#: inc/customizer/settings.php:1114
+msgid "Blog Layout"
+msgstr ""
+
+#: inc/customizer/settings.php:1115
+msgid "The layout of blog posts"
+msgstr ""
+
+#: inc/customizer/settings.php:1118
+msgid "Classic"
+msgstr ""
+
+#: inc/customizer/settings.php:1124
+msgid "Excerpt Length"
+msgstr ""
+
+#: inc/customizer/settings.php:1125
+msgid "The number of words of the post excerpt"
+msgstr ""
+
+#: inc/customizer/settings.php:1141
+msgid "Post Layout"
+msgstr ""
+
+#: inc/customizer/settings.php:1142
+msgid "The layout of single posts"
+msgstr ""
+
+#: inc/customizer/settings.php:1144 inc/woocommerce/customizer.php:382
+msgid "No Sidebar"
+msgstr ""
+
+#: inc/customizer/settings.php:1145 inc/woocommerce/customizer.php:380
+msgid "Right Sidebar"
+msgstr ""
+
+#: inc/customizer/settings.php:1146 inc/woocommerce/customizer.php:381
+msgid "Left Sidebar"
+msgstr ""
+
+#: inc/customizer/settings.php:1152
+msgid "Featured Image Position"
+msgstr ""
+
+#: inc/customizer/settings.php:1155
+msgid "Above the category"
+msgstr ""
+
+#: inc/customizer/settings.php:1161
+msgid "Author Box"
+msgstr ""
+
+#: inc/customizer/settings.php:1162
+msgid "Display the post author box"
+msgstr ""
+
+#: inc/customizer/settings.php:1167
+msgid "Post Navigation"
+msgstr ""
+
+#: inc/customizer/settings.php:1168
+msgid "Display the next and previous posts"
+msgstr ""
+
+#: inc/customizer/settings.php:1209
+msgid "Select Menu"
+msgstr ""
+
+#: inc/customizer/settings.php:1324 inc/helper.php:583
+msgid "Select an item"
+msgstr ""
+
+#: inc/customizer/settings.php:1325
+msgid "Divider"
+msgstr ""
+
+#: inc/customizer/settings.php:1326
+msgid "Track Order"
+msgstr ""
+
+#: inc/customizer/settings.php:1327
+msgid "Help Center"
+msgstr ""
+
+#: inc/customizer/settings.php:1328
+msgid "Custom Menu"
+msgstr ""
+
+#: inc/customizer/settings.php:1329
+msgid "Primary menu"
+msgstr ""
+
+#: inc/customizer/ui/plugin-install-helper/class-shopwell-customizer-plugin-install-helper.php:109
+msgid "Install and activate"
+msgstr ""
+
+#: inc/customizer/ui/plugin-install-helper/class-shopwell-customizer-plugin-install-helper.php:133
+msgid "Jetpack Portfolio"
+msgstr ""
+
+#: inc/customizer/ui/plugin-install-helper/class-shopwell-customizer-plugin-install-helper.php:175
+msgid "Activating "
+msgstr ""
+
+#: inc/fonts.php:250
+msgid "Arabic"
+msgstr ""
+
+#: inc/fonts.php:251
+msgid "Bengali"
+msgstr ""
+
+#: inc/fonts.php:252
+msgid "Chinese (Hong Kong)"
+msgstr ""
+
+#: inc/fonts.php:253
+msgid "Chinese (Simplified)"
+msgstr ""
+
+#: inc/fonts.php:254
+msgid "Chinese (Traditional)"
+msgstr ""
+
+#: inc/fonts.php:255
+msgid "Cyrillic"
+msgstr ""
+
+#: inc/fonts.php:256
+msgid "Cyrillic Extended"
+msgstr ""
+
+#: inc/fonts.php:257
+msgid "Devanagari"
+msgstr ""
+
+#: inc/fonts.php:258
+msgid "Greek"
+msgstr ""
+
+#: inc/fonts.php:259
+msgid "Greek Extended"
+msgstr ""
+
+#: inc/fonts.php:260
+msgid "Gujarati"
+msgstr ""
+
+#: inc/fonts.php:261
+msgid "Gurmukhi"
+msgstr ""
+
+#: inc/fonts.php:262
+msgid "Hebrew"
+msgstr ""
+
+#: inc/fonts.php:263
+msgid "Japanese"
+msgstr ""
+
+#: inc/fonts.php:264
+msgid "Kannada"
+msgstr ""
+
+#: inc/fonts.php:265
+msgid "Khmer"
+msgstr ""
+
+#: inc/fonts.php:266
+msgid "Korean"
+msgstr ""
+
+#: inc/fonts.php:267
+msgid "Latin"
+msgstr ""
+
+#: inc/fonts.php:268
+msgid "Latin Extended"
+msgstr ""
+
+#: inc/fonts.php:269
+msgid "Malayalam"
+msgstr ""
+
+#: inc/fonts.php:270
+msgid "Myanmar"
+msgstr ""
+
+#: inc/fonts.php:271
+msgid "Oriya"
+msgstr ""
+
+#: inc/fonts.php:272
+msgid "Sinhala"
+msgstr ""
+
+#: inc/fonts.php:273
+msgid "Tamil"
+msgstr ""
+
+#: inc/fonts.php:274
+msgid "Telugu"
+msgstr ""
+
+#: inc/fonts.php:275
+msgid "Thai"
+msgstr ""
+
+#: inc/fonts.php:276
+msgid "Vietnamese"
+msgstr ""
+
+#: inc/fonts.php:436
+msgid "Standard"
+msgstr ""
+
+#: inc/fonts.php:441
+msgid "System Fonts"
+msgstr ""
+
+#: inc/fonts.php:446
+msgid "Google Fonts"
+msgstr ""
+
+#: inc/header/hamburger.php:122 inc/header/main.php:951
+#: inc/woocommerce/catalog.php:617
+msgid "Shop by Category"
+msgstr ""
+
+#: inc/header/hamburger.php:129 template-parts/post/featured-posts.php:28
+msgid "See All"
+msgstr ""
+
+#: inc/header/hamburger.php:132
+msgid "Shop Not Available"
+msgstr ""
+
+#: inc/header/main.php:176 inc/header/main.php:598
+msgid "All Categories"
+msgstr ""
+
+#: inc/header/main.php:694
+msgid "Region"
+msgstr ""
+
+#: inc/header/main.php:751 template-parts/panels/hamburger.php:19
+#: woocommerce/cart/cart-empty.php:53 woocommerce/cart/mini-cart.php:142
+#: woocommerce/myaccount/form-login.php:27
+#: woocommerce/myaccount/form-login.php:57
+#: woocommerce/wishlist/wishlist-empty.php:35
+msgid "Sign in"
+msgstr ""
+
+#: inc/header/main.php:764
+msgid "Welcome"
+msgstr ""
+
+#: inc/header/main.php:765
+msgid "Sign in / Register"
+msgstr ""
+
+#: inc/header/main.php:905
+msgid "My Cart"
+msgstr ""
+
+#: inc/header/main.php:956 template-parts/navigation-bar/categories.php:11
+msgid "Categories"
+msgstr ""
+
+#: inc/header/main.php:1003 inc/header/main.php:1009 inc/header/mobile.php:696
+msgid "Return the Shop"
+msgstr ""
+
+#: inc/header/mobile.php:702 inc/woocommerce/customizer.php:70
+#: template-parts/navigation-bar/shop.php:11
+msgid "Shop"
+msgstr ""
+
+#: inc/header/search.php:135
+msgid "Trending Searches"
+msgstr ""
+
+#: inc/header/search.php:222
+msgid "Select Categories"
+msgstr ""
+
+#: inc/help-center/page-header.php:151
+msgid "Search Results for"
+msgstr ""
+
+#: inc/helper.php:151
+#, php-format
+msgid "Continue reading &quot;%s&quot;"
+msgstr ""
+
+#: inc/helper.php:258 woocommerce/cart/mini-cart.php:142
+msgid "My Account"
+msgstr ""
+
+#: inc/helper.php:273
+msgid "Sign In"
+msgstr ""
+
+#: inc/helper.php:288 woocommerce/myaccount/form-login.php:29
+msgid "Create Account"
+msgstr ""
+
+#: inc/helper.php:319
+msgid "Sign Out"
+msgstr ""
+
+#: inc/helper.php:580
+msgid "Default Footer Global"
+msgstr ""
+
+#: inc/helper.php:581
+msgid "Default Footer Page"
+msgstr ""
+
+#: inc/options.php:579 inc/woocommerce/badges.php:161
+#: inc/woocommerce/catalog.php:591 inc/woocommerce/catalog.php:592
+msgid "Sale"
+msgstr ""
+
+#: inc/options.php:583 inc/woocommerce/badges.php:132
+#: inc/woocommerce/catalog.php:578
+msgid "New"
+msgstr ""
+
+#: inc/options.php:588 inc/woocommerce/badges.php:136
+msgid "Hot"
+msgstr ""
+
+#: inc/options.php:592 inc/woocommerce/badges.php:122
+#: inc/woocommerce/product-card.php:702
+msgid "Out Of Stock"
+msgstr ""
+
+#: inc/page-header.php:212
+msgid "Search Results"
+msgstr ""
+
+#: inc/page-header.php:218
+msgid "The Latest Posts"
+msgstr ""
+
+#: inc/search-ajax.php:82
+msgid "help articles"
+msgstr ""
+
+#: inc/search-ajax.php:88
+#, php-format
+msgid "No %s were found matching your selection."
+msgstr ""
+
+#: inc/search-ajax.php:97
+msgid "View All"
+msgstr ""
+
+#: inc/theme.php:288
+msgid "Socials Menu"
+msgstr ""
+
+#: inc/theme.php:325
+msgid "Blog Sidebar"
+msgstr ""
+
+#: inc/theme.php:326
+msgid "Single Sidebar"
+msgstr ""
+
+#: inc/theme.php:331
+msgid "Footer Widget"
+msgstr ""
+
+#: inc/vendors/dokan.php:265 inc/vendors/marketking.php:225
+msgid "Store"
+msgstr ""
+
+#: inc/vendors/dokan.php:295
+msgid "Facebook"
+msgstr ""
+
+#: inc/vendors/dokan.php:299
+msgid "X"
+msgstr ""
+
+#: inc/vendors/dokan.php:303
+msgid "Pinterest"
+msgstr ""
+
+#: inc/vendors/dokan.php:307
+msgid "LinkedIn"
+msgstr ""
+
+#: inc/vendors/dokan.php:311
+msgid "Youtube"
+msgstr ""
+
+#: inc/vendors/dokan.php:315
+msgid "Instagram"
+msgstr ""
+
+#: inc/vendors/dokan.php:319
+msgid "Flickr"
+msgstr ""
+
+#: inc/vendors/marketking.php:263
+#, php-format
+msgid "%1$s (%2$s Review)"
+msgid_plural "%1$s (%2$s Reviews)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/vendors/wcfm.php:369 inc/woocommerce/customizer.php:288
+msgid "Product Video"
+msgstr ""
+
+#: inc/vendors/wcfm.php:381
+msgid "Video URL"
+msgstr ""
+
+#: inc/woocommerce/account.php:259
+msgid "Hello!"
+msgstr ""
+
+#: inc/woocommerce/account.php:276
+msgid "Show"
+msgstr ""
+
+#: inc/woocommerce/account.php:277
+msgid "Hide"
+msgstr ""
+
+#: inc/woocommerce/badges.php:168 inc/woocommerce/badges.php:308
+msgid "w"
+msgstr ""
+
+#: inc/woocommerce/badges.php:169 inc/woocommerce/badges.php:309
+msgid "d"
+msgstr ""
+
+#: inc/woocommerce/badges.php:170 inc/woocommerce/badges.php:310
+msgid "h"
+msgstr ""
+
+#: inc/woocommerce/badges.php:171 inc/woocommerce/badges.php:311
+msgid "m"
+msgstr ""
+
+#: inc/woocommerce/badges.php:172 inc/woocommerce/badges.php:312
+msgid "s"
+msgstr ""
+
+#: inc/woocommerce/badges.php:218
+msgid "Sale Ends in"
+msgstr ""
+
+#: inc/woocommerce/badges.php:231 inc/woocommerce/single-product.php:1550
+msgid " Day"
+msgstr ""
+
+#: inc/woocommerce/badges.php:233 inc/woocommerce/single-product.php:1552
+msgid " Days"
+msgstr ""
+
+#: inc/woocommerce/badges.php:237 inc/woocommerce/single-product.php:1558
+msgid "Sale Ends in "
+msgstr ""
+
+#: inc/woocommerce/badges.php:253
+msgid "sold"
+msgstr ""
+
+#: inc/woocommerce/badges.php:327
+msgid "Limited Time Offer"
+msgstr ""
+
+#: inc/woocommerce/badges.php:329
+msgid "Ends in"
+msgstr ""
+
+#: inc/woocommerce/cart.php:65
+msgid "Clear cart"
+msgstr ""
+
+#: inc/woocommerce/cart.php:65
+msgid "Clear Cart"
+msgstr ""
+
+#: inc/woocommerce/cart.php:75
+msgid "Cart is cleared."
+msgstr ""
+
+#: inc/woocommerce/cart.php:108 inc/woocommerce/cart.php:109
+#: woocommerce/cart/mini-cart.php:139 woocommerce/cart/mini-cart.php:147
+msgid "Cart is empty"
+msgstr ""
+
+#: inc/woocommerce/cart.php:110 woocommerce/cart/mini-cart.php:140
+msgid "Don&#39;t miss out on amazing deals! Sign in to view products added or start shopping now."
+msgstr ""
+
+#: inc/woocommerce/catalog.php:292 template-parts/panels/filter-sidebar.php:18
+msgid "Filter & Sort"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:566
+msgid "All"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:567
+msgid "Shop All"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:579
+msgid "New Arrivals"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:694
+msgid "Single Result"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:696
+#, php-format
+msgid "%s Result"
+msgid_plural "%s Results"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/woocommerce/catalog.php:700
+#, php-format
+msgid "%1$s&ndash;%2$s of %3$s Results"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:714
+msgid "All Filters"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:746
+msgid "Popularity"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:747
+msgid "Average rating"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:748
+msgid "Latest"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:749
+msgid "Price: low to high"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:750
+msgid "Price: high to low"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:763
+msgid "Sort by:"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:852
+msgid "Sort by :"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:928
+msgid "Load More Products"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:936 template-parts/header/view-history.php:39
+msgid "Loading more..."
+msgstr ""
+
+#: inc/woocommerce/catalog.php:954 inc/woocommerce/general.php:341
+msgid "items"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:954 inc/woocommerce/general.php:339
+msgid "item"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:1015
+msgid "Default sorting"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:1016
+msgid "Sort by popularity"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:1017
+msgid "Sort by average rating"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:1018
+msgid "Sort by latest"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:1019
+msgid "Sort by price: low to high"
+msgstr ""
+
+#: inc/woocommerce/catalog.php:1020
+msgid "Sort by price: high to low"
+msgstr ""
+
+#: inc/woocommerce/checkout.php:129
+msgid "Have a coupon?"
+msgstr ""
+
+#: inc/woocommerce/checkout.php:129
+msgid "Enter your code"
+msgstr ""
+
+#: inc/woocommerce/compare.php:148
+msgid "Browse"
+msgstr ""
+
+#: inc/woocommerce/compare.php:170
+#, php-format
+msgid "Compare %s"
+msgstr ""
+
+#: inc/woocommerce/compare.php:172
+msgid "Add To Compare"
+msgstr ""
+
+#: inc/woocommerce/compare.php:173
+msgid "Remove Compare"
+msgstr ""
+
+#: inc/woocommerce/compare.php:174
+msgid "Browse Compare"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:65
+msgid "Woocommerce"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:76
+msgid "Single Product"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:82
+msgid "Vendors"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:100 inc/woocommerce/customizer.php:123
+msgid "Product Catalog"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:104 woocommerce/cart/cart.php:72
+#: woocommerce/wishlist/wishlist-table.php:76
+msgid "Product"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:117 inc/woocommerce/customizer.php:351
+msgid "Catalog Toolbar"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:130
+msgid "Product Card"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:136
+msgid "Badges"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:142 inc/woocommerce/quickview.php:321
+#: inc/woocommerce/quickview.php:322
+msgid "Quick View"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:148
+msgid "Product Layout"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:154 inc/woocommerce/customizer.php:657
+msgid "Product Sharing"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:160 inc/woocommerce/customizer.php:666
+msgid "Related Products"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:166
+msgid "Up-Sells  Products"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:172
+msgid "Store Style"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:177
+msgid "Store Manager"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:183
+msgid "Store List"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:189
+msgid "Store Page"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:194
+msgid "Product Page"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:216 inc/woocommerce/product.php:162
+msgid "Product Attribute"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:218
+msgid "Show product attribute in the product card"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:231
+msgid "Product Attribute In"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:234
+msgid "Variable Product"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:237
+msgid "Simple Product"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:257 inc/woocommerce/product.php:172
+msgid "Product Attribute Number"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:278
+msgid "Vendor Name"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:285
+msgid "Custom Fields"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:331
+msgid "Title Align"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:356
+msgid "Default View"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:358
+msgid "Grid 2 Columns"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:359
+msgid "Grid 3 Columns"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:360
+msgid "Grid 4 Columns"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:377
+msgid "Sidebar"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:378
+msgid "Go to appearance > widgets find to catalog sidebar to edit your sidebar"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:388
+msgid "Sticky Sidebar"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:389
+msgid "Attachs the sidebar to the page when the user scrolls"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:405
+msgid "Sale Badge"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:406
+msgid "Display a badge for sale products."
+msgstr ""
+
+#: inc/woocommerce/customizer.php:411
+msgid "Sale Badge Type"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:413
+msgid "Percentage"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:415
+msgid "Text And Price"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:416
+msgid "Text And Countdown"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:429
+msgid "Sale Badge Text"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:447
+msgid "Sale Badge Background"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:460
+msgid "Sale Badge Text Color"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:473
+msgid "New Badge"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:474
+msgid "Display a badge for new products."
+msgstr ""
+
+#: inc/woocommerce/customizer.php:479
+msgid "New Badge Text"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:491
+msgid "Display the \"New\" badge for how many days?"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:492
+msgid "You can also add the NEW badge to each product in the Advanced setting tab of them."
+msgstr ""
+
+#: inc/woocommerce/customizer.php:505
+msgid "New Badge Background"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:521
+msgid "New Badge Text Color"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:536
+msgid "Featured Badge"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:537
+msgid "Display a badge for featured products."
+msgstr ""
+
+#: inc/woocommerce/customizer.php:542
+msgid "Featured Badge Text"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:555
+msgid "Featured Badge Background"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:568
+msgid "Featured Badge Text Color"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:581
+msgid "Sold Out Badge"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:582
+msgid "Display a badge for out of stock products."
+msgstr ""
+
+#: inc/woocommerce/customizer.php:587
+msgid "Sold Out Badge Text"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:600
+msgid "Sold Out Badge Background"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:613
+msgid "Sold Out Badge Text Color"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:627
+msgid "Custom badge Background"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:634
+msgid "Custom badge Color"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:644
+msgid "Product Tags"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:649
+msgid "Product Categories"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:658
+msgid "Enable post sharing."
+msgstr ""
+
+#: inc/woocommerce/customizer.php:674
+msgid "Upsells Products"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:713
+msgid "Enable Style From Theme"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:714
+msgid "Enable the store list and store page style from theme."
+msgstr ""
+
+#: inc/woocommerce/customizer.php:722
+msgid "Hide Vendor Info tab"
+msgstr ""
+
+#: inc/woocommerce/customizer.php:728
+msgid "Hide More Product tab"
+msgstr ""
+
+#: inc/woocommerce/general.php:316
+msgid "View cart"
+msgstr ""
+
+#: inc/woocommerce/general.php:327
+msgid "Checkout"
+msgstr ""
+
+#: inc/woocommerce/general.php:343 woocommerce/cart/cart.php:34
+#: woocommerce/cart/cart.php:147
+msgid "Subtotal"
+msgstr ""
+
+#: inc/woocommerce/general.php:446
+#, php-format
+msgid "Rated %1$s out of 5 based on %2$s customer rating"
+msgid_plural "Rated %1$s out of 5 based on %2$s customer ratings"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/woocommerce/general.php:449
+#, php-format
+msgid "Rated %s out of 5"
+msgstr ""
+
+#: inc/woocommerce/general.php:630
+msgid " Free Shipping"
+msgstr ""
+
+#: inc/woocommerce/general.php:681
+msgid "Please complete all the fields below to tell us about your experience with this product."
+msgstr ""
+
+#: inc/woocommerce/general.php:692
+msgid "Customer Reviews"
+msgstr ""
+
+#: inc/woocommerce/general.php:764
+msgid "Ratings"
+msgstr ""
+
+#: inc/woocommerce/general.php:782
+#, php-format
+msgid "%s Product Rating"
+msgid_plural "%s Product Ratings"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/woocommerce/general.php:784
+msgid "Review this product"
+msgstr ""
+
+#: inc/woocommerce/general.php:785
+msgid "Share your thoughts with other customers"
+msgstr ""
+
+#: inc/woocommerce/general.php:786
+msgid "Write a review"
+msgstr ""
+
+#: inc/woocommerce/helper.php:31
+msgid "Save:"
+msgstr ""
+
+#: inc/woocommerce/product-card.php:686
+#: woocommerce/wishlist/wishlist-table.php:103
+#, php-format
+msgid "%s<span class=\"text\"> Review</span>"
+msgid_plural "%s<span class=\"text\"> Reviews</span>"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/woocommerce/product-card.php:732 inc/woocommerce/single-product.php:878
+msgid "in"
+msgstr ""
+
+#: inc/woocommerce/product-card.php:753 inc/woocommerce/single-product.php:899
+msgid "Sku:"
+msgstr ""
+
+#: inc/woocommerce/product-notices.php:82
+msgid "has been added to your wishlist."
+msgstr ""
+
+#: inc/woocommerce/product-notices.php:83
+msgid "have been added to your wishlist."
+msgstr ""
+
+#: inc/woocommerce/product-notices.php:84 inc/woocommerce/wishlist.php:184
+msgid "View Wishlist"
+msgstr ""
+
+#: inc/woocommerce/product-notices.php:94
+msgid "has been added to your compare."
+msgstr ""
+
+#: inc/woocommerce/product-notices.php:95
+msgid "have been added to your compare."
+msgstr ""
+
+#: inc/woocommerce/product-notices.php:96
+msgid "View Compare"
+msgstr ""
+
+#: inc/woocommerce/product-notices.php:261
+msgid "You may also like"
+msgstr ""
+
+#: inc/woocommerce/product.php:164
+msgid "Show the product attribute in the product card"
+msgstr ""
+
+#: inc/woocommerce/product.php:174
+msgid "Show number of the product attribute in the product card"
+msgstr ""
+
+#: inc/woocommerce/products-recently-viewed.php:132
+msgid "No products in recent viewing history."
+msgstr ""
+
+#: inc/woocommerce/quickview.php:132
+msgid "No product."
+msgstr ""
+
+#: inc/woocommerce/quickview.php:138
+msgid "Invalid product."
+msgstr ""
+
+#: inc/woocommerce/related-products.php:79
+msgid "Similar Products"
+msgstr ""
+
+#: inc/woocommerce/sidebars.php:64
+msgid "Catalog Sidebar"
+msgstr ""
+
+#: inc/woocommerce/sidebars.php:66
+msgid "Add sidebar for the catalog page"
+msgstr ""
+
+#: inc/woocommerce/sidebars.php:76
+msgid " Catalog Filters Sidebar"
+msgstr ""
+
+#: inc/woocommerce/sidebars.php:78
+msgid "Add sidebar for panel filter in the catalog page"
+msgstr ""
+
+#: inc/woocommerce/sidebars.php:90
+msgid "Single Product Extra Content"
+msgstr ""
+
+#: inc/woocommerce/sidebars.php:92
+msgid "Add sidebar for the product page"
+msgstr ""
+
+#: inc/woocommerce/single-product.php:692
+msgid "Quantity:"
+msgstr ""
+
+#: inc/woocommerce/single-product.php:916
+#: woocommerce/single-product/meta.php:43
+msgid "Tag:"
+msgid_plural "Tags:"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/woocommerce/single-product.php:1032
+msgid "Available in stock"
+msgstr ""
+
+#: inc/woocommerce/single-product.php:1056
+msgid "Features"
+msgstr ""
+
+#: inc/woocommerce/single-product.php:1061
+#: inc/woocommerce/single-product.php:1070
+msgid "Show More"
+msgstr ""
+
+#: inc/woocommerce/single-product.php:1062
+msgid "Show Less"
+msgstr ""
+
+#: inc/woocommerce/single-product.php:1082
+#: template-parts/post/related-posts.php:48
+msgid "You Might Also Like"
+msgstr ""
+
+#: inc/woocommerce/single-product.php:1113
+msgid "Write a Review"
+msgstr ""
+
+#: inc/woocommerce/track-order.php:66
+msgid "Order Tracking Page"
+msgstr ""
+
+#: inc/woocommerce/track-order.php:67
+msgid "Page content: [woocommerce_order_tracking]"
+msgstr ""
+
+#: inc/woocommerce/wishlist.php:156
+msgid "View"
+msgstr ""
+
+#: inc/woocommerce/wishlist.php:180
+#, php-format
+msgid "Add %s to the wishlist"
+msgstr ""
+
+#: inc/woocommerce/wishlist.php:182
+msgid "Add To Wishlist"
+msgstr ""
+
+#: inc/woocommerce/wishlist.php:183
+msgid "Remove Wishlist"
+msgstr ""
+
+#: inc/woocommerce/wishlist.php:185
+msgid "Add to wishlist"
+msgstr ""
+
+#: template-parts/buttons/product-print.php:12
+msgid "Print"
+msgstr ""
+
+#: template-parts/content/content-none.php:14
+msgid "Nothing Found"
+msgstr ""
+
+#: template-parts/content/content-none.php:24
+#, php-format
+msgid "Ready to publish your first post? <a href=\"%1$s\">Get started here</a>."
+msgstr ""
+
+#: template-parts/content/content-none.php:37
+msgid "Sorry, but nothing matched your search terms. Please try again with some different keywords."
+msgstr ""
+
+#: template-parts/content/content-none.php:44
+msgid "Sorry, but nothing matched your search terms."
+msgstr ""
+
+#: template-parts/content/content-none.php:49
+msgid "It seems we can&rsquo;t find what you&rsquo;re looking for. Perhaps searching can help."
+msgstr ""
+
+#: template-parts/header/cart.php:48 template-parts/panels/cart.php:23
+msgid "Shopping Cart "
+msgstr ""
+
+#: template-parts/header/search-bar-hc.php:11
+msgid "How can we help you?"
+msgstr ""
+
+#: template-parts/header/search-bar-hc.php:13
+msgid "Search help articles"
+msgstr ""
+
+#: template-parts/header/search-icon.php:8 template-parts/modals/search.php:14
+#: template-parts/searchs/search-field.php:8
+msgid "Search for anything"
+msgstr ""
+
+#: template-parts/header/search-icon.php:11
+#: template-parts/searchs/search-field.php:11
+msgid "Search the blog..."
+msgstr ""
+
+#: template-parts/header/search-icon.php:13
+#: template-parts/searchs/search-field.php:13
+msgid "Search products..."
+msgstr ""
+
+#: template-parts/header/search-icon.php:34
+msgid "Search Close"
+msgstr ""
+
+#: template-parts/header/view-history.php:20
+#: template-parts/header/view-history.php:27
+msgid "Browsing History"
+msgstr ""
+
+#: template-parts/header/view-history.php:28
+msgid "See All History"
+msgstr ""
+
+#: template-parts/modals/notices.php:20
+msgid "Successfully added to your cart"
+msgstr ""
+
+#: template-parts/modals/preferences.php:29
+msgid "Update"
+msgstr ""
+
+#: template-parts/modals/product-more.php:20
+msgid "Share this item"
+msgstr ""
+
+#: template-parts/modals/socials.php:19
+msgid "Copy Link"
+msgstr ""
+
+#: template-parts/modals/socials.php:22
+msgid "Copy"
+msgstr ""
+
+#: template-parts/page/content-page.php:17
+msgid "Pages:"
+msgstr ""
+
+#: template-parts/panels/hamburger-header-v11.php:18
+msgid "Return to Shop"
+msgstr ""
+
+#: template-parts/panels/hamburger-header-v11.php:26
+#: template-parts/panels/hamburger-header-v12.php:27
+#: template-parts/panels/hamburger.php:44
+msgid "Main Menu"
+msgstr ""
+
+#: template-parts/panels/hamburger.php:11
+msgid "Hello"
+msgstr ""
+
+#: template-parts/post/post-navigation.php:22
+msgid "Previous Post"
+msgstr ""
+
+#: template-parts/post/post-navigation.php:29
+msgid "Next Post"
+msgstr ""
+
+#: template-parts/searchs/button.php:13
+msgid "Search Button"
+msgstr ""
+
+#: woocommerce/cart/cart-empty.php:38
+msgid "Shop What&rsquo;s New"
+msgstr ""
+
+#: woocommerce/cart/cart-shipping.php:52
+#, php-format
+msgid "Shipping to %s."
+msgstr ""
+
+#: woocommerce/cart/cart-shipping.php:53
+msgid "Change address"
+msgstr ""
+
+#: woocommerce/cart/cart-shipping.php:55
+msgid "Shipping options will be updated during checkout."
+msgstr ""
+
+#: woocommerce/cart/cart-shipping.php:63
+msgid "Shipping costs are calculated during checkout."
+msgstr ""
+
+#: woocommerce/cart/cart-shipping.php:65
+msgid "Enter your address to view shipping options."
+msgstr ""
+
+#: woocommerce/cart/cart-shipping.php:68
+msgid "There are no shipping options available. Please ensure that your address has been entered correctly, or contact us if you need any help."
+msgstr ""
+
+#: woocommerce/cart/cart-shipping.php:82
+#, php-format
+msgid "No shipping options were found for %s."
+msgstr ""
+
+#: woocommerce/cart/cart-shipping.php:86
+msgid "Enter a different address"
+msgstr ""
+
+#: woocommerce/cart/cart.php:30
+msgid "Products"
+msgstr ""
+
+#: woocommerce/cart/cart.php:31
+msgid "Product Name"
+msgstr ""
+
+#: woocommerce/cart/cart.php:32 woocommerce/cart/cart.php:115
+#: woocommerce/wishlist/wishlist-table.php:111
+msgid "Price"
+msgstr ""
+
+#: woocommerce/cart/cart.php:33 woocommerce/cart/cart.php:121
+#: woocommerce/global/quantity-input.php:24
+#: woocommerce/wishlist/wishlist-table.php:117
+msgid "Quantity"
+msgstr ""
+
+#: woocommerce/cart/cart.php:35
+msgid "Remove item"
+msgstr ""
+
+#: woocommerce/cart/cart.php:92
+msgid "Available on backorder"
+msgstr ""
+
+#: woocommerce/cart/cart.php:106 woocommerce/cart/cart.php:160
+#: woocommerce/cart/mini-cart.php:93 woocommerce/wishlist/wishlist-table.php:53
+msgid "Remove this item"
+msgstr ""
+
+#: woocommerce/cart/cart.php:182
+msgid "Coupon:"
+msgstr ""
+
+#: woocommerce/cart/cart.php:182
+msgid "Coupon code"
+msgstr ""
+
+#: woocommerce/cart/cart.php:182
+msgid "Apply coupon"
+msgstr ""
+
+#: woocommerce/cart/cart.php:187
+msgid "Update cart"
+msgstr ""
+
+#: woocommerce/cart/mini-cart.php:78
+msgid "QTY:"
+msgstr ""
+
+#: woocommerce/cart/mini-cart.php:141
+msgid "Shop What&#39;s New"
+msgstr ""
+
+#: woocommerce/cart/mini-cart.php:148
+msgid "No products in the cart."
+msgstr ""
+
+#: woocommerce/global/quantity-input.php:24
+#, php-format
+msgid "%s quantity"
+msgstr ""
+
+#: woocommerce/global/quantity-input.php:44
+msgid "Product quantity"
+msgstr ""
+
+#: woocommerce/loop/add-to-cart-variable.php:25
+msgid "This product is currently out of stock and unavailable."
+msgstr ""
+
+#: woocommerce/myaccount/dashboard.php:33
+msgid "Account overview"
+msgstr ""
+
+#: woocommerce/myaccount/dashboard.php:37
+#, php-format
+msgid "<p>From your account dashboard you can view your <a href=\"%1$s\">Recent orders</a>.</p><p>Manage your <a href=\"%2$s\">Billing address</a>.</p><p>Edit your <a href=\"%3$s\">Password and Account details</a>.</p>"
+msgstr ""
+
+#: woocommerce/myaccount/dashboard.php:41
+#, php-format
+msgid "<p>From your account dashboard you can view your <a href=\"%1$s\">Recent orders</a>.</p><p>Manage your <a href=\"%2$s\">Shipping and Billing addresses</a>.</p><p>Edit your <a href=\"%3$s\">Password and Account details</a>.</p>"
+msgstr ""
+
+#: woocommerce/myaccount/form-edit-account.php:34
+msgid "Account Details"
+msgstr ""
+
+#: woocommerce/myaccount/form-edit-account.php:36
+msgid "First name"
+msgstr ""
+
+#: woocommerce/myaccount/form-edit-account.php:40
+msgid "Last name"
+msgstr ""
+
+#: woocommerce/myaccount/form-edit-account.php:46
+msgid "Display name"
+msgstr ""
+
+#: woocommerce/myaccount/form-edit-account.php:47
+msgid "This will be how your name will be displayed in the account section and in reviews"
+msgstr ""
+
+#: woocommerce/myaccount/form-edit-account.php:52
+#: woocommerce/myaccount/form-login.php:93
+msgid "Email address"
+msgstr ""
+
+#: woocommerce/myaccount/form-edit-account.php:68
+msgid "Password Change"
+msgstr ""
+
+#: woocommerce/myaccount/form-edit-account.php:71
+msgid "Current Password"
+msgstr ""
+
+#: woocommerce/myaccount/form-edit-account.php:75
+msgid "New Password"
+msgstr ""
+
+#: woocommerce/myaccount/form-edit-account.php:79
+msgid "Confirm new password"
+msgstr ""
+
+#: woocommerce/myaccount/form-edit-account.php:96
+msgid "Save changes"
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:39
+msgid "Username or email address"
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:39
+#: woocommerce/myaccount/form-login.php:43
+#: woocommerce/myaccount/form-login.php:86
+#: woocommerce/myaccount/form-login.php:93
+#: woocommerce/myaccount/form-login.php:100
+msgid "Required"
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:43
+#: woocommerce/myaccount/form-login.php:100
+msgid "Password"
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:51
+msgid "Keep me signed in"
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:53
+msgid "Forgot password?"
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:57
+msgid "Log in"
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:67
+msgid "New Customer? Create account"
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:77
+msgid "Sign up with..."
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:79
+msgid "or sign up using your email address"
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:86
+msgid "Username"
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:106
+msgid "A link to set a new password will be sent to your email address."
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:114
+msgid "Register"
+msgstr ""
+
+#: woocommerce/myaccount/form-login.php:119
+msgid "Already a member? Sign in"
+msgstr ""
+
+#: woocommerce/myaccount/form-lost-password.php:24
+msgid "Forgot Password?"
+msgstr ""
+
+#: woocommerce/myaccount/form-lost-password.php:28
+msgid "Please enter your Email Address. You will receive a link to create a new password via Email."
+msgstr ""
+
+#: woocommerce/myaccount/form-lost-password.php:41
+msgid "Reset password"
+msgstr ""
+
+#: woocommerce/myaccount/my-address.php:26
+#: woocommerce/myaccount/my-address.php:35
+msgid "Billing address"
+msgstr ""
+
+#: woocommerce/myaccount/my-address.php:27
+msgid "Shipping address"
+msgstr ""
+
+#: woocommerce/myaccount/my-address.php:46
+msgid "The following addresses will be used on the checkout page by default."
+msgstr ""
+
+#: woocommerce/myaccount/my-address.php:61
+#: woocommerce/myaccount/my-address.php:77
+msgid "You have not set up this type of address yet."
+msgstr ""
+
+#: woocommerce/myaccount/my-address.php:93
+#, php-format
+msgid "Edit %s"
+msgstr ""
+
+#: woocommerce/myaccount/my-address.php:93
+#, php-format
+msgid "Add %s"
+msgstr ""
+
+#: woocommerce/myaccount/orders.php:57
+#, php-format
+msgid "View order number %s"
+msgstr ""
+
+#: woocommerce/myaccount/orders.php:58
+msgctxt "hash before order number"
+msgid "#"
+msgstr ""
+
+#: woocommerce/myaccount/orders.php:70
+#, php-format
+msgid "%1$s for %2$s item"
+msgid_plural "%1$s for %2$s items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: woocommerce/myaccount/orders.php:82
+#, php-format
+msgid "%1$s order number %2$s"
+msgstr ""
+
+#: woocommerce/myaccount/orders.php:111
+msgid "Previous"
+msgstr ""
+
+#: woocommerce/myaccount/orders.php:115
+msgid "Next"
+msgstr ""
+
+#: woocommerce/myaccount/orders.php:122
+msgid "No order has been made yet."
+msgstr ""
+
+#: woocommerce/myaccount/orders.php:122
+msgid "Browse products"
+msgstr ""
+
+#: woocommerce/order/form-tracking.php:34
+msgid "To track your order please enter your Order ID in the box below and press the \"Track\" button. This was given to you on your receipt and in the confirmation email you should have received."
+msgstr ""
+
+#: woocommerce/order/form-tracking.php:36
+msgid "Order ID"
+msgstr ""
+
+#: woocommerce/order/form-tracking.php:36
+msgid "Found in your order confirmation email."
+msgstr ""
+
+#: woocommerce/order/form-tracking.php:37
+msgid "Billing email"
+msgstr ""
+
+#: woocommerce/order/form-tracking.php:37
+msgid "Email you used during checkout."
+msgstr ""
+
+#: woocommerce/order/form-tracking.php:49
+msgid "Track"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:35
+#, php-format
+msgid "%1$s review for %2$s"
+msgid_plural "%1$s reviews for %2$s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: woocommerce/single-product-reviews.php:38
+msgid "Reviews"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:65
+msgid "There are no reviews yet."
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:79
+msgid "Write a product review"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:79
+#, php-format
+msgid "Be the first to review &ldquo;%s&rdquo;"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:81
+#, php-format
+msgid "Leave a Reply to %s"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:85
+msgid "Submit Review"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:127
+#, php-format
+msgid "You must be %1$slogged in%2$s to post a review."
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:131
+msgid "Your rating"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:132
+msgid "Rate&hellip;"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:133
+msgid "Perfect"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:134
+msgid "Good"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:135
+msgid "Average"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:136
+msgid "Not that bad"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:137
+msgid "Very poor"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:141
+msgid "Your review"
+msgstr ""
+
+#: woocommerce/single-product-reviews.php:148
+msgid "Only logged in customers who have purchased this product may leave a review."
+msgstr ""
+
+#: woocommerce/single-product/add-to-cart/grouped.php:71
+#, php-format
+msgid "Buy one of %1$s on sale for %2$s, original price was %3$s"
+msgstr ""
+
+#: woocommerce/single-product/add-to-cart/grouped.php:79
+#, php-format
+msgid "Buy one of %1$s for %2$s"
+msgstr ""
+
+#: woocommerce/single-product/meta.php:32
+msgid "SKU:"
+msgstr ""
+
+#: woocommerce/single-product/meta.php:32
+msgid "N/A"
+msgstr ""
+
+#: woocommerce/single-product/meta.php:38
+msgid "Category:"
+msgid_plural "Categories:"
+msgstr[0] ""
+msgstr[1] ""
+
+#: woocommerce/single-product/product-image.php:51
+msgid "Awaiting product image"
+msgstr ""
+
+#: woocommerce/single-product/rating.php:38
+#, php-format
+msgid "%s<span> Review</span>"
+msgid_plural "%s<span> Reviews</span>"
+msgstr[0] ""
+msgstr[1] ""
+
+#: woocommerce/single-product/side-product.php:12
+msgid "People Also Viewed"
+msgstr ""
+
+#: woocommerce/wishlist/wishlist-empty.php:17
+msgid "empty wishlist."
+msgstr ""
+
+#: woocommerce/wishlist/wishlist-empty.php:21
+msgid "Looks like you don&rsquo;t have anything saved"
+msgstr ""
+
+#: woocommerce/wishlist/wishlist-empty.php:24
+msgid "Sign in to sync your Saved Items across all your devices."
+msgstr ""
+
+#: woocommerce/wishlist/wishlist-table.php:138
+msgid "Stock status"
+msgstr ""
+
+#: woocommerce/wishlist/wishlist-table.php:141
+msgid "In Stock"
+msgstr ""
+
+#: woocommerce/wishlist/wishlist-table.php:177
+msgid "Update wishlist"
+msgstr ""

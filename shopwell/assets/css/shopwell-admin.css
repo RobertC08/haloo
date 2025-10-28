@@ -1,0 +1,13 @@
+#product-360-view .inside {
+	margin: 0;
+    padding: 9px 0 12px 9px;
+}
+
+#product-360-view .rwmb-media-list .rwmb-image-item {
+	margin: 0 9px 9px 0;
+}
+
+#product-360-view .rwmb-media-list .rwmb-image-item .rwmb-file-icon {
+	width: 78px;
+	height: 78px;
+}

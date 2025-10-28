@@ -1,0 +1,74 @@
+---
+alwaysApply: true
+---
+
+# 🧠 Chat Workflow Rules for WooCommerce Refurbished Mobiles Platform
+
+## 🔹 Purpose
+Ensure consistent, structured, and production-grade collaboration between you and GPT-5 inside Cursor IDE while building the WooCommerce platform.
+
+---
+
+## ⚙️ Workflow
+
+1. **Always start with a PLAN before any code.**
+   - Structure:
+     - Goal  
+     - Context  
+     - Approach  
+     - Expected Output  
+     - Dependencies  
+     - Testing/Validation  
+   - Wait for approval: ✅ “Proceed” before coding.
+
+2. **Message Prefixes (for clarity):**
+   - `PLAN:` → Request roadmap  
+   - `CODE:` → Request implementation  
+   - `FIX:` → Debug or correct an issue  
+   - `DOC:` → Documentation or explanation  
+   - `TASK:` → Describe new feature  
+   - `REVIEW:` → Request optimization or cleanup
+
+3. **Code Standards:**
+   - Follow WooCommerce + WordPress best practices.
+   - Use hooks, filters, and shortcodes — never edit core files.
+   - Code must be modular, documented, and safe.
+   - Suggest file paths for new files.
+   - Avoid direct SQL (use `$wpdb` safely).
+
+4. **Session Format:**
+   - Start with:
+     ```
+     CURRENT STATUS: (brief summary)
+     TODAY’S GOAL: (main focus)
+     ```
+   - End with:
+     ```
+     SESSION SUMMARY:
+     - Completed:
+     - Next Steps:
+     - Notes:
+     ```
+
+5. **Quality & Testing:**
+   - Sanitize and escape all data; use nonces.
+   - Use WooCommerce APIs for performance.
+   - Ensure responsive UI and smooth checkout.
+   - Test cart, checkout, payments, and mobile UX.
+
+6. **Feature Completion Format:**
+   - ✅ Feature implemented and tested.  
+   - 🔁 Next Step: (follow-up item)
+
+---
+
+## 🧭 Best Practices
+- Always plan before code.  
+- Keep responses concise and professional.  
+- Maintain production-ready standards.  
+- Assume continuous improvement and version tracking.
+
+# 💬 Language Preference
+- Rules are in English.
+- I may chat in Romanian.
+- Always follow the English rules and respond in the same language I use.

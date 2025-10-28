@@ -1,0 +1,96 @@
+/**
+ * Sort Dropdown Styles
+ * Custom styles for WooCommerce sort dropdown
+ */
+
+/* Style the sort select dropdown to look modern and polished */
+/* Higher specificity to override theme styles */
+body.woocommerce-shop select.orderby,
+body.tax-product_cat select.orderby,
+body.tax-product_tag select.orderby,
+body.post-type-archive-product select.orderby,
+body.woocommerce-shop .woocommerce-ordering select,
+body.tax-product_cat .woocommerce-ordering select,
+body.tax-product_tag .woocommerce-ordering select,
+body.post-type-archive-product .woocommerce-ordering select {
+    background: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #333333 !important;
+    min-width: 150px !important;
+    height: 36px !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    background-size: 14px !important;
+    padding-right: 30px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Hover and focus states for the select */
+body.woocommerce-shop select.orderby:hover,
+body.tax-product_cat select.orderby:hover,
+body.tax-product_tag select.orderby:hover,
+body.post-type-archive-product select.orderby:hover,
+body.woocommerce-shop .woocommerce-ordering select:hover,
+body.tax-product_cat .woocommerce-ordering select:hover,
+body.tax-product_tag .woocommerce-ordering select:hover,
+body.post-type-archive-product .woocommerce-ordering select:hover {
+    border-color: #007cba !important;
+    box-shadow: 0 4px 8px rgba(0, 124, 186, 0.15) !important;
+}
+
+body.woocommerce-shop select.orderby:focus,
+body.tax-product_cat select.orderby:focus,
+body.tax-product_tag select.orderby:focus,
+body.post-type-archive-product select.orderby:focus,
+body.woocommerce-shop .woocommerce-ordering select:focus,
+body.tax-product_cat .woocommerce-ordering select:focus,
+body.tax-product_tag .woocommerce-ordering select:focus,
+body.post-type-archive-product .woocommerce-ordering select:focus {
+    outline: none !important;
+    border-color: #007cba !important;
+    box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.1) !important;
+}
+
+/* Style the woocommerce-ordering container */
+body.woocommerce-shop .woocommerce-ordering,
+body.tax-product_cat .woocommerce-ordering,
+body.tax-product_tag .woocommerce-ordering,
+body.post-type-archive-product .woocommerce-ordering {
+    margin-left: 130px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* Style the sort label to reduce spacing */
+body.woocommerce-shop .woocommerce-ordering label,
+body.tax-product_cat .woocommerce-ordering label,
+body.tax-product_tag .woocommerce-ordering label,
+body.post-type-archive-product .woocommerce-ordering label {
+    margin-right: 8px !important;
+    margin-bottom: 0 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #333333 !important;
+}
+
+/* Reduce spacing in the ordering form */
+body.woocommerce-shop .woocommerce-ordering form,
+body.tax-product_cat .woocommerce-ordering form,
+body.tax-product_tag .woocommerce-ordering form,
+body.post-type-archive-product .woocommerce-ordering form {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin: 0 !important;
+}

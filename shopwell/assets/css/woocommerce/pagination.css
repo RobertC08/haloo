@@ -1,0 +1,49 @@
+/**
+ * Pagination Styles
+ * Styles for WooCommerce pagination positioning and layout
+ */
+
+/* Center pagination under the product grid only, not the entire container */
+/* Higher specificity to override theme styles */
+body.woocommerce-shop .woocommerce-pagination,
+body.tax-product_cat .woocommerce-pagination,
+body.tax-product_tag .woocommerce-pagination,
+body.post-type-archive-product .woocommerce-pagination,
+body.woocommerce-shop nav.woocommerce-pagination,
+body.tax-product_cat nav.woocommerce-pagination,
+body.tax-product_tag nav.woocommerce-pagination,
+body.post-type-archive-product nav.woocommerce-pagination {
+    margin-top: 0px !important;
+    margin-left: 300px !important; /* Offset by sidebar width + margin */
+    width: calc(100% - 300px) !important; /* Width minus sidebar space */
+    text-align: center !important;
+    background-color: white !important;
+}
+
+/* Ensure pagination wrapper is properly positioned */
+.woocommerce-shop .woocommerce-pagination-wrapper,
+.tax-product_cat .woocommerce-pagination-wrapper,
+.tax-product_tag .woocommerce-pagination-wrapper,
+.post-type-archive-product .woocommerce-pagination-wrapper {
+    margin-left: 300px !important;
+    width: calc(100% - 300px) !important;
+    text-align: center !important;
+}
+
+/* Also target any pagination that might be in the main content area */
+.woocommerce-shop .woocommerce-loop + .woocommerce-pagination,
+.tax-product_cat .woocommerce-loop + .woocommerce-pagination,
+.tax-product_tag .woocommerce-loop + .woocommerce-pagination,
+.post-type-archive-product .woocommerce-loop + .woocommerce-pagination {
+    margin-left: 0 !important;
+    width: 100% !important;
+    text-align: center !important;
+}
+
+@media (max-width: 768px) {
+    body.post-type-archive-product nav.woocommerce-pagination {
+        width: 100% !important;
+        text-align: center !important;
+        margin-left: 0 !important;
+    }
+}

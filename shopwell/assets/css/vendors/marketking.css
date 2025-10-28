@@ -1,0 +1,364 @@
+@keyframes shopwellFadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 100px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes shopwellLoading {
+  0% {
+    opacity: 0.24;
+  }
+  50% {
+    opacity: 0.48;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes shopwellSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes shopwellCheckmark {
+  0% {
+    height: 0;
+    width: 0;
+    opacity: 1;
+  }
+  20% {
+    height: 0;
+    width: 6px;
+    opacity: 1;
+  }
+  40% {
+    height: 12px;
+    width: 6px;
+    opacity: 1;
+  }
+  90% {
+    height: 12px;
+    width: 6px;
+    opacity: 1;
+  }
+  100% {
+    height: 12px;
+    width: 6px;
+    opacity: 0;
+  }
+}
+@keyframes shopwellButtonCheckAdded {
+  0% {
+    height: 0;
+    width: 0;
+    opacity: 1;
+  }
+  20% {
+    height: 0;
+    width: 6px;
+    opacity: 1;
+  }
+  40% {
+    height: 12px;
+    width: 6px;
+    opacity: 1;
+  }
+  60% {
+    height: 12px;
+    width: 6px;
+    opacity: 0;
+  }
+  100% {
+    height: 12px;
+    width: 6px;
+    opacity: 0;
+  }
+}
+@keyframes shopwellButtonCheckSuccess {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0;
+  }
+  60% {
+    opacity: 0;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes shopwellSlideOut {
+  100% {
+    width: 0;
+  }
+}
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -100%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes anim-topbottom {
+  49% {
+    transform: translateY(100%);
+  }
+  50% {
+    opacity: 0;
+    -ms-filter: "alpha(opacity=0)";
+    transform: translateY(-100%);
+  }
+  51% {
+    opacity: 1;
+    -ms-filter: "alpha(opacity=100)";
+  }
+}
+@keyframes shine {
+  100% {
+    left: -200%;
+  }
+}
+#marketking_stores_vendors_table_filter input[type=search] {
+  border-radius: var(--shopwell-border__radius);
+  height: 44px;
+  background: transparent;
+}
+
+select[name=marketking_stores_vendors_table_length],
+.marketking_frontend_store_categories_select_container .select2-selection {
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAHCAYAAAAxrNxjAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDYuMC1jMDAyIDc5LjE2NDQ4OCwgMjAyMC8wNy8xMC0yMjowNjo1MyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIyLjAgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjM3QjIwQkNDMjVBRDExRUM5QkFEQjNEQ0I3NjBBM0UwIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjM3QjIwQkNEMjVBRDExRUM5QkFEQjNEQ0I3NjBBM0UwIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MzdCMjBCQ0EyNUFEMTFFQzlCQURCM0RDQjc2MEEzRTAiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MzdCMjBCQ0IyNUFEMTFFQzlCQURCM0RDQjc2MEEzRTAiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz6sw4h6AAAAb0lEQVR42mKsaexmZGBgqAPiuUD8hAEVyABxBBD3sACJEiBuAOJYIHZAUgxSdACIlYGYiwlILAfiu1CBA1AFyIpAcvNYoCY4IEkcgJoIUwS2hQUqiK6YAVkRiMOC5HBkxQxo7kVRiKyYAT0EAAIMALwKGx4801sSAAAAAElFTkSuQmCC);
+  border-width: var(--shopwell-input__border-width);
+  border-style: solid;
+  border-color: #ebeff3;
+  border-radius: var(--shopwell-border__radius);
+  height: 44px;
+}
+
+#marketking_stores_table_tbody tr {
+  box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.16);
+  background-color: transparent;
+}
+#marketking_stores_table_tbody tr:hover {
+  box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.16);
+}
+
+#marketking_stores_vendors_table_paginate a.paginate_button {
+  font-size: 14px;
+  font-size: 0.875rem;
+  border: 2px solid #ebeff3;
+  font-weight: 500;
+  color: #7d828a !important;
+  border-radius: var(--shopwell-border__radius);
+}
+#marketking_stores_vendors_table_paginate a.paginate_button:hover:not(.disabled):not(.current) {
+  color: #1d2128 !important;
+  background: none;
+  border-color: #1d2128;
+}
+#marketking_stores_vendors_table_paginate a.paginate_button.current {
+  background-color: #1d2128;
+  border-color: #1d2128;
+  color: #fff !important;
+  cursor: default;
+}
+
+td.marketking_vendor_name {
+  font-size: 18px;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #1d2128;
+}
+
+table#marketking_stores_vendors_table {
+  margin: 20px 0;
+}
+
+.marketking_arrow_icon_view_shop {
+  background-color: #1d2128;
+  border-color: #1d2128;
+}
+
+.marketking_tabclass button,
+#marketking_send_inquiry_button {
+  height: 44px;
+}
+
+.marketking_tabclass {
+  margin-top: 30px;
+}
+
+.marketking_tabclass .marketking_tabclass_left button.marketking_tablinks {
+  font-size: 18px;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #7d828a;
+  padding: 20px 30px;
+  position: relative;
+}
+.marketking_tabclass .marketking_tabclass_left button.marketking_tablinks:after {
+  content: "";
+  width: 0;
+  height: 2px;
+  background-color: #1d2128;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  transition: 0.4s;
+}
+.marketking_tabclass .marketking_tabclass_left button.marketking_tablinks:hover {
+  background-color: transparent !important;
+}
+.marketking_tabclass .marketking_tabclass_left button.marketking_tablinks:hover:after {
+  width: 100%;
+}
+
+.marketking_tabclass .marketking_tabclass_left button.marketking_tablinks.active {
+  background-color: transparent !important;
+}
+.marketking_tabclass .marketking_tabclass_left button.marketking_tablinks.active:after {
+  width: 100%;
+}
+
+.marketking_tab > h3 {
+  font-size: 24px;
+  font-size: 1.5rem;
+  margin: 0 0 20px;
+}
+
+.shopwell-vendor-result-ordering {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.shopwell-vendor-result-ordering select.orderby {
+  height: 44px;
+}
+
+.single-product .shopwell-vendor-info,
+.modal__quickview .shopwell-vendor-info {
+  border: none;
+  box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.16);
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+}
+.single-product .shopwell-vendor-info .shopwell-vendor-info__link,
+.modal__quickview .shopwell-vendor-info .shopwell-vendor-info__link {
+  display: flex;
+  align-items: center;
+}
+.single-product .shopwell-vendor-info .shopwell-vendor-info__image,
+.modal__quickview .shopwell-vendor-info .shopwell-vendor-info__image {
+  width: 50px;
+  margin-right: 13px;
+}
+.single-product .shopwell-vendor-info .shopwell-vendor-info__image img,
+.modal__quickview .shopwell-vendor-info .shopwell-vendor-info__image img {
+  border-radius: 100%;
+}
+.single-product .shopwell-vendor-info .shopwell-vendor-info__content,
+.modal__quickview .shopwell-vendor-info .shopwell-vendor-info__content {
+  flex-direction: column;
+  align-items: flex-start;
+  margin-right: 10px;
+}
+.single-product .shopwell-vendor-info .shopwell-vendor-info__content .vendor-name,
+.modal__quickview .shopwell-vendor-info .shopwell-vendor-info__content .vendor-name {
+  font-size: 16px;
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.2;
+}
+.single-product .shopwell-vendor-info .shopwell-vendor-info__content .vendor-text,
+.modal__quickview .shopwell-vendor-info .shopwell-vendor-info__content .vendor-text {
+  font-size: 14px;
+  font-size: 0.875rem;
+  color: #7d828a;
+}
+.single-product .shopwell-vendor-info .shopwell-vendor-info__rating,
+.modal__quickview .shopwell-vendor-info .shopwell-vendor-info__rating {
+  display: flex;
+  align-items: center;
+}
+.single-product .shopwell-vendor-info .shopwell-vendor-info__rating .ratings-count,
+.modal__quickview .shopwell-vendor-info .shopwell-vendor-info__rating .ratings-count {
+  font-size: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #7d828a;
+  margin: 0 0 0 8px;
+}
+
+.single-product div.product.layout-4 .shopwell-vendor-info__rating, .single-product div.product.layout-5 .shopwell-vendor-info__rating, .single-product div.product.layout-6 .shopwell-vendor-info__rating {
+  flex-direction: column;
+  align-items: end;
+}
+
+.woocommerce-cart .marketking_sold_by_title {
+  font-size: 16px;
+  font-size: 1rem;
+}
+.woocommerce-cart .marketking_split_cart_form .quantity {
+  border: none;
+}
+.woocommerce-cart .marketking_split_cart_form .shopwell-qty-button {
+  padding: 0;
+}
+.woocommerce-cart .marketking_split_cart_form .coupon {
+  display: inline-block;
+}
+.woocommerce-cart .marketking_split_cart_form .coupon > label {
+  display: none;
+}
+.woocommerce-cart .marketking_split_cart_form .coupon .input-text {
+  min-width: 200px;
+  height: var(--shopwell-size__medium);
+}
+.woocommerce-cart .marketking_split_cart_form .coupon .button {
+  font-size: 14px;
+  font-size: 0.875rem;
+  --shopwell-color__primary--box-shadow: rgba(29, 33, 40, 0.4);
+  background-color: #1d2128;
+  color: #fff;
+  min-width: 140px;
+  margin-left: 8px;
+  padding: 0 1.5em;
+  line-height: var(--shopwell-size__medium);
+}
+.woocommerce-cart .marketking_split_cart_form .actions button[name=update_cart] {
+  --shopwell-color__primary--box-shadow: rgba(0, 0, 0, 0);
+  color: var(--shopwell-color__primary);
+  background-color: transparent;
+  border-radius: 0;
+  border-bottom: 1px solid;
+  padding: 0;
+  min-width: auto;
+  line-height: 1.3;
+  color: #1d2128;
+  float: right;
+  margin-top: 15px;
+}
+.woocommerce-cart .marketking_split_cart_form .actions .button-empty-cart {
+  float: right;
+  margin-right: 35px;
+  margin-top: 15px;
+}

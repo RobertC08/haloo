@@ -1,0 +1,27 @@
+/*****************************************/
+/* Customizer control design options style
+/*****************************************/
+
+.shopwell-design-options-wrapper {
+	.background-color-overlay {
+		.wp-color-result.button {
+			top: 1.33em !important;
+		}
+	}
+
+	.shopwell-design-options-heading {
+		flex-grow: 1;
+	}
+
+	.shopwell-range-suffix {
+		margin-left: 6px;
+	}
+
+	.reset-defaults {
+		display: none;
+		
+		&.active {
+			display: block;
+		}
+	}
+}

@@ -1,0 +1,19 @@
+/**
+ * Refactored Styles
+ * Main CSS file that imports all refactored styles
+ * This file replaces the inline CSS from PHP files
+ */
+
+/* WooCommerce Styles */
+@import url('woocommerce/filter-sidebar.css');
+@import url('woocommerce/shop-layout.css');
+@import url('woocommerce/container-layout.css');
+@import url('woocommerce/pagination.css');
+@import url('woocommerce/select2-styles.css');
+@import url('woocommerce/sort-dropdown.css');
+
+/* Page-specific CSS files are loaded conditionally via load-refactored-styles.php */
+/* This prevents duplicate loading and ensures proper page-specific styling */
+
+/* Layout Styles */
+@import url('layout/footer.css');

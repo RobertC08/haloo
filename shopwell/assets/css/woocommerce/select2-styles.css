@@ -1,0 +1,73 @@
+/**
+ * Select2 Styles
+ * Custom styles for Select2 dropdowns in WooCommerce
+ */
+
+.select2-selection .select2-selection--single{
+    padding: 0px !important;
+}
+
+/* Add 18px left padding to select2 dropdown */
+/* Higher specificity to override theme and backend styles */
+body.woocommerce-shop .select2-selection--single,
+body.tax-product_cat .select2-selection--single,
+body.tax-product_tag .select2-selection--single,
+body.post-type-archive-product .select2-selection--single {
+    width: 120px !important;
+    padding-left: 18px !important;
+}
+
+/* Also target the select2 container */
+body.woocommerce-shop .select2-container .select2-selection--single,
+body.tax-product_cat .select2-container .select2-selection--single,
+body.tax-product_tag .select2-container .select2-selection--single,
+body.post-type-archive-product .select2-container .select2-selection--single {
+    width: 120px !important;
+    padding-left: 18px !important;
+}
+
+/* Style select2 dropdown options with proper contrast */
+.woocommerce-shop .select2-dropdown,
+.tax-product_cat .select2-dropdown,
+.tax-product_tag .select2-dropdown,
+.post-type-archive-product .select2-dropdown {
+    background: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Style select2 option items */
+.woocommerce-shop .select2-results__option,
+.tax-product_cat .select2-results__option,
+.tax-product_tag .select2-results__option,
+.post-type-archive-product .select2-results__option {
+    background: #ffffff !important;
+    color: #333333 !important;
+    padding: 10px 15px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Hover state with proper contrast */
+.woocommerce-shop .select2-results__option--highlighted,
+.tax-product_cat .select2-results__option--highlighted,
+.tax-product_tag .select2-results__option--highlighted,
+.post-type-archive-product .select2-results__option--highlighted,
+.woocommerce-shop .select2-results__option:hover,
+.tax-product_cat .select2-results__option:hover,
+.tax-product_tag .select2-results__option:hover,
+.post-type-archive-product .select2-results__option:hover {
+    background: #2a322f  !important;
+    color: #ffffff !important;
+}
+
+/* Selected option styling */
+.woocommerce-shop .select2-results__option--selected,
+.tax-product_cat .select2-results__option--selected,
+.tax-product_tag .select2-results__option--selected,
+.post-type-archive-product .select2-results__option--selected {
+    background: #f8f9fa !important;
+    color: #333333 !important;
+    font-weight: 500 !important;
+}

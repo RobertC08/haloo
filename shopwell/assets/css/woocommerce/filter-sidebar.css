@@ -1,0 +1,156 @@
+/**
+ * Filter Sidebar Styles
+ * Styles for WooCommerce filter sidebar positioning and layout
+ */
+
+/* Hide any duplicate filter sidebars in footer */
+#filter-sidebar-panel:not(.shopwell-filter-products-wrapper #filter-sidebar-panel),
+#mobile-filter-sidebar-panel:not(.shopwell-filter-products-wrapper #mobile-filter-sidebar-panel) {
+    display: none !important;
+}
+
+/* Hide filter button on desktop */
+@media (min-width: 992px) {
+    .button-filters,
+    .tablet-catalog-toolbar__filter-button,
+    .mobile-catalog-toolbar__filter-button {
+        display: none !important;
+    }
+    
+    /* Position filter sidebar inside content area on desktop */
+    #filter-sidebar-panel,
+    #mobile-filter-sidebar-panel {
+        position: static !important;
+        width: 280px !important;
+        height: auto !important;
+        transform: none !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: block !important;
+        background: #fff !important;
+        border-right: 1px solid #e0e0e0 !important;
+        overflow-y: visible !important;
+        box-shadow: none !important;
+        flex-shrink: 0 !important;
+        order: 1 !important;
+        float: left !important;
+    }
+    
+    #filter-sidebar-panel .panel__container,
+    #mobile-filter-sidebar-panel .panel__container {
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        transform: none !important;
+    }
+    
+    /* Add proper padding to filter sidebar content */
+    #filter-sidebar-panel .panel__content,
+    #mobile-filter-sidebar-panel .panel__content {
+        padding: 20px !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+    
+    /* Ensure filter form elements have proper spacing */
+    #filter-sidebar-panel .woocommerce-widget-layered-nav,
+    #mobile-filter-sidebar-panel .woocommerce-widget-layered-nav,
+    #filter-sidebar-panel .woocommerce-widget-price-filter,
+    #mobile-filter-sidebar-panel .woocommerce-widget-price-filter {
+        padding: 0 20px !important;
+    }
+    
+    /* Add padding to filter widget titles */
+    #filter-sidebar-panel .widget-title,
+    #mobile-filter-sidebar-panel .widget-title {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+    
+    /* Add padding to filter lists and form elements */
+    #filter-sidebar-panel ul,
+    #mobile-filter-sidebar-panel ul,
+    #filter-sidebar-panel .woocommerce-widget-layered-nav-list,
+    #mobile-filter-sidebar-panel .woocommerce-widget-layered-nav-list {
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+    }
+    
+    /* Add padding to all filter content areas */
+    #filter-sidebar-panel .widget,
+    #mobile-filter-sidebar-panel .widget,
+    #filter-sidebar-panel .woocommerce-widget,
+    #mobile-filter-sidebar-panel .woocommerce-widget {
+        padding: 0 20px !important;
+    }
+    
+    /* Ensure checkboxes and form inputs have proper spacing */
+    #filter-sidebar-panel input[type="checkbox"],
+    #mobile-filter-sidebar-panel input[type="checkbox"],
+    #filter-sidebar-panel input[type="text"],
+    #mobile-filter-sidebar-panel input[type="text"],
+    #filter-sidebar-panel input[type="number"],
+    #mobile-filter-sidebar-panel input[type="number"] {
+        margin-left: 0px !important;
+    }
+    
+    /* Add padding to color filter tags */
+    #filter-sidebar-panel .woocommerce-widget-layered-nav-list li,
+    #mobile-filter-sidebar-panel .woocommerce-widget-layered-nav-list li {
+        padding-left: 20px !important;
+    }
+    
+    #filter-sidebar-panel .panel__backdrop,
+    #mobile-filter-sidebar-panel .panel__backdrop {
+        display: none !important;
+    }
+    
+    #filter-sidebar-panel .panel__button-close,
+    #mobile-filter-sidebar-panel .panel__button-close {
+        display: none !important;
+    }
+    
+    /* Style the sidebar header */
+    #filter-sidebar-panel .panel__header,
+    #mobile-filter-sidebar-panel .panel__header {
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        margin-bottom: 20px !important;
+        padding-bottom: 15px !important;
+        border-bottom: 1px solid #e0e0e0 !important;
+    }
+    
+    /* Style the sidebar content */
+    #filter-sidebar-panel .panel__content,
+    #mobile-filter-sidebar-panel .panel__content {
+        padding: 0 !important;
+    }
+}
+
+/* Show filter button only on tablet and mobile */
+@media (max-width: 991px) {
+    .button-filters,
+    .tablet-catalog-toolbar__filter-button,
+    .mobile-catalog-toolbar__filter-button {
+        display: block !important;
+    }
+    
+    #filter-sidebar-panel,
+    #mobile-filter-sidebar-panel {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100vh !important;
+        transform: translateX(-100%) !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        z-index: 9999 !important;
+        background: #fff !important;
+    }
+    
+    #filter-sidebar-panel.offscreen-panel--open,
+    #mobile-filter-sidebar-panel.offscreen-panel--open {
+        transform: translateX(0) !important;
+    }
+}
