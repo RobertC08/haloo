@@ -145,5 +145,6 @@ if ( ! class_exists( '\Shopwell\WooCommerce\Checkout' ) ) {
 			$thumbnail = $product->get_image( 'thumbnail' );
 			return '<span class="checkout-review-product-name">' . $thumbnail . $name . '</span>';
 		}
+
 	}
 }

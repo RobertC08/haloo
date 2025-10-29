@@ -1,0 +1,341 @@
+/**
+ * Checkout SKU Availability Check
+ * Verifies product availability via Market API before order submission
+ *
+ * @package Shopwell
+ */
+
+(function($) {
+    'use strict';
+
+    $(document).ready(function() {
+        const checkoutForm = $('form.checkout');
+        
+        if (!checkoutForm.length || typeof shopwellCheckoutSku === 'undefined') {
+            return;
+        }
+
+        // Store original submit handler
+        let isCheckingAvailability = false;
+        let checkoutSubmitBlocked = false;
+
+        /**
+         * Get all SKUs from cart items
+         * Uses pre-loaded cart SKUs from localized script or falls back to AJAX
+         */
+        function getCartSkus() {
+            // First, try to use pre-loaded SKUs from localized script
+            if (shopwellCheckoutSku.cartSkus && Array.isArray(shopwellCheckoutSku.cartSkus) && shopwellCheckoutSku.cartSkus.length > 0) {
+                return shopwellCheckoutSku.cartSkus.map(function(item) {
+                    return {
+                        sku: item.sku,
+                        quantity: item.quantity,
+                        productName: item.product_name || 'Produs'
+                    };
+                });
+            }
+
+            // Fallback: try to get from DOM
+            const skus = [];
+            $('.woocommerce-checkout-review-order-table tbody tr.cart_item').each(function() {
+                const $row = $(this);
+                const productName = $row.find('.product-name').text().trim();
+                const quantityText = $row.find('.product-quantity').text().trim();
+                const quantity = parseInt(quantityText) || 1;
+
+                // Try to get SKU from data attributes
+                let sku = $row.data('sku') || $row.find('[data-sku]').first().data('sku');
+
+                if (sku) {
+                    skus.push({
+                        sku: sku,
+                        quantity: quantity,
+                        productName: productName || 'Produs'
+                    });
+                }
+            });
+
+            return skus;
+        }
+
+        /**
+         * Get SKUs from WooCommerce checkout data via AJAX
+         */
+        function getCartSkusFromWooCommerce() {
+            return new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: shopwellCheckoutSku.ajaxUrl,
+                    type: 'POST',
+                    data: {
+                        action: 'get_checkout_cart_skus',
+                        nonce: shopwellCheckoutSku.nonce
+                    },
+                    success: function(response) {
+                        if (response.success && response.data && Array.isArray(response.data.skus)) {
+                            const skus = response.data.skus.map(function(item) {
+                                return {
+                                    sku: item.sku,
+                                    quantity: item.quantity,
+                                    productName: item.product_name || 'Produs'
+                                };
+                            });
+                            resolve(skus);
+                        } else {
+                            reject('Could not retrieve cart SKUs');
+                        }
+                    },
+                    error: function() {
+                        reject('Error retrieving cart SKUs');
+                    }
+                });
+            });
+        }
+
+        /**
+         * Check single SKU availability
+         */
+        function checkSkuAvailability(sku) {
+            return new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: shopwellCheckoutSku.ajaxUrl,
+                    type: 'POST',
+                    data: {
+                        action: 'check_sku_availability',
+                        nonce: shopwellCheckoutSku.nonce,
+                        sku: sku
+                    },
+                    success: function(response) {
+                        // Log to console for debugging
+                        console.log('=== Market API Check SKU Availability ===');
+                        console.log('SKU:', sku);
+                        console.log('Full Response:', response);
+                        
+                        if (response.data && response.data.debug_info) {
+                            console.log('--- Request Details ---');
+                            console.log('URL:', response.data.debug_info.request_url);
+                            console.log('Headers:', response.data.debug_info.request_headers);
+                            console.log('Method:', response.data.debug_info.request_method);
+                            console.log('--- Response Details ---');
+                            console.log('Response Code:', response.data.debug_info.response_code);
+                            console.log('Response Body:', response.data.debug_info.response_body);
+                        }
+                        
+                        if (response.success) {
+                            console.log('✅ Success - Availability:', response.data);
+                            resolve(response.data);
+                        } else {
+                            console.error('❌ Error:', response.data);
+                            reject(response.data || { message: 'Unknown error' });
+                        }
+                        console.log('========================================');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('=== Market API AJAX Error ===');
+                        console.error('SKU:', sku);
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        console.error('XHR:', xhr);
+                        console.error('======================================');
+                        reject({ message: error || 'Network error' });
+                    }
+                });
+            });
+        }
+
+        /**
+         * Check all SKUs availability
+         */
+        async function checkAllSkusAvailability(cartSkus) {
+            const results = [];
+            const errors = [];
+
+            // Show loading state
+            const $placeOrderBtn = $('button[name="woocommerce_checkout_place_order"]');
+            const originalBtnText = $placeOrderBtn.text();
+            $placeOrderBtn.prop('disabled', true).text(shopwellCheckoutSku.checkingText);
+
+            try {
+                // Check each SKU
+                for (const item of cartSkus) {
+                    try {
+                        const availability = await checkSkuAvailability(item.sku);
+                        results.push({
+                            ...item,
+                            available: availability.quantity,
+                            price: availability.price
+                        });
+
+                        // Check if quantity is sufficient
+                        if (availability.quantity < item.quantity) {
+                            errors.push({
+                                sku: item.sku,
+                                productName: item.productName,
+                                requested: item.quantity,
+                                available: availability.quantity,
+                                type: 'insufficient'
+                            });
+                        } else if (availability.quantity === 0) {
+                            errors.push({
+                                sku: item.sku,
+                                productName: item.productName,
+                                requested: item.quantity,
+                                available: 0,
+                                type: 'unavailable'
+                            });
+                        }
+                    } catch (error) {
+                        errors.push({
+                            sku: item.sku,
+                            productName: item.productName,
+                            error: error.message || 'Error checking availability',
+                            type: 'error'
+                        });
+                    }
+                }
+
+                // Restore button
+                $placeOrderBtn.prop('disabled', false).text(originalBtnText);
+
+                return { results: results, errors: errors };
+            } catch (error) {
+                // Restore button
+                $placeOrderBtn.prop('disabled', false).text(originalBtnText);
+                throw error;
+            }
+        }
+
+        /**
+         * Display WooCommerce error notices
+         */
+        function displayAvailabilityErrors(errors) {
+            // Remove existing notices
+            $('.woocommerce-error, .woocommerce-info').remove();
+
+            // Create notice container if it doesn't exist
+            if (!$('.woocommerce-notices-wrapper').length) {
+                checkoutForm.before('<ul class="woocommerce-error" role="alert"></ul>');
+            }
+
+            let $errorList = $('.woocommerce-error').first();
+            if (!$errorList.length) {
+                checkoutForm.before('<ul class="woocommerce-error" role="alert"></ul>');
+                $errorList = $('.woocommerce-error').first();
+            }
+
+            // Add error messages
+            errors.forEach(function(error) {
+                let message = '';
+                
+                if (error.type === 'unavailable') {
+                    message = '<strong>' + error.productName + '</strong> ' + shopwellCheckoutSku.unavailableText;
+                } else if (error.type === 'insufficient') {
+                    message = '<strong>' + error.productName + '</strong> ' + shopwellCheckoutSku.insufficientText + ' ' + error.available;
+                } else {
+                    message = '<strong>' + error.productName + '</strong> ' + (error.error || 'Eroare la verificare');
+                }
+
+                $errorList.append('<li>' + message + '</li>');
+            });
+
+            // Scroll to errors
+            $('html, body').animate({
+                scrollTop: $errorList.offset().top - 100
+            }, 500);
+        }
+
+
+        /**
+         * Intercept checkout form submission
+         */
+        checkoutForm.on('checkout_place_order', function(e) {
+            // This event is triggered by WooCommerce before submission
+            if (isCheckingAvailability) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Intercept form submit
+        checkoutForm.on('submit', async function(e) {
+            // If we're already checking, block submission
+            if (isCheckingAvailability || checkoutSubmitBlocked) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return false;
+            }
+
+            // Prevent default submission
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            isCheckingAvailability = true;
+
+            try {
+                // Try to get SKUs from page first (from localized script)
+                let cartSkus = getCartSkus();
+
+                // If no SKUs found, try AJAX method
+                if (cartSkus.length === 0) {
+                    try {
+                        cartSkus = await getCartSkusFromWooCommerce();
+                    } catch (error) {
+                        console.warn('Could not retrieve cart SKUs via AJAX:', error);
+                        // As a fallback, we'll allow submission if we can't get SKUs
+                        console.warn('Could not retrieve cart SKUs, allowing submission');
+                        isCheckingAvailability = false;
+                        checkoutForm.off('submit').submit();
+                        return true;
+                    }
+                }
+
+                // Filter out items without SKU
+                cartSkus = cartSkus.filter(item => item.sku && item.sku.trim() !== '');
+
+                if (cartSkus.length === 0) {
+                    console.warn('No valid SKUs found, allowing submission');
+                    isCheckingAvailability = false;
+                    checkoutForm.off('submit').submit();
+                    return true;
+                }
+
+                // Check all SKUs
+                const checkResult = await checkAllSkusAvailability(cartSkus);
+
+                isCheckingAvailability = false;
+
+                // If there are errors, display them and block submission
+                if (checkResult.errors.length > 0) {
+                    displayAvailabilityErrors(checkResult.errors);
+                    checkoutSubmitBlocked = true;
+                    
+                    // Re-enable submit after a short delay
+                    setTimeout(function() {
+                        checkoutSubmitBlocked = false;
+                    }, 1000);
+                    
+                    return false;
+                }
+
+                // All checks passed, allow submission
+                checkoutSubmitBlocked = false;
+                checkoutForm.off('submit').submit();
+                return true;
+
+            } catch (error) {
+                console.error('Error checking SKU availability:', error);
+                isCheckingAvailability = false;
+                checkoutSubmitBlocked = false;
+                
+                // On error, allow submission (fail open)
+                // Or you can uncomment to block:
+                // displayAvailabilityErrors([{ type: 'error', error: 'Eroare la verificare disponibilitate. Te rugăm să încerci din nou.' }]);
+                // return false;
+                
+                checkoutForm.off('submit').submit();
+                return true;
+            }
+        });
+    });
+
+})(jQuery);
+

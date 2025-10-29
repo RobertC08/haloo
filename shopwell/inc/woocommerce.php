@@ -64,6 +64,7 @@ class WooCommerce {
 		\Shopwell\WooCommerce\Product_Card::instance();
 		\Shopwell\WooCommerce\Badges::instance();
 		\Shopwell\WooCommerce\QuickView::instance();
+		\Shopwell\WooCommerce\Sku_Availability::instance();
 		if ( ! empty( Helper::get_option( 'product_card_attribute' ) && Helper::get_option( 'product_card_attribute' ) != 'none' ) ) {
 			\Shopwell\WooCommerce\Product_Attribute::instance();
 		}
