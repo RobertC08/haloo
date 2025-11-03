@@ -183,10 +183,12 @@ class Single_Product {
 			get_template_directory_uri() . '/assets/js/woocommerce/single-product.js',
 			array(
 				'jquery',
+				'shopwell', // Add shopwell as dependency to ensure shopwellData is available
 			),
 			'20250105',
 			array( 'strategy' => 'defer' )
 		);
+
 
 		wp_enqueue_script( 'shopwell-countdown', get_template_directory_uri() . '/assets/js/plugins/countdown.js', array(), '1.0' );
 		wp_register_script( 'threesixty', get_template_directory_uri() . '/assets/js/plugins/threesixty.min.js', array(), '2.0.5', true );

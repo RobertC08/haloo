@@ -3345,19 +3345,46 @@ body.socials-popup-opened {
 }
 .single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item span {
   line-height: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: inherit;
 }
 .single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item:hover {
   background-color: transparent;
   border-color: #1d2128;
 }
+.single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item:hover span {
+  background-color: inherit;
+}
 .single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item.selected {
   background-color: transparent;
   border-color: #1d2128;
 }
+.single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item.selected span {
+  background-color: inherit;
+}
 .single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item.disabled {
   position: relative;
-  opacity: 1;
+  opacity: 0.4;
   transform: rotate(-45deg);
+}
+.single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item.disabled span {
+  opacity: 0.4;
+}
+.single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item.selected {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item.selected:hover {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item.selected span {
+  background-color: inherit;
+}
+.single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item.selected .wcboost-variation-swatches__name,
+.single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item .wcboost-variation-swatches__name {
+  color: inherit;
 }
 .single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item.disabled:hover {
   background-color: transparent;

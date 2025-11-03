@@ -42,6 +42,13 @@
         this.productExtraContent();
 
         this.reviewProduct();
+
+        // Apply color swatches
+        setTimeout(function() {
+            if (typeof shopwell !== 'undefined' && typeof shopwell.applyColorSwatches === 'function') {
+                shopwell.applyColorSwatches();
+            }
+        }, 100);
     };
 
     /**
@@ -50,7 +57,8 @@
     shopwell.productThumbnails = function ( vertical ) {
         var $gallery = $('.woocommerce-product-gallery');
 
-        $gallery.imagesLoaded(function () {
+        // Check if imagesLoaded is available
+        var processThumbnails = function() {
             var columns = $gallery.data('columns'),
             $thumbnail = $gallery.find('.flex-control-thumbs');
 
@@ -107,7 +115,15 @@
 
             // Add an <span> to thumbnails for responsive bullets.
             $('li', $thumbnail).append('<span/>');
-        });
+        };
+        
+        // Check if imagesLoaded is available and use it, otherwise execute immediately
+        if (typeof $gallery.imagesLoaded === 'function') {
+            $gallery.imagesLoaded(processThumbnails);
+        } else {
+            // Fallback: execute immediately if imagesLoaded is not available
+            setTimeout(processThumbnails, 100);
+        }
 
     };
 
@@ -752,14 +768,22 @@
             $('.mobile-fixed-product-gallery.admin-bar div.product .woocommerce-product-gallery').css({top: noticeHeight + 10})
         }
 
-        $productGallery.imagesLoaded(function () {
+        // Check if imagesLoaded is available
+        var processGallerySpacing = function() {
             var imageHeight = $('.woocommerce-product-gallery .woocommerce-product-gallery__image > a').height(),
                 imageWidth = $('.woocommerce-product-gallery .woocommerce-product-gallery__image > a').width(),
                 ratio = imageHeight && imageWidth ? imageHeight/imageWidth : 0;
             if( ratio && ratio > 50 ) {
                 $('.product-fixed-gallery-spacing').css( '--shopwell-product-fixed-gallery-spacing', (ratio * 100).toFixed(2) + 'vw' );
             }
-        })
+        };
+        
+        if (typeof $productGallery.imagesLoaded === 'function') {
+            $productGallery.imagesLoaded(processGallerySpacing);
+        } else {
+            // Fallback: execute immediately if imagesLoaded is not available
+            setTimeout(processGallerySpacing, 500);
+        }
 
         shopwell.$window.on('scroll', function () {
             if( ! $productGallery.hasClass('has-scroll')) {
@@ -834,6 +858,317 @@
 
 			}
 		}, 100);
+	};
+
+	/**
+	 * Apply color swatches to variation buttons
+	 *
+	 * @since 1.0.0
+	 */
+	shopwell.applyColorSwatches = function () {
+	// Color map directly in JavaScript for Romanian color names
+		var colorMap = {
+			'alb': '#FFFFFF',
+			'albastru': '#0000FF',
+			'albastru aura': '#ADD8E6',
+			'albastru aura': '#ADD8E6',
+			'albastru gheață': '#E0FFFF',
+			'albastru gheata': '#E0FFFF',
+			'amurg': '#6A5ACD',
+			'argintiu': '#C0C0C0',
+			'auriu': '#FFD700',
+			'auriu roz': '#B76E79',
+			'bej': '#F5F5DC',
+			'bronz': '#CD7F32',
+			'galben': '#FFFF00',
+			'gri': '#808080',
+			'maro': '#A52A2A',
+			'negru': '#000000',
+			'portocaliu': '#FFA500',
+			'roșu': '#FF0000',
+			'rosu': '#FF0000',
+			'roz': '#FFC0CB',
+			'transparent': '#F5F5F5',
+			'turcoaz': '#40E0D0',
+			'verde': '#008000',
+			'violet': '#EE82EE',
+			'violetă': '#EE82EE',
+			'violete': '#EE82EE'
+		};
+
+		// Normalize function for matching
+		function normalizeText(text) {
+			if (!text) return '';
+			return text.toLowerCase().trim().replace(/[ăâîșțşţ]/g, function(match) {
+				var map = {'ă': 'a', 'â': 'a', 'î': 'i', 'ș': 's', 'ş': 's', 'ț': 't', 'ţ': 't'};
+				return map[match] || match;
+			}).replace(/[^\w\s]/g, '').replace(/\s+/g, ' ');
+		}
+
+		// Function to get color by name
+		function getColorByName(colorName) {
+			if (!colorName) return null;
+			
+			var normalized = normalizeText(colorName);
+			var lowerName = colorName.toLowerCase().trim();
+			
+			// Try exact match first
+			if (colorMap[lowerName]) {
+				return colorMap[lowerName];
+			}
+			
+			// Try normalized match
+			for (var key in colorMap) {
+				if (normalizeText(key) === normalized) {
+					return colorMap[key];
+				}
+			}
+			
+			// Try partial match
+			for (var key2 in colorMap) {
+				var keyNormalized = normalizeText(key2);
+				if (keyNormalized.indexOf(normalized) !== -1 || normalized.indexOf(keyNormalized) !== -1) {
+					return colorMap[key2];
+				}
+			}
+			
+			return null;
+		}
+		
+		// Function to calculate luminance (brightness) of a color
+		function getLuminance(hex) {
+			// Remove # if present
+			hex = hex.replace('#', '');
+			
+			// Convert to RGB
+			var r = parseInt(hex.substr(0, 2), 16);
+			var g = parseInt(hex.substr(2, 2), 16);
+			var b = parseInt(hex.substr(4, 2), 16);
+			
+			// Calculate relative luminance using WCAG formula
+			var rsRGB = r / 255;
+			var gsRGB = g / 255;
+			var bsRGB = b / 255;
+			
+			var rLinear = rsRGB <= 0.03928 ? rsRGB / 12.92 : Math.pow((rsRGB + 0.055) / 1.055, 2.4);
+			var gLinear = gsRGB <= 0.03928 ? gsRGB / 12.92 : Math.pow((gsRGB + 0.055) / 1.055, 2.4);
+			var bLinear = bsRGB <= 0.03928 ? bsRGB / 12.92 : Math.pow((bsRGB + 0.055) / 1.055, 2.4);
+			
+			return 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear;
+		}
+		
+		// Function to determine if color is dark (returns true if dark)
+		function isDarkColor(hex) {
+			var luminance = getLuminance(hex);
+			// If luminance is less than 0.5, it's considered dark
+			return luminance < 0.5;
+		}
+
+		// Function to apply colors to swatches
+		function applyColors() {
+			// Try multiple selectors to find color swatch buttons
+			// First try with color-specific selector
+			var $swatches = $('.single-product div.product .wcboost-variation-swatches--color .wcboost-variation-swatches__item');
+			
+			// Also try all variation swatch items and filter by class pattern
+			if ($swatches.length === 0) {
+				$swatches = $('.single-product div.product .wcboost-variation-swatches__item').filter(function() {
+					var classes = this.className || '';
+					return classes.indexOf('wcboost-variation-swatches__item-') !== -1;
+				});
+			}
+			
+			// Try in variations table
+			if ($swatches.length === 0) {
+				$swatches = $('.single-product div.product table.variations .wcboost-variation-swatches__item').filter(function() {
+					var classes = this.className || '';
+					return classes.indexOf('wcboost-variation-swatches__item-') !== -1;
+				});
+			}
+			
+			// Try to find by attribute name "Culoare" in table rows
+			if ($swatches.length === 0) {
+				$('.single-product div.product table.variations tr').each(function() {
+					var $row = $(this);
+					var $label = $row.find('.label');
+					if ($label.text().toLowerCase().indexOf('culoare') !== -1) {
+						var $rowSwatches = $row.find('.wcboost-variation-swatches__item');
+						$swatches = $swatches.add($rowSwatches);
+					}
+				});
+			}
+
+			// Apply colors to found swatches
+
+			$swatches.each(function() {
+				var $item = $(this);
+				var matchedColor = null;
+				var colorName = '';
+				
+				// Method 1: Extract color name from CSS class (e.g., wcboost-variation-swatches__item-auriu)
+				$item.each(function() {
+					var classes = this.className.split(/\s+/);
+					for (var i = 0; i < classes.length; i++) {
+						var className = classes[i];
+						if (className.indexOf('wcboost-variation-swatches__item-') === 0) {
+							colorName = className.replace('wcboost-variation-swatches__item-', '').trim();
+							if (colorName) {
+							matchedColor = getColorByName(colorName);
+							if (matchedColor) {
+								return false; // break
+							}
+							}
+						}
+					}
+				});
+				
+				// Method 2: Get from data-value attribute
+				if (!matchedColor) {
+					var dataValue = $item.attr('data-value') || $item.data('value') || '';
+					if (dataValue) {
+						colorName = dataValue.toLowerCase().trim();
+						matchedColor = getColorByName(colorName);
+					}
+				}
+				
+				// Method 3: Get from item text (fallback)
+				if (!matchedColor) {
+					var itemText = $item.text().trim() || 
+								   $item.find('.wcboost-variation-swatches__name').text().trim() || 
+								   $item.attr('aria-label') || 
+								   $item.attr('title') || 
+								   $item.data('name') || '';
+					
+					if (!itemText) {
+						// Try to get from nested elements
+						$item.find('span, div, a, button').each(function() {
+							var $el = $(this);
+							var text = $el.text().trim();
+							if (text && text.length < 50 && itemText.length < text.length) {
+								itemText = text;
+							}
+						});
+					}
+					
+					// Remove any numbers or extra text, keep only color name
+					itemText = itemText.replace(/\(\d+\)/g, '').trim();
+					
+					if (itemText) {
+						colorName = itemText;
+						matchedColor = getColorByName(itemText);
+					}
+				}
+				
+				if (matchedColor) {
+					// Find or create the inner span for color display
+					var $span = $item.find('span').first();
+					
+					if ($span.length === 0) {
+						$span = $('<span></span>');
+						$item.prepend($span);
+					}
+					
+					// Apply background color to inner span (this is the color swatch circle)
+					$span.css({
+						'background-color': matchedColor,
+						'display': 'block',
+						'width': '100%',
+						'height': '100%',
+						'border-radius': '50%'
+					});
+					
+					// Set via style attribute for maximum priority
+					if ($span[0]) {
+						$span[0].style.setProperty('background-color', matchedColor, 'important');
+					}
+					
+					// Also apply to item itself as backup
+					$item.css('background-color', matchedColor);
+					if ($item[0]) {
+						$item[0].style.setProperty('background-color', matchedColor, 'important');
+					}
+					
+					// Determine text color based on background brightness
+					var isDark = isDarkColor(matchedColor);
+					var textColor = isDark ? '#FFFFFF' : '#000000';
+					
+					// Apply text color to item itself
+					$item.css('color', textColor);
+					if ($item[0]) {
+						$item[0].style.setProperty('color', textColor, 'important');
+					}
+					
+					// Find and apply to all text elements inside (excluding the color swatch span)
+					var $textElements = $item.find('.wcboost-variation-swatches__name, span:not(.wcboost-variation-swatches__color):not([style*="background-color"]), div:not([style*="background-color"]), a, button');
+					$textElements.css('color', textColor);
+					$textElements.each(function() {
+						if (this.style) {
+							this.style.setProperty('color', textColor, 'important');
+						}
+					});
+					
+					// Also apply to direct text content if no child elements found
+					if ($textElements.length === 0 && $item.text().trim()) {
+						// Create a wrapper if needed or just set on the item itself (already done above)
+						$item.css('color', textColor);
+					}
+					
+					// Set data attribute for reference
+					$item.attr('data-color-applied', matchedColor);
+					$item.attr('data-text-color', textColor);
+				}
+			});
+		}
+
+		// Apply colors multiple times with delays to catch plugin initialization
+		function applyColorsWithRetry(attempts) {
+			attempts = attempts || 0;
+			if (attempts < 5) {
+				applyColors();
+				if (attempts < 4) {
+					setTimeout(function() {
+						applyColorsWithRetry(attempts + 1);
+					}, 300 + (attempts * 200));
+				}
+			}
+		}
+
+		// Apply colors immediately and with retries
+		applyColorsWithRetry();
+		
+		// Also apply on document ready
+		$(document).ready(function() {
+			setTimeout(function() {
+				applyColorsWithRetry();
+			}, 500);
+		});
+
+		// Reapply when variations are updated (for AJAX updates)
+		$(document.body).on('wc_variation_form updated_wc_div init_variation_swatches', function() {
+			setTimeout(function() {
+				applyColors();
+			}, 300);
+		});
+
+		// Use MutationObserver to catch DOM changes
+		if (typeof MutationObserver !== 'undefined') {
+			var observer = new MutationObserver(function(mutations) {
+				setTimeout(applyColors, 100);
+			});
+			
+			var $product = $('.single-product div.product');
+			if ($product.length) {
+				observer.observe($product[0], {
+					childList: true,
+					subtree: true
+				});
+			}
+		}
+		
+		// Trigger after a longer delay to ensure plugin has initialized
+		setTimeout(function() {
+			applyColors();
+		}, 2000);
 	};
 
     /**
