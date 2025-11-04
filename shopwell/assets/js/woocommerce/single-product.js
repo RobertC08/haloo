@@ -866,34 +866,36 @@
 	 * @since 1.0.0
 	 */
 	shopwell.applyColorSwatches = function () {
-	// Color map directly in JavaScript for Romanian color names
+	// Color map directly in JavaScript for Romanian color names (with 20% opacity)
 		var colorMap = {
-			'alb': '#FFFFFF',
-			'albastru': '#0000FF',
-			'albastru aura': '#ADD8E6',
-			'albastru aura': '#ADD8E6',
-			'albastru gheață': '#E0FFFF',
-			'albastru gheata': '#E0FFFF',
-			'amurg': '#6A5ACD',
-			'argintiu': '#C0C0C0',
-			'auriu': '#FFD700',
-			'auriu roz': '#B76E79',
-			'bej': '#F5F5DC',
-			'bronz': '#CD7F32',
-			'galben': '#FFFF00',
-			'gri': '#808080',
-			'maro': '#A52A2A',
-			'negru': '#000000',
-			'portocaliu': '#FFA500',
-			'roșu': '#FF0000',
-			'rosu': '#FF0000',
-			'roz': '#FFC0CB',
-			'transparent': '#F5F5F5',
-			'turcoaz': '#40E0D0',
-			'verde': '#008000',
-			'violet': '#EE82EE',
-			'violetă': '#EE82EE',
-			'violete': '#EE82EE'
+			'alb': 'rgba(255, 255, 255, 0.2)',
+			'albastru': 'rgba(0, 0, 255, 0.2)',
+			'albastru aura': 'rgba(173, 216, 230, 0.2)',
+			'albastru-aura': 'rgba(173, 216, 230, 0.2)',
+			'albastru gheață': 'rgba(224, 255, 255, 0.2)',
+			'albastru gheata': 'rgba(224, 255, 255, 0.2)',
+			'albastru-gheata': 'rgba(224, 255, 255, 0.2)',
+			'amurg': 'rgba(106, 90, 205, 0.2)',
+			'argintiu': 'rgba(192, 192, 192, 0.2)',
+			'auriu': 'rgba(255, 215, 0, 0.2)',
+			'auriu roz': 'rgba(183, 110, 121, 0.2)',
+			'auriu-roz': 'rgba(183, 110, 121, 0.2)',
+			'bej': 'rgba(245, 245, 220, 0.2)',
+			'bronz': 'rgba(205, 127, 50, 0.2)',
+			'galben': 'rgba(255, 255, 0, 0.2)',
+			'gri': 'rgba(128, 128, 128, 0.2)',
+			'maro': 'rgba(165, 42, 42, 0.2)',
+			'negru': 'rgba(0, 0, 0, 0.2)',
+			'portocaliu': 'rgba(255, 165, 0, 0.2)',
+			'roșu': 'rgba(255, 0, 0, 0.2)',
+			'rosu': 'rgba(255, 0, 0, 0.2)',
+			'roz': 'rgba(255, 192, 203, 0.2)',
+			'transparent': 'rgba(245, 245, 245, 0.2)',
+			'turcoaz': 'rgba(64, 224, 208, 0.2)',
+			'verde': 'rgba(0, 128, 0, 0.2)',
+			'violet': 'rgba(238, 130, 238, 0.2)',
+			'violetă': 'rgba(238, 130, 238, 0.2)',
+			'violete': 'rgba(238, 130, 238, 0.2)'
 		};
 
 		// Normalize function for matching
@@ -924,6 +926,14 @@
 				}
 			}
 			
+			// Try partial match (for first color in multi-color names)
+			if (lowerName.indexOf('-') !== -1) {
+				var firstColor = lowerName.split('-')[0];
+				if (colorMap[firstColor]) {
+					return colorMap[firstColor];
+				}
+			}
+			
 			// Try partial match
 			for (var key2 in colorMap) {
 				var keyNormalized = normalizeText(key2);
@@ -936,14 +946,25 @@
 		}
 		
 		// Function to calculate luminance (brightness) of a color
-		function getLuminance(hex) {
-			// Remove # if present
-			hex = hex.replace('#', '');
+		function getLuminance(color) {
+			var r, g, b;
 			
-			// Convert to RGB
-			var r = parseInt(hex.substr(0, 2), 16);
-			var g = parseInt(hex.substr(2, 2), 16);
-			var b = parseInt(hex.substr(4, 2), 16);
+			// Handle rgba format
+			if (color.indexOf('rgba') === 0 || color.indexOf('rgb') === 0) {
+				var match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+				if (match) {
+					r = parseInt(match[1]);
+					g = parseInt(match[2]);
+					b = parseInt(match[3]);
+				}
+			} 
+			// Handle hex format
+			else {
+				var hex = color.replace('#', '');
+				r = parseInt(hex.substr(0, 2), 16);
+				g = parseInt(hex.substr(2, 2), 16);
+				b = parseInt(hex.substr(4, 2), 16);
+			}
 			
 			// Calculate relative luminance using WCAG formula
 			var rsRGB = r / 255;
@@ -958,11 +979,18 @@
 		}
 		
 		// Function to determine if color is dark (returns true if dark)
-		function isDarkColor(hex) {
-			var luminance = getLuminance(hex);
+		function isDarkColor(color) {
+			var luminance = getLuminance(color);
 			// If luminance is less than 0.5, it's considered dark
 			return luminance < 0.5;
 		}
+		
+		// Expose helper functions globally for reuse in other scripts
+		shopwell.getColorByName = getColorByName;
+		shopwell.normalizeText = normalizeText;
+		shopwell.colorMap = colorMap;
+		shopwell.getLuminance = getLuminance;
+		shopwell.isDarkColor = isDarkColor;
 
 		// Function to apply colors to swatches
 		function applyColors() {
@@ -1059,53 +1087,65 @@
 					}
 				}
 				
-				if (matchedColor) {
-					// Find or create the inner span for color display
-					var $span = $item.find('span').first();
-					
-					if ($span.length === 0) {
-						$span = $('<span></span>');
-						$item.prepend($span);
-					}
-					
-					// Apply background color to inner span (this is the color swatch circle)
-					$span.css({
-						'background-color': matchedColor,
-						'display': 'block',
-						'width': '100%',
-						'height': '100%',
-						'border-radius': '50%'
+			if (matchedColor) {
+				// Find the color swatch span (not the name span)
+				var $colorSpan = $item.find('span:not(.wcboost-variation-swatches__name)').first();
+				
+				if ($colorSpan.length === 0) {
+					$colorSpan = $('<span></span>');
+					$item.prepend($colorSpan);
+				}
+				
+				// Apply background color ONLY to the color swatch circle span
+				$colorSpan.css({
+					'background-color': matchedColor,
+					'display': 'block',
+					'width': '100%',
+					'height': '100%',
+					'border-radius': '50%'
+				});
+				
+				// Set via style attribute for maximum priority
+				if ($colorSpan[0]) {
+					$colorSpan[0].style.setProperty('background-color', matchedColor, 'important');
+				}
+				
+				// Apply to item itself as backup
+				$item.css('background-color', matchedColor);
+				if ($item[0]) {
+					$item[0].style.setProperty('background-color', matchedColor, 'important');
+				}
+				
+				// Remove background and border-radius from name span explicitly
+				var $nameSpan = $item.find('.wcboost-variation-swatches__name');
+				if ($nameSpan.length > 0) {
+					$nameSpan.css({
+						'background-color': 'transparent',
+						'border-radius': '0'
 					});
-					
-					// Set via style attribute for maximum priority
-					if ($span[0]) {
-						$span[0].style.setProperty('background-color', matchedColor, 'important');
+					if ($nameSpan[0]) {
+						$nameSpan[0].style.setProperty('background-color', 'transparent', 'important');
+						$nameSpan[0].style.setProperty('border-radius', '0', 'important');
 					}
+				}
 					
-					// Also apply to item itself as backup
-					$item.css('background-color', matchedColor);
-					if ($item[0]) {
-						$item[0].style.setProperty('background-color', matchedColor, 'important');
+				// Since colors are at 20% opacity, always use dark text for better contrast
+				var textColor = '#1d2128';
+				
+				// Apply text color to item itself
+				$item.css('color', textColor);
+				if ($item[0]) {
+					$item[0].style.setProperty('color', textColor, 'important');
+				}
+				
+				// Find and apply to all text elements inside (excluding the color swatch span)
+				var $textElements = $item.find('.wcboost-variation-swatches__name, span:not(.wcboost-variation-swatches__color):not([style*="background-color"]), div:not([style*="background-color"]), a, button');
+				$textElements.css('color', textColor);
+				$textElements.each(function() {
+					if (this.style) {
+						this.style.setProperty('color', textColor, 'important');
 					}
-					
-					// Determine text color based on background brightness
-					var isDark = isDarkColor(matchedColor);
-					var textColor = isDark ? '#FFFFFF' : '#000000';
-					
-					// Apply text color to item itself
-					$item.css('color', textColor);
-					if ($item[0]) {
-						$item[0].style.setProperty('color', textColor, 'important');
-					}
-					
-					// Find and apply to all text elements inside (excluding the color swatch span)
-					var $textElements = $item.find('.wcboost-variation-swatches__name, span:not(.wcboost-variation-swatches__color):not([style*="background-color"]), div:not([style*="background-color"]), a, button');
-					$textElements.css('color', textColor);
-					$textElements.each(function() {
-						if (this.style) {
-							this.style.setProperty('color', textColor, 'important');
-						}
-					});
+				});
 					
 					// Also apply to direct text content if no child elements found
 					if ($textElements.length === 0 && $item.text().trim()) {

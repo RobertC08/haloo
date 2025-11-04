@@ -37,6 +37,9 @@
 
 		this.stickySidebar();
 		this.priceFilterSlider();
+		
+		// Apply color swatches to filter sidebar
+		this.applyFilterColorSwatches();
     };
 
     // Top Categories
@@ -1586,5 +1589,212 @@
             }
         }, 100);
     });
+
+	/**
+	 * Apply color swatches to filter sidebar
+	 * Reuses the color dictionary from single-product.js
+	 * 
+	 * @since 1.0.0
+	 */
+	/**
+	 * Sort color filters alphabetically
+	 * 
+	 * @since 1.0.0
+	 */
+	shopwell.sortColorFiltersAlphabetically = function() {
+		$('.products-filter--swatches.swatches-button').each(function() {
+			var $container = $(this);
+			var $buttons = $container.find('.products-filter__option.swatch.swatch-button').get();
+			
+			// Sort buttons alphabetically by their text content
+			$buttons.sort(function(a, b) {
+				var textA = $(a).text().trim().toLowerCase();
+				var textB = $(b).text().trim().toLowerCase();
+				
+				// Remove numbers in parentheses for sorting
+				textA = textA.replace(/\s*\(\d+\)\s*$/, '');
+				textB = textB.replace(/\s*\(\d+\)\s*$/, '');
+				
+				return textA.localeCompare(textB, 'ro');
+			});
+			
+			// Reorder the buttons in the container
+			$.each($buttons, function(idx, button) {
+				$container.append(button);
+			});
+		});
+	};
+	
+	shopwell.applyFilterColorSwatches = function() {
+		// Define helper functions if not already available from single-product.js
+		if (typeof shopwell.getColorByName !== 'function') {
+			// Color map for Romanian color names (with 20% opacity)
+			var colorMap = {
+				'alb': 'rgba(255, 255, 255, 0.2)',
+				'albastru': 'rgba(0, 0, 255, 0.2)',
+				'albastru aura': 'rgba(173, 216, 230, 0.2)',
+				'albastru-aura': 'rgba(173, 216, 230, 0.2)',
+				'albastru gheață': 'rgba(224, 255, 255, 0.2)',
+				'albastru gheata': 'rgba(224, 255, 255, 0.2)',
+				'albastru-gheata': 'rgba(224, 255, 255, 0.2)',
+				'amurg': 'rgba(106, 90, 205, 0.2)',
+				'argintiu': 'rgba(192, 192, 192, 0.2)',
+				'auriu': 'rgba(255, 215, 0, 0.2)',
+				'auriu roz': 'rgba(183, 110, 121, 0.2)',
+				'auriu-roz': 'rgba(183, 110, 121, 0.2)',
+				'bej': 'rgba(245, 245, 220, 0.2)',
+				'bronz': 'rgba(205, 127, 50, 0.2)',
+				'galben': 'rgba(255, 255, 0, 0.2)',
+				'gri': 'rgba(128, 128, 128, 0.2)',
+				'maro': 'rgba(165, 42, 42, 0.2)',
+				'negru': 'rgba(0, 0, 0, 0.2)',
+				'portocaliu': 'rgba(255, 165, 0, 0.2)',
+				'roșu': 'rgba(255, 0, 0, 0.2)',
+				'rosu': 'rgba(255, 0, 0, 0.2)',
+				'roz': 'rgba(255, 192, 203, 0.2)',
+				'transparent': 'rgba(245, 245, 245, 0.2)',
+				'turcoaz': 'rgba(64, 224, 208, 0.2)',
+				'verde': 'rgba(0, 128, 0, 0.2)',
+				'violet': 'rgba(238, 130, 238, 0.2)',
+				'violetă': 'rgba(238, 130, 238, 0.2)',
+				'violete': 'rgba(238, 130, 238, 0.2)'
+			};
+			
+			function normalizeText(text) {
+				if (!text) return '';
+				return text.toLowerCase().trim().replace(/[ăâîșțşţ]/g, function(match) {
+					var map = {'ă': 'a', 'â': 'a', 'î': 'i', 'ș': 's', 'ş': 's', 'ț': 't', 'ţ': 't'};
+					return map[match] || match;
+				}).replace(/[^\w\s]/g, '').replace(/\s+/g, ' ');
+			}
+			
+			shopwell.getColorByName = function(colorName) {
+				if (!colorName) return null;
+				
+				var normalized = normalizeText(colorName);
+				var lowerName = colorName.toLowerCase().trim();
+				
+				// Try exact match first
+				if (colorMap[lowerName]) {
+					return colorMap[lowerName];
+				}
+				
+				// Try normalized match
+				for (var key in colorMap) {
+					if (normalizeText(key) === normalized) {
+						return colorMap[key];
+					}
+				}
+				
+				// Try partial match (for first color in multi-color names)
+				if (lowerName.indexOf('-') !== -1) {
+					var firstColor = lowerName.split('-')[0];
+					if (colorMap[firstColor]) {
+						return colorMap[firstColor];
+					}
+				}
+				
+				return null;
+			};
+			
+			shopwell.isDarkColor = function(color) {
+				var r, g, b;
+				
+				// Handle rgba format
+				if (color.indexOf('rgba') === 0) {
+					var match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+					if (match) {
+						r = parseInt(match[1]);
+						g = parseInt(match[2]);
+						b = parseInt(match[3]);
+					}
+				} 
+				// Handle hex format
+				else {
+					var hex = color.replace('#', '');
+					r = parseInt(hex.substr(0, 2), 16);
+					g = parseInt(hex.substr(2, 2), 16);
+					b = parseInt(hex.substr(4, 2), 16);
+				}
+				
+				var rsRGB = r / 255;
+				var gsRGB = g / 255;
+				var bsRGB = b / 255;
+				var rLinear = rsRGB <= 0.03928 ? rsRGB / 12.92 : Math.pow((rsRGB + 0.055) / 1.055, 2.4);
+				var gLinear = gsRGB <= 0.03928 ? gsRGB / 12.92 : Math.pow((gsRGB + 0.055) / 1.055, 2.4);
+				var bLinear = bsRGB <= 0.03928 ? bsRGB / 12.92 : Math.pow((bsRGB + 0.055) / 1.055, 2.4);
+				var luminance = 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear;
+				return luminance < 0.5;
+			};
+		}
+		
+		// Wait for DOM to be ready
+		setTimeout(function() {
+			console.log('🎨 Applying filter color swatches...');
+			
+			// Target filter buttons with color classes: .products-filter__option.swatch.swatch-button
+			$('.products-filter__option.swatch.swatch-button').each(function() {
+				var $button = $(this);
+				var colorName = '';
+				
+				// Method 1: Extract color name from CSS class (e.g., swatch-alb, swatch-albastru)
+				var classes = $button.attr('class') || '';
+				var match = classes.match(/swatch-([a-zA-Z0-9ăâîșțşţ\-]+)/g);
+				if (match && match.length > 2) {
+					// match will have: swatch, swatch-button, swatch-{color}
+					// We want the last one (the color)
+					var colorClass = match[match.length - 1]; // e.g., "swatch-alb"
+					colorName = colorClass.replace('swatch-', '').trim();
+				}
+				
+				// Method 2: Get from data-value attribute (fallback)
+				if (!colorName) {
+					colorName = $button.attr('data-value') || $button.data('value') || '';
+				}
+				
+				// Method 3: Get from text content (fallback)
+				if (!colorName) {
+					colorName = $button.text().trim();
+					// Remove count if present, e.g., "Alb (105)" -> "Alb"
+					colorName = colorName.replace(/\s*\(\d+\)\s*$/, '');
+				}
+				
+				console.log('🔍 Found button with color:', colorName);
+				
+				// Try to get color from the shared dictionary
+				if (colorName && typeof shopwell.getColorByName === 'function') {
+					var color = shopwell.getColorByName(colorName);
+					if (color) {
+					console.log('✅ Applying color:', color, 'to', colorName);
+					// Apply background color directly to button
+					$button.css({
+						'background-color': color,
+						'border-color': color
+					});
+					
+					// Since colors are at 20% opacity, always use dark text for better contrast
+					$button.css('color', '#1d2128');
+						
+						// Mark as colored
+						$button.attr('data-color-applied', 'true');
+					} else {
+						console.log('❌ No color found for:', colorName);
+					}
+				}
+			});
+			
+			// Sort colors alphabetically after applying colors
+			if (typeof shopwell.sortColorFiltersAlphabetically === 'function') {
+				shopwell.sortColorFiltersAlphabetically();
+			}
+		}, 200);
+		
+		// Reapply when filters are updated via AJAX
+		$(document.body).on('shopwell_ajax_filter_updated', function() {
+			setTimeout(function() {
+				shopwell.applyFilterColorSwatches();
+			}, 300);
+		});
+	};
 
 })(jQuery);

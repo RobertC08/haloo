@@ -1,0 +1,38 @@
+/**
+ * Custom CSS Fixes
+ * 
+ * This file contains custom CSS fixes that should not be overwritten
+ * during theme updates. Add any custom overrides here.
+ */
+
+/* Fix for catalog-top-categories items moving on click */
+.catalog-top-categories__item { 
+    outline: none !important; 
+}
+
+.catalog-top-categories__item:focus { 
+    outline: none !important; 
+}
+
+.catalog-top-categories__item:active { 
+    outline: none !important; 
+}
+
+.catalog-top-categories__image { 
+    box-sizing: border-box !important; 
+    overflow: visible !important; 
+}
+
+.catalog-top-categories__item.active .catalog-top-categories__image { 
+    box-shadow: 0 0 0 3px rgba(102, 250, 149, 0.3) !important; 
+    outline: none !important; 
+    position: relative !important; 
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Set wrapper padding to 20px */
+.catalog-top-categories__wrapper {
+    padding: 20px !important;
+}
+

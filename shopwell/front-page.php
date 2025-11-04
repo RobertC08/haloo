@@ -140,38 +140,82 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Get maximum slide position
     function getMaxSlide() {
-        // Ensure we don't overscroll past the last category
-        // If we have fewer items than itemsPerView, maxSlide should be 0
-        if (totalItems <= itemsPerView) {
+        // Calculate based on wrapper width and slider width to allow item-by-item scrolling
+        const wrapperWidth = wrapper.offsetWidth;
+        const sliderWidth = slider.scrollWidth;
+        const itemWidth = items[0] ? items[0].offsetWidth + 36 : 126; // 90px + 36px gap
+        
+        // Calculate how many items can fit in the visible area
+        const visibleItems = Math.floor(wrapperWidth / itemWidth);
+        
+        // If all items fit, no need to scroll
+        if (sliderWidth <= wrapperWidth) {
             return 0;
         }
-        // Otherwise, allow scrolling until the last item is fully visible
-        return totalItems - itemsPerView;
+        
+        // Calculate maximum slide position to scroll one item at a time
+        // Allow scrolling until the last item is visible
+        const maxScroll = totalItems - visibleItems;
+        return Math.max(0, maxScroll);
     }
     
     
     // Update slider position
     function updateSlider() {
-        // Clamp currentSlide to valid range
-        const maxSlide = getMaxSlide();
-        currentSlide = Math.max(0, Math.min(currentSlide, maxSlide));
+        const itemWidth = items[0] ? items[0].offsetWidth + 36 : 126;
         
-        const itemWidth = items[0].offsetWidth + 36;
-        const translateX = -currentSlide * itemWidth;
+        // Get actual dimensions accounting for padding
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const sliderRect = slider.getBoundingClientRect();
+        const wrapperWidth = wrapperRect.width;
+        const sliderWidth = slider.scrollWidth;
+        
+        // Calculate the maximum translate to show the last item fully
+        // This aligns the right edge of the slider content with the right edge of the visible wrapper area
+        const maxPossibleTranslate = -(sliderWidth - wrapperWidth);
+        const maxSlide = getMaxSlide();
+        
+        // Ensure currentSlide doesn't go negative
+        if (currentSlide < 0) {
+            currentSlide = 0;
+        }
+        
+        // Calculate translateX based on currentSlide (one item per slide)
+        let translateX = -currentSlide * itemWidth;
+        
+        // Check if we need to show the last item fully
+        const isAtEnd = currentSlide >= maxSlide && maxSlide > 0;
+        
+        if (isAtEnd) {
+            // When at the end, ensure the last item is fully visible
+            // Use maxPossibleTranslate which aligns the right edge of slider with right edge of wrapper
+            translateX = maxPossibleTranslate;
+        }
+        
+        // Clamp translateX to prevent scrolling beyond bounds
+        if (translateX < maxPossibleTranslate) {
+            translateX = maxPossibleTranslate;
+        }
+        
+        // Ensure we don't go past the start
+        if (translateX > 0) {
+            translateX = 0;
+            currentSlide = 0;
+        }
+        
         slider.style.transform = `translateX(${translateX}px)`;
         slider.style.transition = 'transform 0.1s ease-out';
         
-        // Use CSS responsive widths instead of dynamic calculation
-        // This ensures proper responsive behavior
+        // Update button states - check if we're at the actual end position
+        const isAtStart = currentSlide === 0 || translateX >= -1; // Allow 1px tolerance
+        const isAtActualEnd = Math.abs(translateX - maxPossibleTranslate) < 2; // Check if we're at max position
         
-        
-        // Update button states
-        prevBtn.style.opacity = currentSlide === 0 ? '0.5' : '1';
-        nextBtn.style.opacity = currentSlide >= maxSlide ? '0.5' : '1';
+        prevBtn.style.opacity = isAtStart ? '0.5' : '1';
+        nextBtn.style.opacity = isAtActualEnd ? '0.5' : '1';
         
         // Disable buttons at limits
-        prevBtn.disabled = currentSlide === 0;
-        nextBtn.disabled = currentSlide >= maxSlide;
+        prevBtn.disabled = isAtStart;
+        nextBtn.disabled = isAtActualEnd;
     }
     
     // Go to specific slide
@@ -181,21 +225,39 @@ document.addEventListener('DOMContentLoaded', function() {
         updateSlider();
     }
     
-    // Next slide
-    function nextSlide() {
-        const maxSlide = getMaxSlide();
-        if (currentSlide < maxSlide) {
-            currentSlide++;
-            updateSlider();
+    // Next slide - move one category box at a time
+    function nextSlide(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
         }
+        
+        const itemWidth = items[0] ? items[0].offsetWidth + 36 : 126;
+        const wrapperWidth = wrapper.offsetWidth;
+        const sliderWidth = slider.scrollWidth;
+        const maxPossibleTranslate = -(sliderWidth - wrapperWidth);
+        const currentTranslate = -currentSlide * itemWidth;
+        
+        // Move one item forward
+        currentSlide++;
+        
+        // updateSlider will clamp if needed
+        updateSlider();
     }
     
-    // Previous slide
-    function prevSlide() {
+    // Previous slide - move one category box at a time
+    function prevSlide(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        // Move one item backward
         if (currentSlide > 0) {
             currentSlide--;
-            updateSlider();
         }
+        
+        updateSlider();
     }
     
     // Event listeners
@@ -208,6 +270,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let mouseCurrentX = 0;
     
     wrapper.addEventListener('mousedown', (e) => {
+        // Don't trigger drag if clicking on a category item link
+        const target = e.target;
+        const categoryItem = target.closest('.catalog-top-categories__item');
+        if (categoryItem) {
+            // Allow the link to work normally
+            return;
+        }
+        
         mouseDown = true;
         mouseStartX = e.clientX;
         slider.style.transition = 'none';
@@ -269,6 +339,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentDragX = 0;
     
     wrapper.addEventListener('touchstart', (e) => {
+        // Don't trigger drag if clicking on a category item link
+        const target = e.target;
+        const categoryItem = target.closest('.catalog-top-categories__item');
+        if (categoryItem) {
+            // Allow the link to work normally
+            return;
+        }
+        
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         isScrolling = false;

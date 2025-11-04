@@ -1,0 +1,35 @@
+/**
+ * Color Filters - Single Column Layout
+ * Makes color filter buttons display one per row in alphabetical order
+ */
+
+/* Override flex layout for color filter buttons */
+.products-filter-widget .products-filter--swatches.swatches-button {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Make each color button full width and stack vertically */
+.products-filter-widget .products-filter--swatches.swatches-button .swatch-button {
+    width: 100% !important;
+    margin: 0 0 8px 0 !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    padding: 8px 15px !important;
+}
+
+/* Ensure no wrapping */
+.products-filter-widget .products-filter--swatches.swatches-button .products-filter__option {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+}
+
+/* Remove last item margin */
+.products-filter-widget .products-filter--swatches.swatches-button .swatch-button:last-child {
+    margin-bottom: 0 !important;
+}
+

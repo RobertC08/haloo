@@ -1045,77 +1045,6 @@ function fix_variable_product_price_display() {
 }
 add_action('woocommerce_before_shop_loop', 'fix_variable_product_price_display');
 
-/**
- * Ensure all variable products have proper price ranges set
- * This runs after product sync to fix any missing price ranges
- */
-function ensure_variable_product_price_ranges() {
-    // Get all variable products
-    $variable_products = wc_get_products([
-        'type' => 'variable',
-        'limit' => -1,
-        'status' => 'publish'
-    ]);
-    
-    foreach ($variable_products as $product) {
-        $variations = $product->get_children();
-        $prices = [];
-        
-        foreach ($variations as $variation_id) {
-            $variation = wc_get_product($variation_id);
-            if ($variation && $variation->is_purchasable() && $variation->is_in_stock()) {
-                $price = $variation->get_price();
-                if ($price > 0) {
-                    $prices[] = $price;
-                }
-            }
-        }
-        
-        if (!empty($prices)) {
-            $min_price = min($prices);
-            $max_price = max($prices);
-            
-            // Only update if price ranges are not set or are 0
-            $current_price = get_post_meta($product->get_id(), '_price', true);
-            if (empty($current_price) || $current_price == 0) {
-                // Set price range meta for proper display
-                update_post_meta($product->get_id(), '_price', $min_price);
-                update_post_meta($product->get_id(), '_min_variation_price', $min_price);
-                update_post_meta($product->get_id(), '_max_variation_price', $max_price);
-                
-                // Set min/max regular price as well
-                update_post_meta($product->get_id(), '_min_variation_regular_price', $min_price);
-                update_post_meta($product->get_id(), '_max_variation_regular_price', $max_price);
-                
-                // Clear product cache
-                wc_delete_product_transients($product->get_id());
-            }
-        }
-    }
-}
-
-// Run this function after product sync (you can call this manually or hook it to sync completion)
-// add_action('foxway_product_sync_completed', 'ensure_variable_product_price_ranges');
-
-/**
- * Add admin notice with button to fix variable product prices
- */
-function add_fix_prices_admin_notice() {
-    if (isset($_GET['fix_variable_prices']) && $_GET['fix_variable_prices'] === '1') {
-        if (current_user_can('manage_options')) {
-            ensure_variable_product_price_ranges();
-            echo '<div class="notice notice-success"><p>Variable product prices have been fixed!</p></div>';
-        }
-    }
-    
-    if (current_user_can('manage_options')) {
-        echo '<div class="notice notice-info"><p>';
-        echo 'If variable products show "0,00 lei" on shop pages, ';
-        echo '<a href="' . admin_url('?fix_variable_prices=1') . '" class="button button-primary">Fix Variable Product Prices</a>';
-        echo '</p></div>';
-    }
-}
-add_action('admin_notices', 'add_fix_prices_admin_notice');
 
 /**
  * Product Search Autocomplete Shortcode
@@ -1670,4 +1599,30 @@ function shopwell_fix_memory_filter_association() {
     }
 }
 add_action('template_redirect', 'shopwell_fix_memory_filter_association', 5);
+
+/**
+ * Enqueue custom CSS fixes
+ * This loads custom CSS that won't be overwritten during theme updates
+ */
+function shopwell_enqueue_custom_fixes() {
+    // Only load on frontend
+    if (is_admin()) {
+        return;
+    }
+    
+    // Check if homepage styles are loaded (only on front page)
+    $dependencies = array('shopwell-refactored-base');
+    if (is_front_page() && wp_style_is('shopwell-homepage-styles', 'enqueued')) {
+        $dependencies[] = 'shopwell-homepage-styles';
+    }
+    
+    // Enqueue custom fixes CSS with high priority to override theme styles
+    wp_enqueue_style(
+        'shopwell-custom-fixes',
+        get_template_directory_uri() . '/assets/css/custom-fixes.css',
+        $dependencies, // Load after theme styles
+        '1.0.1' // Version number - increment this when you update the file
+    );
+}
+add_action('wp_enqueue_scripts', 'shopwell_enqueue_custom_fixes', 999); // High priority to load last
 

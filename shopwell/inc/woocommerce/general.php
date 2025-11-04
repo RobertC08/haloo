@@ -155,6 +155,9 @@ class General {
 		$style_file = is_rtl() ? 'woocommerce-rtl.css' : 'woocommerce.css';
 		wp_enqueue_style( 'shopwell-woocommerce-style', apply_filters( 'shopwell_get_style_directory_uri', get_template_directory_uri() ) . '/' . $style_file, array(), '20250107' );
 
+		// Enqueue custom color filters CSS
+		wp_enqueue_style( 'shopwell-color-filters-custom', get_template_directory_uri() . '/assets/css/woocommerce/color-filters-custom.css', array( 'shopwell-woocommerce-style' ), '20250107' );
+
 		$parse_css = apply_filters( 'shopwell_wc_inline_style', false );
 		if ( $parse_css ) {
 			wp_add_inline_style( 'shopwell-woocommerce-style', $parse_css );
