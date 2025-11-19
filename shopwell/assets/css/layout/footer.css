@@ -3,6 +3,22 @@
  * Styles for the website footer
  */
 
+/* Global: Remove bottom spacing from site-content on all pages */
+#site-content {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Global: Remove bottom spacing from content containers on all pages */
+.site-content-container,
+.content-area,
+.site-main,
+#primary {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Global: Remove bottom spacing from footer on all pages */
 .footer-widget {
     background: #2A322F;
     color: #66fa95;
@@ -13,6 +29,8 @@
     margin-left: -50vw;
     margin-right: -50vw;
     padding: 0;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     z-index: 10;
     overflow: visible;
@@ -22,6 +40,8 @@
     max-width: 1440px;
     margin: 0 auto;
     padding: 40px 20px 0 20px;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
     width: 100%;
     position: relative;
     z-index: 10;
@@ -30,8 +50,8 @@
 
 .subscription-section {
     text-align: center;
-    margin-bottom: 60px;
-    padding-bottom: 40px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
     border-bottom: 1px solid rgba(102,250,149,0.2);
     margin-left: -20px;
     margin-right: -20px;
@@ -94,7 +114,7 @@
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 40px;
-    margin-bottom: 60px;
+    margin-bottom: 0 !important;
     max-width: 100%;
     width: 100%;
     position: relative;
@@ -203,7 +223,9 @@
 }
 
 .copyright-section {
-    padding: 20px 0;
+    padding: 15px 0;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
     border-top: 1px solid rgba(102,250,149,0.2);
 }
 
@@ -220,12 +242,13 @@
 .copyright-content p {
     color: #B8C5B8;
     font-size: 14px;
-    margin: 0;
+    margin: 0 0 15px 0;
 }
 
 .copyright-links {
     display: flex;
     gap: 20px;
+    margin-bottom: 15px;
 }
 
 .copyright-links a {
@@ -333,8 +356,8 @@
     }
     
     .subscription-section {
-        margin-bottom: 40px;
-        padding-bottom: 30px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
     }
     
     .subscription-section h2 {
@@ -349,7 +372,6 @@
     .footer-content {
         grid-template-columns: 1fr;
         gap: 30px;
-        margin-bottom: 40px;
     }
     
     .copyright-content {
@@ -369,13 +391,13 @@
     }
     
     .footer-container {
-        padding-bottom: 20px;
-        margin-bottom: 30px;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
     }
     
     .copyright-section {
-        padding-bottom: 20px;
-        margin-bottom: 20px;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
     }
 }
 

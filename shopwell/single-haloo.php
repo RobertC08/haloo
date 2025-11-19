@@ -250,19 +250,19 @@ window.addEventListener('resize', initAccordion);
                     ?>
                     <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($post_url); ?>" 
                        target="_blank" rel="noopener noreferrer" class="facebook" title="Share on Facebook">
-                        <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/facebook.svg" alt="Facebook">
+                        <img src="https://haloo.ro/wp-content/uploads/2025/10/facebook.svg" alt="Facebook">
                     </a>
                     <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode($post_url); ?>&text=<?php echo urlencode($post_title); ?>" 
                        target="_blank" rel="noopener noreferrer" class="twitter" title="Share on X">
-                        <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/twitter.png" alt="X">
+                        <img src="https://haloo.ro/wp-content/uploads/2025/10/twitter.png" alt="X">
                     </a>
                     <a href="https://www.linkedin.com/sharing/share-offsite/?url=<?php echo urlencode($post_url); ?>" 
                        target="_blank" rel="noopener noreferrer" class="linkedin" title="Share on LinkedIn">
-                        <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/linkedin.png" alt="LinkedIn">
+                        <img src="https://haloo.ro/wp-content/uploads/2025/10/linkedin.png" alt="LinkedIn">
                     </a>
                     <a href="https://wa.me/?text=<?php echo urlencode($post_title . ' - ' . $post_url); ?>" 
                        target="_blank" rel="noopener noreferrer" class="whatsapp" title="Share on WhatsApp">
-                        <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/whatsapp.svg" alt="WhatsApp">
+                        <img src="https://haloo.ro/wp-content/uploads/2025/10/whatsapp.svg" alt="WhatsApp">
                     </a>
                 </div>
             </div>

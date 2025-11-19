@@ -1500,7 +1500,6 @@ body {
 
 .site-content {
   padding-top: 63px;
-  padding-bottom: 63px;
 }
 .site-content .hentry::after {
   content: "";
@@ -1526,7 +1525,6 @@ body {
 
 body.page .site-content {
   padding-top: 50px;
-  padding-bottom: 63px;
 }
 
 .site-content-no-top-spacing #site-content {
