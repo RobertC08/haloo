@@ -193,30 +193,33 @@
             var params = new URLSearchParams(currentUrl.search);
             var removed = false;
             
-            // Remove the specific filter parameter based on type
-            if (filterType === 'stare') {
-                params.delete('filter_pa_stare');
-                removed = true;
-            } else if (filterType === 'culoare') {
-                params.delete('filter_pa_culoare');
-                removed = true;
-            } else if (filterType === 'categorie') {
-                params.delete('product_cat');
-                removed = true;
-            } else if (filterType === 'capacitate') {
-                params.delete('filter_pa_capacitate');
-                removed = true;
-            } else if (filterType === 'memorie') {
-                params.delete('filter_pa_memorie');
-                removed = true;
-            } else if (filterType === 'marca') {
-                params.delete('filter_pa_marca');
-                removed = true;
-            } else if (filterType === 'pret') {
-                params.delete('min_price');
-                params.delete('max_price');
-                removed = true;
-            } else {
+			// Remove the specific filter parameter based on type
+			if (filterType === 'stare') {
+				params.delete('filter_pa_stare');
+				removed = true;
+			} else if (filterType === 'culoare') {
+				params.delete('filter_pa_culoare');
+				removed = true;
+			} else if (filterType === 'categorie') {
+				params.delete('product_cat');
+				removed = true;
+			} else if (filterType === 'capacitate') {
+				params.delete('filter_pa_capacitate');
+				removed = true;
+			} else if (filterType === 'memorie') {
+				params.delete('filter_pa_memorie');
+				removed = true;
+			} else if (filterType === 'marca') {
+				params.delete('filter_pa_marca');
+				removed = true;
+			} else if (filterType === 'model') {
+				params.delete('filter_pa_model');
+				removed = true;
+			} else if (filterType === 'pret') {
+				params.delete('min_price');
+				params.delete('max_price');
+				removed = true;
+			} else {
                 // Fallback: try to find by value
                 for (var [key, val] of params.entries()) {
                     if (val === value) {
@@ -437,7 +440,6 @@
 		console.log('🔍 Found filter checkboxes:', $('.woocommerce-widget-layered-nav-list input[type="checkbox"]').length);
 		console.log('🔍 Found filter buttons:', $('.products-filter__button .reset-button, .products-filter__button .filter-button').length);
 		console.log('🔍 Found category filters:', $('.products-filter__option.filter-list-item').length);
-		console.log('🔍 Found color filters:', $('.products-filter__option.swatch.swatch-button').length);
 		console.log('🔍 Found condition filters:', $('.products-filter__option.swatch.swatch-button[class*="swatch-"]').length);
 		
 		// Function to clean filter parameters before adding new ones
@@ -466,23 +468,43 @@
 				params.delete('filter_pa_memorie');
 			} else if (filterType === 'marca') {
 				params.delete('filter_pa_marca');
+			} else if (filterType === 'model') {
+				params.delete('filter_pa_model');
 			}
 			return params;
 		}
 		
 		// Function to determine filter type and set appropriate parameter
-		function setFilterParameter(params, classes, dataValue, dataSlug) {
+		function setFilterParameter(params, classes, dataValue, dataSlug, $element) {
 			console.log('🔍 Analyzing filter:', {
 				classes: classes,
 				dataValue: dataValue,
-				dataSlug: dataSlug
+				dataSlug: dataSlug,
+				element: $element ? $element.length : 0
 			});
+			
+			// Check if this element is inside a model filter widget
+			var isModelFilter = false;
+			if ($element && $element.length) {
+				var $widget = $element.closest('.shopwell-model-filter-widget');
+				if ($widget.length > 0) {
+					isModelFilter = true;
+					console.log('📱 Detected model filter widget');
+				}
+			}
 			
 			// Priority 1: Use data-value if available
 			if (dataValue && dataValue !== 'button' && dataValue !== '') {
 				console.log('🔍 USING dataValue:', dataValue, 'Type:', typeof dataValue, 'Length:', dataValue.length);
 				console.log('🔍 Checking includes - gb:', dataValue.includes('gb'), 'tb:', dataValue.includes('tb'));
 				console.log('🔍 String representation:', JSON.stringify(dataValue));
+				
+				// Check if it's a model filter (must be checked first if element is in model widget)
+				if (isModelFilter) {
+					params.set('filter_pa_model', dataValue);
+					console.log('📱 Setting model filter from data-value:', dataValue);
+					return { success: true, filterType: 'model' };
+				}
 				
 				// Check if it's a condition filter
 				if (dataValue.includes('ca-nou') || dataValue.includes('excelent') || 
@@ -504,15 +526,20 @@
 					!dataValue.includes('foarte-bun') && !dataValue.includes('bun') &&
 					!dataValue.includes('gb') && !dataValue.includes('tb') &&
 					dataValue.length > 0) {
-					console.log('🎨 COLOR CONDITION MATCHED! dataValue:', dataValue);
 					params.set('filter_pa_culoare', dataValue);
-					console.log('🎨 Setting color filter from data-value:', dataValue);
 					return { success: true, filterType: 'culoare' };
 				}
 			}
 			
 			// Priority 2: Use data-slug if available
 			if (dataSlug && dataSlug !== 'button' && dataSlug !== '') {
+				// Check if it's a model filter (must be checked first if element is in model widget)
+				if (isModelFilter) {
+					params.set('filter_pa_model', dataSlug);
+					console.log('📱 Setting model filter from data-slug:', dataSlug);
+					return { success: true, filterType: 'model' };
+				}
+				
 				// Check if it's a condition filter
 				if (dataSlug.includes('ca-nou') || dataSlug.includes('excelent') || 
 					dataSlug.includes('foarte-bun') || dataSlug.includes('bun')) {
@@ -532,7 +559,6 @@
 					!dataSlug.includes('gb') && !dataSlug.includes('tb') &&
 					dataSlug.length > 0) {
 					params.set('filter_pa_culoare', dataSlug);
-					console.log('🎨 Setting color filter from data-slug:', dataSlug);
 					return { success: true, filterType: 'culoare' };
 				}
 			}
@@ -576,7 +602,6 @@
 				var colorMatch = classes.match(/swatch-([a-z-]+)/);
 				if (colorMatch) {
 					params.set('filter_pa_culoare', colorMatch[1]);
-					console.log('🎨 Setting color filter from class:', colorMatch[1]);
 					return { success: true, filterType: 'culoare' };
 				}
 			}
@@ -759,12 +784,8 @@
 		// Load color filter
 		var color = urlParams.get('filter_pa_culoare');
 		if (color) {
-			console.log('🎨 Found color filter:', color);
-			
 			// Use the color slug from URL directly, just capitalize it
 			var colorName = color.charAt(0).toUpperCase() + color.slice(1);
-			
-			console.log('🎨 Color name:', colorName);
 			addActiveFilter('culoare', color, colorName);
 		}
 		
@@ -795,6 +816,18 @@
 			console.log('💾 addActiveFilter called for memory');
 		} else {
 			console.log('💾 No memory filter found in URL');
+		}
+		
+		// Load model filter
+		var model = urlParams.get('filter_pa_model');
+		if (model) {
+			console.log('📱 Found model filter:', model);
+			
+			// Use the model slug from URL directly, just capitalize it
+			var modelName = model.charAt(0).toUpperCase() + model.slice(1);
+			
+			console.log('📱 Model name:', modelName);
+			addActiveFilter('model', model, modelName);
 		}
 		
 		// Load price filter
@@ -927,16 +960,217 @@
 				// Add to active filters display
 				addActiveFilter('categorie', dataValue || dataSlug, categoryText);
 				
-					currentUrl.search = params.toString();
-					currentUrl.searchParams.set('paged', '1'); // Reset to first page
-					console.log('🔄 Building category URL:', currentUrl.toString());
-					window.location.href = currentUrl.toString();
+				currentUrl.search = params.toString();
+				currentUrl.searchParams.set('paged', '1'); // Reset to first page
+				console.log('🔄 Building category URL:', currentUrl.toString());
+				
+				// Update model filter visibility before navigation
+				updateModelFilterVisibility();
+				
+				window.location.href = currentUrl.toString();
+				
+				return false;
+			}
+		});
+		
+		// Function to update model filter visibility based on category selection
+		function updateModelFilterVisibility() {
+			var $modelWidgets = $('.shopwell-model-filter-widget');
+			
+			if ($modelWidgets.length === 0) {
+				// Also try to find model widgets by checking for model-related attributes
+				$modelWidgets = $('.widget').filter(function() {
+					var $widget = $(this);
+					var widgetId = $widget.attr('id') || '';
+					var widgetClass = $widget.attr('class') || '';
+					return widgetId.toLowerCase().indexOf('model') !== -1 || 
+						   widgetId.toLowerCase().indexOf('marca') !== -1 ||
+						   widgetClass.toLowerCase().indexOf('model') !== -1 ||
+						   widgetClass.toLowerCase().indexOf('marca') !== -1;
+				});
+			}
+			
+			// Also find model filter elements by class
+			var $modelFilters = $('.filter_model, .filter.filter_model, .products-filter__filter.filter_model, [class*="filter_model"]');
+			
+			// Check if a category is selected - ONLY check URL parameter product_cat
+			var selectedCategory = null;
+			var urlParams = new URLSearchParams(window.location.search);
+			
+			// Only check URL parameter, not page type
+			if (urlParams.has('product_cat')) {
+				selectedCategory = urlParams.get('product_cat');
+			}
+			
+			if (selectedCategory) {
+				// Show model widgets and all their options
+				if ($modelWidgets.length > 0) {
+					$modelWidgets.show();
+					$modelWidgets.find('.products-filter__option').show();
+					$modelWidgets.attr('data-category', selectedCategory);
+				}
+				
+				// Show model filter elements
+				$modelFilters.show();
+				$modelFilters.find('.products-filter__option').show();
+				
+				console.log('✅ Model filter widgets shown for category:', selectedCategory);
+			} else {
+				// Hide model widgets completely
+				if ($modelWidgets.length > 0) {
+					$modelWidgets.hide();
+					$modelWidgets.find('.products-filter__option').hide();
+				}
+				
+				// Hide model filter elements
+				$modelFilters.hide();
+				$modelFilters.find('.products-filter__option').hide();
+				
+				console.log('❌ Model filter widgets hidden - no product_cat in URL');
+			}
+		}
+		
+		// Run on page load
+		setTimeout(function() {
+			updateModelFilterVisibility();
+		}, 200);
+		
+		// Run when filters are updated
+		shopwell.$body.on('shopwell_products_filter_widget_updated', function() {
+			setTimeout(updateModelFilterVisibility, 100);
+		});
+		
+		// Also run when URL changes (for browser navigation)
+		$(window).on('popstate', function() {
+			setTimeout(updateModelFilterVisibility, 100);
+		});
+		
+		// Monitor for any navigation that might change the category
+		var originalPushState = history.pushState;
+		history.pushState = function() {
+			originalPushState.apply(history, arguments);
+			setTimeout(updateModelFilterVisibility, 100);
+		};
+
+		// Handle model filters FIRST - check if element is inside model widget by checking parent widgets
+		// Use a more general selector and check for model widget inside
+		shopwell.$body.on('click', '.products-filter__option', function(e) {
+			var $this = $(this);
+			
+			// Check if this element is inside a model filter widget
+			var $modelWidget = $this.closest('.shopwell-model-filter-widget, [class*="model"], [id*="model"]');
+			
+			// Also check if parent widget has model-related classes or if it's a model attribute widget
+			if ($modelWidget.length === 0) {
+				// Check parent widgets for model-related attributes
+				var $parentWidget = $this.closest('.widget');
+				if ($parentWidget.length) {
+					var widgetId = $parentWidget.attr('id') || '';
+					var widgetClass = $parentWidget.attr('class') || '';
 					
-					return false;
+					// Check if widget ID or class contains "model" or "marca"
+					if (widgetId.toLowerCase().indexOf('model') !== -1 || 
+						widgetId.toLowerCase().indexOf('marca') !== -1 ||
+						widgetClass.toLowerCase().indexOf('model') !== -1 ||
+						widgetClass.toLowerCase().indexOf('marca') !== -1) {
+						$modelWidget = $parentWidget;
+						console.log('📱 Found model widget by ID/class:', widgetId, widgetClass);
+					}
+				}
+			}
+			
+			// If not a model widget, let other handlers process it
+			if ($modelWidget.length === 0) {
+				return;
+			}
+			
+			// This is a model filter - handle it
+			var href = $this.attr('href');
+			var dataValue = $this.data('value');
+			var dataSlug = $this.data('slug');
+			var text = $this.text().trim();
+			
+			console.log('📱 Model filter handler triggered!', {
+				href: href,
+				dataValue: dataValue,
+				dataSlug: dataSlug,
+				text: text,
+				widgetFound: $modelWidget.length,
+				widgetClasses: $modelWidget.attr('class'),
+				elementClasses: $this.attr('class')
+			});
+			
+			// Stop event propagation to prevent other handlers from running
+			e.stopImmediatePropagation();
+			e.preventDefault();
+			
+			// Try to find the link inside this element
+			var $link = $this.find('a');
+			if ($link.length) {
+				href = $link.attr('href');
+				console.log('📱 Found link inside:', href);
+			}
+			
+			if (href) {
+				// Parse the href and replace filter_pa_culoare with filter_pa_model if present
+				try {
+					var url = new URL(href, window.location.origin);
+					var params = new URLSearchParams(url.search);
+					
+					// Check if it has filter_pa_culoare (wrong filter type)
+					if (params.has('filter_pa_culoare')) {
+						var value = params.get('filter_pa_culoare');
+						params.delete('filter_pa_culoare');
+						params.set('filter_pa_model', value);
+						url.search = params.toString();
+						href = url.toString();
+						console.log('📱 Fixed href - changed filter_pa_culoare to filter_pa_model:', href);
+					}
+					// If it doesn't have filter_pa_model but we have dataValue/dataSlug, add it
+					else if (!params.has('filter_pa_model') && (dataValue || dataSlug)) {
+						params.set('filter_pa_model', dataSlug || dataValue);
+						url.search = params.toString();
+						href = url.toString();
+						console.log('📱 Added filter_pa_model to href:', href);
+					}
+				} catch (err) {
+					console.log('📱 Error parsing href, using as is:', err);
+				}
+				
+				console.log('🔄 Navigating to model filter:', href);
+				window.location.href = href;
+				return false;
+			} else if (dataValue || dataSlug) {
+				// Build URL manually if we have data attributes
+				var currentUrl = new URL(window.location.href);
+				var params = new URLSearchParams(currentUrl.search);
+				
+				// Clean only the model filter type
+				params = cleanSpecificFilterType(params, 'model');
+				
+				// Set the new model filter
+				if (dataSlug) {
+					params.set('filter_pa_model', dataSlug);
+				} else if (dataValue) {
+					params.set('filter_pa_model', dataValue);
+				}
+				
+				// Get the model text for display
+				var modelText = cleanFilterText(text || dataValue || dataSlug);
+				
+				// Add to active filters display
+				addActiveFilter('model', dataValue || dataSlug, modelText);
+				
+				currentUrl.search = params.toString();
+				currentUrl.searchParams.set('paged', '1'); // Reset to first page
+				console.log('🔄 Building model filter URL:', currentUrl.toString());
+				window.location.href = currentUrl.toString();
+				
+				return false;
 			}
 		});
 
-		// Handle memory filters FIRST (products-filter__option swatch swatch-button with memory) - must be before color handler
+		// Handle memory filters SECOND (products-filter__option swatch swatch-button with memory) - must be before color handler
 		shopwell.$body.on('click', '.products-filter__option.swatch.swatch-button', function(e) {
 			var $this = $(this);
 			var href = $this.attr('href');
@@ -989,7 +1223,7 @@
 				var params = new URLSearchParams(currentUrl.search);
 				
 				// Use the smart filter function to get filter type
-				var filterResult = setFilterParameter(params, classes, dataValue, dataSlug);
+				var filterResult = setFilterParameter(params, classes, dataValue, dataSlug, $this);
 				
 				if (filterResult.success) {
 					console.log('🔄 Replacing memory filter type:', filterResult.filterType);
@@ -1023,9 +1257,17 @@
 			}
 		});
 
-		// Handle color filters SECOND (products-filter__option swatch swatch-button) - excludes memory filters
+		// Handle color filters THIRD (products-filter__option swatch swatch-button) - excludes memory and model filters
 		shopwell.$body.on('click', '.products-filter__option.swatch.swatch-button', function(e) {
 			var $this = $(this);
+			
+			// Check if this is a model filter (inside model widget) - MUST CHECK FIRST
+			var $modelWidget = $this.closest('.shopwell-model-filter-widget');
+			var isModel = $modelWidget.length > 0;
+			
+			if (isModel) {
+				return;
+			}
 			
 			// Skip if already handled by memory filter handler
 			// (memory handler is registered first, so if it's memory it will have stopPropagation)
@@ -1043,9 +1285,8 @@
 				isMemory = true;
 			}
 			
-			// If it's a memory filter, skip (memory handler will process it first)
+			// If it's a memory filter, skip
 			if (isMemory) {
-				console.log('🎨 Color handler skipping memory filter');
 				return;
 			}
 			
@@ -1079,7 +1320,7 @@
 				var params = new URLSearchParams(currentUrl.search);
 				
 				// Use the smart filter function to get filter type
-				var filterResult = setFilterParameter(params, classes, dataValue, dataSlug);
+				var filterResult = setFilterParameter(params, classes, dataValue, dataSlug, $this);
 				
 				if (filterResult.success) {
 					console.log('🔄 Replacing filter type:', filterResult.filterType);
@@ -1097,6 +1338,8 @@
 						params.set('filter_pa_culoare', dataValue || dataSlug);
 					} else if (filterResult.filterType === 'memorie') {
 						params.set('filter_pa_memorie', dataValue || dataSlug);
+					} else if (filterResult.filterType === 'model') {
+						params.set('filter_pa_model', dataValue || dataSlug);
 					}
 					
 					console.log('🔄 URL params after setting new filter:', Array.from(params.entries()));
@@ -1120,8 +1363,16 @@
 		// Note: Condition filters are now handled by the general swatch filter handler above
 
 		// General filter click handler for all products-filter__option elements
+		// Exclude model filters (handled separately above)
 		shopwell.$body.on('click', '.products-filter__option', function(e) {
 			var $this = $(this);
+			
+			// Skip if this is a model filter (already handled above)
+			if ($this.closest('.shopwell-model-filter-widget').length > 0) {
+				console.log('🔧 General handler skipping model filter');
+				return;
+			}
+			
 			var href = $this.attr('href');
 			var classes = $this.attr('class');
 			
@@ -1247,8 +1498,6 @@
 			e.preventDefault();
 			var $this = $(this);
 			var href = $this.attr('href');
-			
-			console.log('🎨 Color/Attribute filter clicked:', href);
 			
 			if (href) {
 				// Navigate to filtered URL immediately
@@ -1730,8 +1979,6 @@
 		
 		// Wait for DOM to be ready
 		setTimeout(function() {
-			console.log('🎨 Applying filter color swatches...');
-			
 			// Target filter buttons with color classes: .products-filter__option.swatch.swatch-button
 			$('.products-filter__option.swatch.swatch-button').each(function() {
 				var $button = $(this);
@@ -1759,13 +2006,10 @@
 					colorName = colorName.replace(/\s*\(\d+\)\s*$/, '');
 				}
 				
-				console.log('🔍 Found button with color:', colorName);
-				
 				// Try to get color from the shared dictionary
 				if (colorName && typeof shopwell.getColorByName === 'function') {
 					var color = shopwell.getColorByName(colorName);
 					if (color) {
-					console.log('✅ Applying color:', color, 'to', colorName);
 					// Apply background color directly to button
 					$button.css({
 						'background-color': color,
@@ -1777,8 +2021,6 @@
 						
 						// Mark as colored
 						$button.attr('data-color-applied', 'true');
-					} else {
-						console.log('❌ No color found for:', colorName);
 					}
 				}
 			});

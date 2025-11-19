@@ -1626,3 +1626,457 @@ function shopwell_enqueue_custom_fixes() {
 }
 add_action('wp_enqueue_scripts', 'shopwell_enqueue_custom_fixes', 999); // High priority to load last
 
+/**
+ * Hide model filter widget when no category is selected
+ * Show only models that belong to the selected category
+ */
+function shopwell_conditionally_show_model_filter($params) {
+    global $wp_registered_widgets;
+    
+    // Check if we have valid params
+    if (empty($params) || !isset($params[0]['widget_id'])) {
+        return $params;
+    }
+    
+    $widget_id = $params[0]['widget_id'];
+    
+    // Check if widget is registered
+    if (!isset($wp_registered_widgets[$widget_id])) {
+        return $params;
+    }
+    
+    // Get widget instance
+    $widget_obj = $wp_registered_widgets[$widget_id];
+    
+    // Check if this is a WooCommerce layered nav widget
+    if (!isset($widget_obj['callback']) || !is_array($widget_obj['callback'])) {
+        return $params;
+    }
+    
+    // Get widget settings
+    $settings_getter = $widget_obj['callback'][0];
+    
+    if (!is_object($settings_getter)) {
+        return $params;
+    }
+    
+    // Get widget settings
+    $settings = $settings_getter->get_settings();
+    $widget_number = isset($params[1]['number']) ? $params[1]['number'] : 0;
+    $widget_instance = !empty($settings) && isset($settings[$widget_number]) ? $settings[$widget_number] : array();
+    
+    // Only apply to layered nav widgets
+    if (empty($widget_instance) || !isset($widget_instance['attribute']) || empty($widget_instance['attribute'])) {
+        return $params;
+    }
+    
+    // Check if this is the model attribute (adjust attribute name as needed)
+    // Common attribute names: pa_model, pa_marca, model, marca
+    $attribute_name = $widget_instance['attribute'];
+    $is_model_filter = false;
+    
+    // Check if this widget is for models (adjust these checks based on your actual attribute name)
+    if (in_array($attribute_name, array('model', 'marca', 'pa_model', 'pa_marca'))) {
+        $is_model_filter = true;
+    } else {
+        // Also check by widget title
+        $widget_title = isset($widget_instance['title']) ? strtolower($widget_instance['title']) : '';
+        if (strpos($widget_title, 'model') !== false || strpos($widget_title, 'marca') !== false) {
+            $is_model_filter = true;
+        }
+    }
+    
+    if (!$is_model_filter) {
+        return $params;
+    }
+    
+    // Check if a category is selected
+    $selected_category = null;
+    
+    // Check URL parameter
+    if (isset($_GET['product_cat']) && !empty($_GET['product_cat'])) {
+        $selected_category = sanitize_text_field($_GET['product_cat']);
+    }
+    
+    // Check if we're on a category page
+    if (!$selected_category && is_product_category()) {
+        $queried_object = get_queried_object();
+        if ($queried_object && isset($queried_object->slug)) {
+            $selected_category = $queried_object->slug;
+        }
+    }
+    
+    // If no category is selected, hide the widget
+    if (!$selected_category) {
+        // Add CSS class to hide the widget
+        if (isset($params[0]['before_widget'])) {
+            // Add class and inline style to hide
+            $params[0]['before_widget'] = str_replace('class="', 'class="shopwell-model-filter-widget ', $params[0]['before_widget']);
+            // Add inline style to hide if not already present
+            if (strpos($params[0]['before_widget'], 'style=') === false) {
+                $params[0]['before_widget'] = str_replace('>', ' style="display:none;">', $params[0]['before_widget']);
+            } else {
+                // If style already exists, add display:none to it
+                $params[0]['before_widget'] = preg_replace('/style="([^"]*)"/', 'style="$1 display:none;"', $params[0]['before_widget']);
+            }
+        }
+        
+        return $params;
+    }
+    
+    // Category is selected, show the widget but filter terms
+    // Add data attribute to identify this as model filter
+    if (isset($params[0]['before_widget'])) {
+        $params[0]['before_widget'] = str_replace('class="', 'class="shopwell-model-filter-widget ', $params[0]['before_widget']);
+        // Add data attribute
+        if (strpos($params[0]['before_widget'], 'data-category=') === false) {
+            $params[0]['before_widget'] = str_replace('>', ' data-category="' . esc_attr($selected_category) . '">', $params[0]['before_widget']);
+        }
+    }
+    
+    return $params;
+}
+add_filter('dynamic_sidebar_params', 'shopwell_conditionally_show_model_filter', 20);
+
+/**
+ * Filter model terms to show only those that belong to the selected category
+ * But keep all terms visible even when a model filter is applied
+ */
+function shopwell_filter_model_terms_by_category($terms, $taxonomy, $query_type) {
+    // Only filter model/marca attributes
+    if (strpos($taxonomy, 'pa_model') === false && strpos($taxonomy, 'pa_marca') === false && 
+        strpos($taxonomy, 'model') === false && strpos($taxonomy, 'marca') === false) {
+        return $terms;
+    }
+    
+    // Get selected category
+    $selected_category = null;
+    
+    if (isset($_GET['product_cat']) && !empty($_GET['product_cat'])) {
+        $selected_category = sanitize_text_field($_GET['product_cat']);
+    } elseif (is_product_category()) {
+        $queried_object = get_queried_object();
+        if ($queried_object && isset($queried_object->slug)) {
+            $selected_category = $queried_object->slug;
+        }
+    }
+    
+    if (!$selected_category) {
+        return array(); // Return empty array if no category selected
+    }
+    
+    // Get category term
+    $category_term = get_term_by('slug', $selected_category, 'product_cat');
+    if (!$category_term) {
+        return $terms;
+    }
+    
+    // Check if a model filter is currently active
+    $model_filter_active = isset($_GET['filter_pa_model']) && !empty($_GET['filter_pa_model']);
+    
+    // Get products in this category (without model filter to show all models)
+    // IMPORTANT: Don't include model filter in this query
+    $args = array(
+        'post_type' => 'product',
+        'posts_per_page' => -1,
+        'post_status' => 'publish',
+        'tax_query' => array(
+            array(
+                'taxonomy' => 'product_cat',
+                'field' => 'term_id',
+                'terms' => $category_term->term_id,
+            ),
+        ),
+        'fields' => 'ids',
+    );
+    
+    // Add other active filters (except model filter) to get accurate counts
+    if (isset($_GET['filter_pa_culoare']) && !empty($_GET['filter_pa_culoare'])) {
+        $args['tax_query'][] = array(
+            'taxonomy' => 'pa_culoare',
+            'field' => 'slug',
+            'terms' => sanitize_text_field($_GET['filter_pa_culoare']),
+        );
+    }
+    if (isset($_GET['filter_pa_stare']) && !empty($_GET['filter_pa_stare'])) {
+        $args['tax_query'][] = array(
+            'taxonomy' => 'pa_stare',
+            'field' => 'slug',
+            'terms' => sanitize_text_field($_GET['filter_pa_stare']),
+        );
+    }
+    if (isset($_GET['filter_pa_memorie']) && !empty($_GET['filter_pa_memorie'])) {
+        $args['tax_query'][] = array(
+            'taxonomy' => 'pa_memorie',
+            'field' => 'slug',
+            'terms' => sanitize_text_field($_GET['filter_pa_memorie']),
+        );
+    }
+    // DO NOT add filter_pa_model here - we want to show all models
+    
+    $product_ids = get_posts($args);
+    
+    if (empty($product_ids)) {
+        return array();
+    }
+    
+    // ALWAYS get ALL terms from taxonomy that have products in the selected category
+    // This ensures all models remain visible even when one is selected
+    // Get all terms for this taxonomy
+    $all_terms = get_terms(array(
+        'taxonomy' => $taxonomy,
+        'hide_empty' => false,
+    ));
+    
+    if (is_wp_error($all_terms) || empty($all_terms)) {
+        // Fallback to original terms if we can't get all terms
+        return $terms;
+    }
+    
+    // Filter to only include terms that have products in the selected category
+    // IMPORTANT: Don't include model filter in this check - we want all models visible
+    $filtered_terms = array();
+    foreach ($all_terms as $term) {
+        // Check if this term has products in the category (without model filter)
+        $has_products = get_posts(array(
+            'post_type' => 'product',
+            'posts_per_page' => 1,
+            'post_status' => 'publish',
+            'post__in' => $product_ids,
+            'tax_query' => array(
+                array(
+                    'taxonomy' => $taxonomy,
+                    'field' => 'term_id',
+                    'terms' => $term->term_id,
+                ),
+            ),
+            'fields' => 'ids',
+        ));
+        
+        if (!empty($has_products)) {
+            $filtered_terms[] = $term;
+        }
+    }
+    
+    return $filtered_terms;
+}
+add_filter('woocommerce_layered_nav_get_terms', 'shopwell_filter_model_terms_by_category', 10, 3);
+
+/**
+ * Prevent WooCommerce from hiding model terms when a model filter is applied
+ * This keeps all model options visible even after selecting one
+ */
+function shopwell_keep_model_terms_visible($hide_empty, $taxonomy) {
+    // Only apply to model/marca attributes
+    if (strpos($taxonomy, 'pa_model') !== false || strpos($taxonomy, 'pa_marca') !== false || 
+        strpos($taxonomy, 'model') !== false || strpos($taxonomy, 'marca') !== false) {
+        // Don't hide empty terms for model filters - keep all visible
+        return false;
+    }
+    
+    return $hide_empty;
+}
+add_filter('woocommerce_layered_nav_count_hide_empty', 'shopwell_keep_model_terms_visible', 10, 2);
+
+/**
+ * Modify the query used to calculate term counts for model filters
+ * ALWAYS exclude model filter from the count query so all models remain visible
+ */
+function shopwell_model_term_counts_query($query_args, $taxonomy, $query_type) {
+    // Only apply to model/marca attributes
+    if (strpos($taxonomy, 'pa_model') === false && strpos($taxonomy, 'pa_marca') === false && 
+        strpos($taxonomy, 'model') === false && strpos($taxonomy, 'marca') === false) {
+        return $query_args;
+    }
+    
+    // ALWAYS remove model filter from tax_query so counts are calculated without it
+    // This ensures all models remain visible even when one is selected
+    if (isset($query_args['tax_query']) && is_array($query_args['tax_query'])) {
+        foreach ($query_args['tax_query'] as $key => $tax_query_item) {
+            if (isset($tax_query_item['taxonomy']) && 
+                ($tax_query_item['taxonomy'] === 'pa_model' || 
+                 $tax_query_item['taxonomy'] === 'pa_marca' ||
+                 strpos($tax_query_item['taxonomy'], 'model') !== false ||
+                 strpos($tax_query_item['taxonomy'], 'marca') !== false)) {
+                unset($query_args['tax_query'][$key]);
+            }
+        }
+        // Re-index array
+        $query_args['tax_query'] = array_values($query_args['tax_query']);
+    }
+    
+    return $query_args;
+}
+add_filter('woocommerce_layered_nav_term_counts_query', 'shopwell_model_term_counts_query', 10, 3);
+
+/**
+ * Add model filter to breadcrumbs when a model is selected
+ */
+function shopwell_add_model_to_breadcrumbs($crumbs, $breadcrumb) {
+    // Only on shop pages
+    if (!function_exists('is_shop') || !(is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy())) {
+        return $crumbs;
+    }
+    
+    // Check if a model filter is active
+    if (isset($_GET['filter_pa_model']) && !empty($_GET['filter_pa_model'])) {
+        $model_slug = sanitize_text_field($_GET['filter_pa_model']);
+        
+        // Get the model term
+        $model_term = get_term_by('slug', $model_slug, 'pa_model');
+        if (!$model_term || is_wp_error($model_term)) {
+            // Try pa_marca if pa_model doesn't work
+            $model_term = get_term_by('slug', $model_slug, 'pa_marca');
+        }
+        
+        if ($model_term && !is_wp_error($model_term)) {
+            // Build current URL without model filter for the breadcrumb link
+            $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+            $parsed_url = parse_url($current_url);
+            $query_params = array();
+            if (isset($parsed_url['query'])) {
+                parse_str($parsed_url['query'], $query_params);
+            }
+            
+            // Remove model filter from query params
+            unset($query_params['filter_pa_model']);
+            
+            // Rebuild URL
+            $model_url = $parsed_url['scheme'] . '://' . $parsed_url['host'] . $parsed_url['path'];
+            if (!empty($query_params)) {
+                $model_url .= '?' . http_build_query($query_params);
+            }
+            
+            // Format model name (capitalize first letter)
+            $model_name = ucfirst($model_term->name);
+            
+            // Ensure $crumbs is an array
+            if (!is_array($crumbs)) {
+                $crumbs = array();
+            }
+            
+            // Add model to breadcrumbs before the last item
+            if (!empty($crumbs)) {
+                $last_item = array_pop($crumbs);
+                $crumbs[] = array(
+                    0 => $model_name,
+                    1 => esc_url($model_url)
+                );
+                $crumbs[] = $last_item;
+            } else {
+                // If no crumbs, just add the model
+                $crumbs[] = array(
+                    0 => $model_name,
+                    1 => esc_url($model_url)
+                );
+            }
+        }
+    }
+    
+    return $crumbs;
+}
+add_filter('woocommerce_breadcrumb_items', 'shopwell_add_model_to_breadcrumbs', 10, 2);
+
+/**
+ * Alternative method: Modify breadcrumb output using output buffer
+ */
+function shopwell_start_breadcrumb_buffer() {
+    // Only on shop pages
+    if (!function_exists('is_shop') || !(is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy())) {
+        return;
+    }
+    
+    // Check if a model filter is active
+    if (isset($_GET['filter_pa_model']) && !empty($_GET['filter_pa_model'])) {
+        ob_start('shopwell_modify_breadcrumb_output');
+    }
+}
+add_action('woocommerce_before_main_content', 'shopwell_start_breadcrumb_buffer', 5);
+
+function shopwell_stop_breadcrumb_buffer() {
+    // Only on shop pages
+    if (!function_exists('is_shop') || !(is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy())) {
+        return;
+    }
+    
+    // Check if a model filter is active
+    if (isset($_GET['filter_pa_model']) && !empty($_GET['filter_pa_model'])) {
+        if (ob_get_level() > 0) {
+            ob_end_flush();
+        }
+    }
+}
+add_action('woocommerce_before_main_content', 'shopwell_stop_breadcrumb_buffer', 25);
+
+function shopwell_modify_breadcrumb_output($output) {
+    // Only on shop pages
+    if (!function_exists('is_shop') || !(is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy())) {
+        return $output;
+    }
+    
+    // Check if a model filter is active
+    if (isset($_GET['filter_pa_model']) && !empty($_GET['filter_pa_model'])) {
+        $model_slug = sanitize_text_field($_GET['filter_pa_model']);
+        
+        // Get the model term
+        $model_term = get_term_by('slug', $model_slug, 'pa_model');
+        if (!$model_term || is_wp_error($model_term)) {
+            // Try pa_marca if pa_model doesn't work
+            $model_term = get_term_by('slug', $model_slug, 'pa_marca');
+        }
+        
+        if ($model_term && !is_wp_error($model_term)) {
+            // Build current URL without model filter for the breadcrumb link
+            $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+            $parsed_url = parse_url($current_url);
+            $query_params = array();
+            if (isset($parsed_url['query'])) {
+                parse_str($parsed_url['query'], $query_params);
+            }
+            
+            // Remove model filter from query params
+            unset($query_params['filter_pa_model']);
+            
+            // Rebuild URL
+            $model_url = $parsed_url['scheme'] . '://' . $parsed_url['host'] . $parsed_url['path'];
+            if (!empty($query_params)) {
+                $model_url .= '?' . http_build_query($query_params);
+            }
+            
+            // Format model name (capitalize first letter)
+            $model_name = ucfirst($model_term->name);
+            
+            // Get separator
+            $separator = \Shopwell\Icon::get_svg('right');
+            if (empty($separator)) {
+                $separator = '>';
+            }
+            
+            // Look for breadcrumb structure and insert model before last item
+            // Pattern: ...separator<span>Last Item</span></span></nav>
+            // We need to find the last separator and insert before the last breadcrumb item
+            $last_separator_pos = strrpos($output, $separator);
+            if ($last_separator_pos !== false) {
+                // Find position after separator
+                $insert_pos = $last_separator_pos + strlen($separator);
+                
+                // Build model breadcrumb HTML matching WooCommerce structure
+                $model_breadcrumb = '<span itemscope itemtype="http://schema.org/ListItem"><a href="' . esc_url($model_url) . '"><span>' . esc_html($model_name) . '</span></a></span>' . $separator;
+                
+                // Insert the model breadcrumb
+                $output = substr_replace($output, $model_breadcrumb, $insert_pos, 0);
+            } else {
+                // Fallback: try to find closing nav tag
+                $nav_close_pos = strrpos($output, '</nav>');
+                if ($nav_close_pos !== false) {
+                    $model_breadcrumb = $separator . '<span itemscope itemtype="http://schema.org/ListItem"><a href="' . esc_url($model_url) . '"><span>' . esc_html($model_name) . '</span></a></span>';
+                    $output = substr_replace($output, $model_breadcrumb, $nav_close_pos, 0);
+                }
+            }
+        }
+    }
+    
+    return $output;
+}
+
+
