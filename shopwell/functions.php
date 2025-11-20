@@ -1863,6 +1863,212 @@ function shopwell_filter_model_terms_by_category($terms, $taxonomy, $query_type)
 add_filter('woocommerce_layered_nav_get_terms', 'shopwell_filter_model_terms_by_category', 10, 3);
 
 /**
+ * Sort product categories by count in descending order
+ * This ensures categories with more products appear first in the filter list
+ */
+function shopwell_sort_categories_by_count($terms, $taxonomy, $query_type) {
+    // Only apply to product categories
+    if ($taxonomy !== 'product_cat') {
+        return $terms;
+    }
+    
+    // Check if terms is valid
+    if (empty($terms) || !is_array($terms)) {
+        return $terms;
+    }
+    
+    // Sort terms by count in descending order
+    usort($terms, function($a, $b) {
+        $count_a = isset($a->count) ? (int)$a->count : 0;
+        $count_b = isset($b->count) ? (int)$b->count : 0;
+        return $count_b - $count_a; // Descending order
+    });
+    
+    return $terms;
+}
+add_filter('woocommerce_layered_nav_get_terms', 'shopwell_sort_categories_by_count', 20, 3);
+
+/**
+ * Sort product categories by count using JavaScript
+ * This ensures categories are sorted by count in the DOM after rendering
+ */
+function shopwell_sort_categories_by_count_js() {
+    // Only on shop pages
+    if (!function_exists('is_shop') || !(is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy())) {
+        return;
+    }
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        var isSorting = false;
+        var lastSortTime = 0;
+        var sortCooldown = 1000; // Minimum time between sorts (1 second)
+        var observer = null;
+        
+        function getCount($item) {
+            var $countEl = $item.find('.products-filter__count.counter, .counter, span.counter');
+            if ($countEl.length) {
+                return parseInt($countEl.first().text().trim()) || 0;
+            }
+            return 0;
+        }
+        
+        function isAlreadySorted($items) {
+            // Check if items are already sorted by count (descending)
+            var prevCount = Infinity;
+            for (var i = 0; i < $items.length; i++) {
+                var count = getCount($($items[i]));
+                if (count > prevCount) {
+                    return false; // Not sorted
+                }
+                prevCount = count;
+            }
+            return true; // Already sorted
+        }
+        
+        function sortCategoriesByCount() {
+            // Prevent multiple simultaneous sorts
+            if (isSorting) {
+                return;
+            }
+            
+            // Cooldown check
+            var now = Date.now();
+            if (now - lastSortTime < sortCooldown) {
+                return;
+            }
+            
+            isSorting = true;
+            var sorted = false;
+            
+            // Temporarily disconnect observer to prevent infinite loop
+            if (observer) {
+                observer.disconnect();
+            }
+            
+            // Find all category filter lists
+            $('ul.products-filter__options.filter-list, ul.products-filter--list.filter-list').each(function() {
+                var $list = $(this);
+                var $items = $list.find('> li.products-filter__option.filter-list-item');
+                
+                if ($items.length <= 1) {
+                    return; // Skip if no items or only one item
+                }
+                
+                // Check if already sorted
+                if (isAlreadySorted($items)) {
+                    return; // Skip if already sorted
+                }
+                
+                // Sort items by count (descending order)
+                var sortedItems = $items.toArray().sort(function(a, b) {
+                    var countA = getCount($(a));
+                    var countB = getCount($(b));
+                    return countB - countA; // Descending order
+                });
+                
+                // Only update if order changed
+                var orderChanged = false;
+                for (var i = 0; i < sortedItems.length; i++) {
+                    if (sortedItems[i] !== $items[i]) {
+                        orderChanged = true;
+                        break;
+                    }
+                }
+                
+                if (orderChanged) {
+                    // Detach items, clear list, then append sorted items
+                    $list.empty().append(sortedItems);
+                    sorted = true;
+                }
+            });
+            
+            lastSortTime = Date.now();
+            isSorting = false;
+            
+            // Reconnect observer after a short delay
+            if (observer) {
+                setTimeout(function() {
+                    var $filterSidebar = $('#filter-sidebar-panel, .catalog-filters-sidebar, .shopwell-filter-products-wrapper');
+                    if ($filterSidebar.length) {
+                        observer.observe($filterSidebar[0], {
+                            childList: true,
+                            subtree: true
+                        });
+                    }
+                }, 500);
+            }
+            
+            return sorted;
+        }
+        
+        // Sort on page load (with delay to ensure DOM is ready)
+        setTimeout(function() {
+            sortCategoriesByCount();
+        }, 1000);
+        
+        // Sort after AJAX updates (for filtered products) - but only once per event
+        var ajaxSortTimeout = null;
+        $(document).on('shopwell_ajax_update_complete updated_wc_div', function() {
+            if (ajaxSortTimeout) {
+                clearTimeout(ajaxSortTimeout);
+            }
+            ajaxSortTimeout = setTimeout(function() {
+                sortCategoriesByCount();
+                ajaxSortTimeout = null;
+            }, 500);
+        });
+        
+        // Use MutationObserver - but only for new content, not our own changes
+        if (typeof MutationObserver !== 'undefined') {
+            observer = new MutationObserver(function(mutations) {
+                // Don't react if we're currently sorting
+                if (isSorting) {
+                    return;
+                }
+                
+                var shouldSort = false;
+                mutations.forEach(function(mutation) {
+                    // Only react to added nodes, not removed nodes (which we do when sorting)
+                    if (mutation.addedNodes.length && mutation.removedNodes.length === 0) {
+                        for (var i = 0; i < mutation.addedNodes.length; i++) {
+                            var node = mutation.addedNodes[i];
+                            if (node.nodeType === 1) { // Element node
+                                var $node = $(node);
+                                // Only sort if new filter list items are added, not if we're just reordering
+                                if ($node.hasClass('products-filter__options') || 
+                                    ($node.hasClass('filter-list-item') && $node.closest('.products-filter__options').length)) {
+                                    shouldSort = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                if (shouldSort) {
+                    setTimeout(function() {
+                        sortCategoriesByCount();
+                    }, 300);
+                }
+            });
+            
+            // Observe the filter sidebar container
+            var $filterSidebar = $('#filter-sidebar-panel, .catalog-filters-sidebar, .shopwell-filter-products-wrapper');
+            if ($filterSidebar.length) {
+                observer.observe($filterSidebar[0], {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        }
+    });
+    </script>
+    <?php
+}
+add_action('wp_footer', 'shopwell_sort_categories_by_count_js', 999);
+
+/**
  * Prevent WooCommerce from hiding model terms when a model filter is applied
  * This keeps all model options visible even after selecting one
  */
