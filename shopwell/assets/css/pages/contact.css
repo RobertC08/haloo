@@ -27,6 +27,10 @@ body.page-template-page-contact .faq-container {
     font-family: var(--shopwell-font__main, "Outfit", Arial, sans-serif) !important;
 }
 
+.site-content{
+    padding-top: 0px !important;
+}
+
 /* Additional missing styles for proper contact page appearance */
 body.page-template-page-contact .contact-links {
     display: flex;
@@ -429,6 +433,7 @@ body .contact-header {
 }
 
 body .contact-title {
+    margin-top: 0px;
     font-size: 3.5rem;
     font-weight: 500;
     color: #111827;

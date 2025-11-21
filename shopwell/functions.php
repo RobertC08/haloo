@@ -20,6 +20,27 @@ if (!session_id()) {
     session_start();
 }
 
+// Close session before REST API requests to avoid blocking
+// This allows session to be used for reading/writing, but closes it before HTTP requests
+add_action('rest_api_init', function() {
+    if (session_id()) {
+        session_write_close();
+    }
+}, 1);
+
+// Close session before AJAX requests that might make HTTP calls
+add_action('wp_ajax_send_contact_email', function() {
+    if (session_id()) {
+        session_write_close();
+    }
+}, 1);
+
+add_action('wp_ajax_nopriv_send_contact_email', function() {
+    if (session_id()) {
+        session_write_close();
+    }
+}, 1);
+
 // Check if theme file exists before requiring it
 if (function_exists('get_template_directory')) {
     $theme_file = get_template_directory() . '/inc/theme.php';
@@ -379,6 +400,11 @@ add_action('wp_footer', 'shopwell_disable_filter_toggle_desktop', 20);
  * Handle contact form submission with Resend
  */
 function handle_contact_form_submission() {
+    // Close session before making HTTP requests to avoid blocking
+    if (session_id()) {
+        session_write_close();
+    }
+    
     // Verify nonce for security
     if (!wp_verify_nonce($_POST['_wpnonce'], 'contact_form_nonce')) {
         wp_die('Security check failed');
@@ -889,7 +915,7 @@ add_action('wp_footer', 'add_related_posts');
  * Change number of products displayed per page in shop
  */
 function custom_products_per_page($cols) {
-    return 16; // Display 16 products per page
+    return 20; // Display 24 products per page
 }
 add_filter('loop_shop_per_page', 'custom_products_per_page', 999);
 
@@ -899,7 +925,7 @@ add_filter('loop_shop_per_page', 'custom_products_per_page', 999);
 function ensure_shop_products_per_page($query) {
     if (!is_admin() && $query->is_main_query()) {
         if (is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy()) {
-            $query->set('posts_per_page', 16);
+            $query->set('posts_per_page', 20);
         }
     }
 }
@@ -1062,7 +1088,39 @@ require_once get_template_directory() . '/assets/css/load-refactored-styles.php'
 function shopwell_auto_select_variations() {
     ?>
     <script type="text/javascript">
+    // Firefox fix: Ensure JavaScript runs after browser back/forward navigation
+    // This fixes an issue where Firefox doesn't properly restore JavaScript state
+    // when using pushState and navigating back in history
+    window.onunload = function(){};
+    
     jQuery(document).ready(function($) {
+        // Helper function to convert simplified URL parameter to attribute name
+        function urlParamToAttributeName(paramName) {
+            var paramMap = {
+                'culoare': ['attribute_pa_culoare', 'attribute_culoare'],
+                'memorie': ['attribute_pa_memorie', 'attribute_memorie', 'attribute_pa_stocare', 'attribute_stocare'],
+                'stare': ['attribute_pa_stare', 'attribute_stare']
+            };
+            
+            return paramMap[paramName] || null;
+        }
+        
+        // Helper function to convert attribute name to simplified URL parameter
+        function simplifyAttributeName(attrName) {
+            var attributeMap = {
+                'attribute_pa_culoare': 'culoare',
+                'attribute_culoare': 'culoare',
+                'attribute_pa_memorie': 'memorie',
+                'attribute_memorie': 'memorie',
+                'attribute_pa_stocare': 'memorie',
+                'attribute_stocare': 'memorie',
+                'attribute_pa_stare': 'stare',
+                'attribute_stare': 'stare'
+            };
+            
+            return attributeMap[attrName] || null;
+        }
+        
         // Function to auto-select first variation on single product page
         function autoSelectFirstVariation() {
             if (!$('body').hasClass('single-product')) {
@@ -1074,7 +1132,18 @@ function shopwell_auto_select_variations() {
             // Check URL parameters first
             var urlParams = new URLSearchParams(window.location.search);
             urlParams.forEach(function(value, key) {
-                if (key.startsWith('attribute_') || key.startsWith('pa_')) {
+                // Check for simplified parameters (culoare, memorie, stare)
+                if (key === 'culoare' || key === 'memorie' || key === 'stare') {
+                    var possibleAttrNames = urlParamToAttributeName(key);
+                    if (possibleAttrNames) {
+                        // Store with first possible name, will be matched later
+                        possibleAttrNames.forEach(function(attrName) {
+                            filterAttributes[attrName] = value;
+                        });
+                    }
+                }
+                // Also support old format for backward compatibility
+                else if (key.startsWith('attribute_') || key.startsWith('pa_')) {
                     filterAttributes[key] = value;
                 }
             });
@@ -1424,9 +1493,251 @@ function shopwell_auto_select_variations() {
             }
         }
         
+        // Function to update URL when variations are selected on single product page
+        function updateUrlWithVariations() {
+            if (!$('body').hasClass('single-product')) {
+                return;
+            }
+            
+            var $variationForm = $('form.variations_form');
+            if (!$variationForm.length) {
+                return;
+            }
+            
+            // Function to convert simplified URL parameter back to attribute name
+            function getAttributeNameFromUrlParam(simpleName) {
+                // Try to find the actual attribute name in the form
+                var possibleNames = [];
+                if (simpleName === 'culoare') {
+                    possibleNames = ['attribute_pa_culoare', 'attribute_culoare'];
+                } else if (simpleName === 'memorie') {
+                    possibleNames = ['attribute_pa_memorie', 'attribute_memorie', 'attribute_pa_stocare', 'attribute_stocare'];
+                } else if (simpleName === 'stare') {
+                    possibleNames = ['attribute_pa_stare', 'attribute_stare'];
+                }
+                
+                // Find which one exists in the form
+                for (var i = 0; i < possibleNames.length; i++) {
+                    if ($variationForm.find('[name="' + possibleNames[i] + '"]').length) {
+                        return possibleNames[i];
+                    }
+                }
+                
+                // Fallback to first possible name
+                return possibleNames[0] || null;
+            }
+            
+            // Function to restore form state from URL (for browser back button)
+            function restoreFormFromUrl() {
+                var urlParams = new URLSearchParams(window.location.search);
+                var hasChanges = false;
+                
+                // Process each URL parameter
+                urlParams.forEach(function(value, key) {
+                    // Only process simplified attribute names
+                    if (key === 'culoare' || key === 'memorie' || key === 'stare') {
+                        var attrName = getAttributeNameFromUrlParam(key);
+                        if (attrName) {
+                            var $field = $variationForm.find('[name="' + attrName + '"]');
+                            
+                            if ($field.length) {
+                                // Handle different field types
+                                if ($field.is('select')) {
+                                    if ($field.val() !== value) {
+                                        $field.val(value).trigger('change');
+                                        hasChanges = true;
+                                    }
+                                } else if ($field.is('input[type="radio"]')) {
+                                    var $radio = $variationForm.find('[name="' + attrName + '"][value="' + value + '"]');
+                                    if ($radio.length && !$radio.is(':checked')) {
+                                        $radio.prop('checked', true).trigger('change');
+                                        hasChanges = true;
+                                    }
+                                } else if ($field.is('input[type="hidden"]')) {
+                                    if ($field.val() !== value) {
+                                        $field.val(value).trigger('change');
+                                        hasChanges = true;
+                                    }
+                                }
+                            } else {
+                                // Try clicking on swatch buttons
+                                var $swatch = $variationForm.find('.wcboost-variation-swatches__item[data-value="' + value + '"], .product-variation-item[data-value="' + value + '"]');
+                                if ($swatch.length && !$swatch.hasClass('selected')) {
+                                    $swatch.trigger('click');
+                                    hasChanges = true;
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Clear fields that are not in URL
+                $variationForm.find('select[name^="attribute_"], input[name^="attribute_"]').each(function() {
+                    var $field = $(this);
+                    var fieldName = $field.attr('name');
+                    var simpleName = simplifyAttributeName(fieldName);
+                    
+                    if (simpleName && !urlParams.has(simpleName)) {
+                        if ($field.is('select')) {
+                            $field.val('').trigger('change');
+                        } else if ($field.is('input[type="radio"]')) {
+                            $field.prop('checked', false);
+                        } else if ($field.is('input[type="hidden"]')) {
+                            $field.val('');
+                        }
+                    }
+                });
+                
+                return hasChanges;
+            }
+            
+            // Function to update URL with current variation selections
+            function updateUrl() {
+                // Don't update URL if we're restoring from browser navigation
+                if (isRestoringFromUrl) {
+                    return;
+                }
+                
+                var urlParams = new URLSearchParams(window.location.search);
+                var hasChanges = false;
+                
+                // First, remove all old attribute_pa_* parameters and other unwanted params
+                var paramsToRemove = [];
+                urlParams.forEach(function(value, key) {
+                    if (key.startsWith('attribute_')) {
+                        paramsToRemove.push(key);
+                    }
+                });
+                paramsToRemove.forEach(function(key) {
+                    urlParams.delete(key);
+                    hasChanges = true;
+                });
+                
+                // Get selected attributes from the form (only culoare, memorie, stare)
+                $variationForm.find('select[name^="attribute_"], input[name^="attribute_"][type="hidden"], input[name^="attribute_"][type="radio"]:checked').each(function() {
+                    var $field = $(this);
+                    var fieldName = $field.attr('name');
+                    var fieldValue = $field.val();
+                    
+                    // Get simplified name
+                    var simpleName = simplifyAttributeName(fieldName);
+                    
+                    // Only process allowed attributes (culoare, memorie, stare)
+                    if (!simpleName) {
+                        return; // Skip this attribute
+                    }
+                    
+                    if (fieldValue && fieldValue !== '') {
+                        // Use simplified name in URL
+                        urlParams.set(simpleName, fieldValue);
+                        hasChanges = true;
+                    } else {
+                        // Remove parameter if no value selected
+                        if (urlParams.has(simpleName)) {
+                            urlParams.delete(simpleName);
+                            hasChanges = true;
+                        }
+                    }
+                });
+                
+                // Update URL if there are changes
+                if (hasChanges) {
+                    var newUrl = window.location.pathname;
+                    var queryString = urlParams.toString();
+                    if (queryString) {
+                        newUrl += '?' + queryString;
+                    }
+                    
+                    // Use History API to update URL without reloading page
+                    if (window.history && window.history.pushState) {
+                        window.history.pushState({}, '', newUrl);
+                    }
+                }
+            }
+            
+            // Handle browser back/forward buttons
+            var isRestoringFromUrl = false;
+            $(window).on('popstate', function(e) {
+                if (!$('body').hasClass('single-product')) {
+                    return;
+                }
+                
+                // Prevent infinite loop by flagging that we're restoring
+                isRestoringFromUrl = true;
+                
+                // Restore form state from URL
+                restoreFormFromUrl();
+                
+                // Reset flag after a short delay
+                setTimeout(function() {
+                    isRestoringFromUrl = false;
+                }, 500);
+            });
+            
+            // Listen to variation form changes (dropdowns and inputs)
+            $variationForm.on('change', 'select[name^="attribute_"], input[name^="attribute_"]', function() {
+                // Small delay to ensure WooCommerce has processed the change
+                setTimeout(updateUrl, 100);
+            });
+            
+            // Listen to clicks on variation swatches (color buttons, etc.)
+            $variationForm.on('click', '.wcboost-variation-swatches__item, .product-variation-item', function() {
+                // Delay to allow WooCommerce to update the form fields
+                setTimeout(updateUrl, 200);
+            });
+            
+            // Also listen to WooCommerce variation events
+            $variationForm.on('found_variation', function(event, variation) {
+                // Update URL when a valid variation is found
+                setTimeout(updateUrl, 100);
+            });
+            
+            // Listen to show_variation event (when variation is displayed)
+            $variationForm.on('show_variation', function(event, variation) {
+                setTimeout(updateUrl, 100);
+            });
+            
+            // Listen to WooCommerce variation form updates
+            $(document.body).on('wc_variation_form', function() {
+                setTimeout(updateUrl, 200);
+            });
+            
+            // Use MutationObserver to detect when hidden inputs are updated by swatch plugins
+            if (typeof MutationObserver !== 'undefined') {
+                var observer = new MutationObserver(function(mutations) {
+                    var shouldUpdate = false;
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                            var $target = $(mutation.target);
+                            if ($target.is('input[name^="attribute_"]') || $target.is('select[name^="attribute_"]')) {
+                                shouldUpdate = true;
+                            }
+                        }
+                    });
+                    if (shouldUpdate) {
+                        setTimeout(updateUrl, 100);
+                    }
+                });
+                
+                // Observe the variation form for attribute changes
+                var formElement = $variationForm[0];
+                if (formElement) {
+                    observer.observe(formElement, {
+                        attributes: true,
+                        attributeFilter: ['value'],
+                        subtree: true
+                    });
+                }
+            }
+            
+            // Initial URL update if there are already selected attributes
+            setTimeout(updateUrl, 500);
+        }
+        
         // Run on page load
         autoSelectFirstVariation();
         handleFilterVariations();
+        updateUrlWithVariations();
         
         // Re-run after AJAX updates (for filtered/sorted products)
         $(document).on('shopwell_ajax_update_complete', function() {
@@ -1442,6 +1753,42 @@ function shopwell_auto_select_variations() {
     <?php
 }
 add_action('wp_footer', 'shopwell_auto_select_variations', 999);
+
+/**
+ * Fix Google Pay locale issue
+ * Google Pay doesn't support Romanian locale ("ro"), so we force English
+ * This prevents console errors when payment gateways try to use "ro" locale
+ */
+function shopwell_fix_google_pay_locale( $locale ) {
+	// Google Pay supported locales: en, de, fr, it, pl, pt, ru, es, tr, etc.
+	// Romanian (ro) is not supported, so we use English as fallback
+	if ( $locale === 'ro' || $locale === 'ro_RO' ) {
+		return 'en';
+	}
+	
+	// Map other unsupported locales to supported ones
+	$locale_map = array(
+		'ro'     => 'en',
+		'ro_RO'  => 'en',
+		'ro_MD'  => 'en',
+	);
+	
+	if ( isset( $locale_map[ $locale ] ) ) {
+		return $locale_map[ $locale ];
+	}
+	
+	return $locale;
+}
+
+// Apply to common payment gateway filters
+add_filter( 'woocommerce_stripe_payment_request_button_locale', 'shopwell_fix_google_pay_locale', 10, 1 );
+add_filter( 'woocommerce_gateway_stripe_payment_request_button_locale', 'shopwell_fix_google_pay_locale', 10, 1 );
+add_filter( 'wc_stripe_payment_request_button_locale', 'shopwell_fix_google_pay_locale', 10, 1 );
+add_filter( 'woocommerce_paypal_locale', 'shopwell_fix_google_pay_locale', 10, 1 );
+add_filter( 'woocommerce_paypal_payment_request_button_locale', 'shopwell_fix_google_pay_locale', 10, 1 );
+
+// Generic filter for any payment gateway that uses locale
+add_filter( 'woocommerce_payment_gateway_locale', 'shopwell_fix_google_pay_locale', 10, 1 );
 
 /**
  * Register WooCommerce Memory Attribute
@@ -1604,28 +1951,6 @@ add_action('template_redirect', 'shopwell_fix_memory_filter_association', 5);
  * Enqueue custom CSS fixes
  * This loads custom CSS that won't be overwritten during theme updates
  */
-function shopwell_enqueue_custom_fixes() {
-    // Only load on frontend
-    if (is_admin()) {
-        return;
-    }
-    
-    // Check if homepage styles are loaded (only on front page)
-    $dependencies = array('shopwell-refactored-base');
-    if (is_front_page() && wp_style_is('shopwell-homepage-styles', 'enqueued')) {
-        $dependencies[] = 'shopwell-homepage-styles';
-    }
-    
-    // Enqueue custom fixes CSS with high priority to override theme styles
-    wp_enqueue_style(
-        'shopwell-custom-fixes',
-        get_template_directory_uri() . '/assets/css/custom-fixes.css',
-        $dependencies, // Load after theme styles
-        '1.0.1' // Version number - increment this when you update the file
-    );
-}
-add_action('wp_enqueue_scripts', 'shopwell_enqueue_custom_fixes', 999); // High priority to load last
-
 /**
  * Hide model filter widget when no category is selected
  * Show only models that belong to the selected category
@@ -2284,5 +2609,51 @@ function shopwell_modify_breadcrumb_output($output) {
     
     return $output;
 }
+
+/**
+ * Remove coupon section from checkout page
+ * This customization persists through theme updates
+ */
+function shopwell_remove_checkout_coupon() {
+    // Check if WooCommerce is active
+    if (!class_exists('WooCommerce')) {
+        return;
+    }
+    
+    // Get the Checkout instance if it exists
+    if (class_exists('\Shopwell\WooCommerce\Checkout')) {
+        $checkout_instance = \Shopwell\WooCommerce\Checkout::instance();
+        
+        // Remove the coupon form action added by the Checkout class
+        remove_action('woocommerce_before_checkout_form', array($checkout_instance, 'coupon_form'), 10);
+        
+        // Also remove the coupon message filter
+        remove_filter('woocommerce_checkout_coupon_message', array($checkout_instance, 'coupon_form_name'), 10);
+    }
+}
+// Hook into 'wp' with priority 20 to ensure Checkout class is instantiated first (it's instantiated at priority 10)
+add_action('wp', 'shopwell_remove_checkout_coupon', 20);
+
+/**
+ * Wrap catalog-toolbar--top and catalog-toolbar__filters-actived in a flex container
+ * This customization persists through theme updates
+ */
+function shopwell_wrap_catalog_toolbar_elements() {
+    // Only on shop pages
+    if (!function_exists('is_shop') || !(is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy())) {
+        return;
+    }
+    
+    // Open wrapper div before catalog toolbar (priority 39, before catalog_toolbar at 40)
+    add_action('woocommerce_before_shop_loop', function() {
+        echo '<div class="catalog-toolbar-wrapper">';
+    }, 39);
+    
+    // Close wrapper div after filters_actived (priority 11, after filters_actived at 10)
+    add_action('shopwell_woocommerce_after_products_toolbar_top', function() {
+        echo '</div>';
+    }, 11);
+}
+add_action('wp', 'shopwell_wrap_catalog_toolbar_elements', 25);
 
 

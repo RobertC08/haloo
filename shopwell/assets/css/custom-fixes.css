@@ -36,3 +36,183 @@
     padding: 20px !important;
 }
 
+/**
+ * Cart Layout Fix - Ensure columns stay side-by-side on desktop
+ * Only stack on smaller screens (below 992px)
+ */
+@media (min-width: 992px) {
+    .woocommerce-cart .woocommerce-cart-form {
+        float: left !important;
+        width: 65.9% !important;
+        margin-right: 24px !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .woocommerce-cart .cart-collaterals {
+        float: left !important;
+        width: 31.9% !important;
+        margin-bottom: 0 !important;
+    }
+}
+
+.woocommerce-cart .cart-collaterals {
+    margin-bottom: 36px !important;
+}
+
+/**
+ * Hide catalog-toolbar element
+ * Keep catalog-toolbar--top and catalog-toolbar__filters-actived visible
+ */
+.catalog-toolbar {
+    display: none !important;
+}
+
+/**
+ * Keep catalog-toolbar--top and catalog-toolbar__filters-actived on the same row
+ * Space them between and center-align vertically
+ * Active filters on left, filtering/sorting on right
+ */
+/* Apply flexbox to the wrapper div */
+.catalog-toolbar-wrapper {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 24px !important;
+}
+
+/* Ensure both elements are flex and centered, and reorder them */
+.catalog-toolbar-wrapper .catalog-toolbar__filters-actived {
+    display: flex !important;
+    align-items: center !important;
+    padding-top: 0 !important;
+    border-bottom: none !important;
+    order: 1 !important; /* Active filters on the left */
+}
+
+.catalog-toolbar-wrapper .catalog-toolbar--top {
+    display: flex !important;
+    align-items: center !important;
+    margin-right: 24px !important;
+    margin-bottom: 0 !important;
+    order: 2 !important; /* Filtering/sorting on the right */
+}
+
+/**
+ * Mobile styles for catalog toolbar wrapper
+ * Full width, active filters at bottom
+ */
+@media (max-width: 991px) {
+    .catalog-toolbar-wrapper {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 16px !important;
+    }
+    
+    .catalog-toolbar-wrapper .catalog-toolbar--top {
+        order: 1 !important; /* Filtering/sorting on top for mobile */
+        width: 100% !important;
+    }
+    
+    .catalog-toolbar-wrapper .catalog-toolbar__filters-actived {
+        order: 2 !important; /* Active filters at bottom for mobile */
+        width: 100% !important;
+    }
+}
+
+/**
+ * Hide "Filter" widget title in the filter sidebar
+ */
+#filter-sidebar-panel .widget-title,
+#mobile-filter-sidebar-panel .widget-title,
+.catalog-sidebar .widget-title {
+    display: none !important;
+}
+
+/**
+ * Remove margin, padding-bottom, and border-bottom from filter sidebar panel header
+ * Override filter-sidebar.css styles
+ */
+#filter-sidebar-panel .panel__header,
+#mobile-filter-sidebar-panel .panel__header {
+    margin-bottom: 0 !important;
+    padding-bottom: 16px !important;
+    border-bottom: none !important;
+}
+
+/**
+ * Stack icon and text vertically in the "Toate filtrele" button
+ * Override woocommerce.css (664-677)
+ * Make both buttons the same height
+ */
+.catalog-toolbar--top .button-filters,
+.catalog-toolbar--top .mobile-catalog-toolbar__sort-button,
+.catalog-toolbar--top .catalog-order {
+    flex-direction: column !important;
+    min-height: 88px !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.button-filters {
+    gap: 8px !important;
+    padding: 12px 16px !important;
+}
+
+.button-filters .shopwell-svg-icon {
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/**
+ * Remove vertical-align from button icons
+ * Override woocommerce-rtl.css (683-686)
+ */
+.catalog-toolbar--top .button-filters span svg,
+.catalog-toolbar--top .mobile-catalog-toolbar__sort-button span svg {
+    vertical-align: -0.125em !important;
+}
+
+/**
+ * Set font size to 16px for mobile catalog toolbar sort button
+ */
+.mobile-catalog-toolbar__sort-button.shopwell-button--color-black.hidden-sm.hidden-md.hidden-lg.shopwell-button--raised,
+.mobile-catalog-toolbar__sort-button {
+    font-size: 16px !important;
+}
+urmareste-
+.catalog-toolbar--top{
+    padding: 0px;
+}
+
+/**
+ * My Account Page - Remove padding from site-content
+ */
+.woocommerce-account .site-content {
+    padding: 0 !important;
+}
+
+/**
+ * Specific page - Remove padding from site-content
+ * Page ID: 20710
+ */
+.page-id-20710 .site-content {
+    padding: 24px !important;
+}
+
+.woocommerce-account .woocommerce {
+    margin-bottom: 36px !important;
+}
+
+.woocommerce-account article {
+    margin-bottom: 36px !important;
+}
+
+.woocommerce-form-track-order .form-tracking-order-info{
+    margin-top: 24px !important;
+}
+
+.page-id-20710 .woocommerce{
+    margin-bottom: 36px !important;
+}

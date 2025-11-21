@@ -10830,9 +10830,6 @@ body.modal-opened {
 .shopwell-blog-page .site-content {
   padding-bottom: 50px;
 }
-.shopwell-blog-page .page-header + .site-content {
-  padding-top: 36px;
-}
 
 .shopwell-recent-post__heading {
   font-size: 24px;

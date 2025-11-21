@@ -335,7 +335,7 @@
 
 .sidebar-recent-posts ul {
     list-style: none;
-    padding: 0;
+    padding: 0 0 1.5em 0em;
     margin: 0;
 }
 

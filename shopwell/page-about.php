@@ -196,7 +196,7 @@ get_header();
             <section class="stats-section">
                 <div class="about-container">
                     <div class="featured-image-container">
-                        <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/Smartphone-ER-iPhone-15-removebg-preview.png" alt="iPhone 15 Refurbished" class="featured-image">
+                        <img src="https://haloo.ro/wp-content/uploads/2025/10/Smartphone-ER-iPhone-15-removebg-preview.png" alt="iPhone 15 Refurbished" class="featured-image">
                     </div>
                 </div>
             </section>

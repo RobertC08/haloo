@@ -654,7 +654,7 @@ button.mobile-catalog-toolbar__sort-button .name {
   display: flex;
   justify-content: space-between;
   padding: 24px;
-  background-color: rgba(185, 185, 185, 0.4);
+  background-color: rgba(185, 185, 185, 0);
   border-radius: 2px;
   --shopwell-input__border-width: 0;
   --shopwell-input__box-shadow: rgba(0, 0, 0, 0.16);
@@ -789,8 +789,6 @@ button.mobile-catalog-toolbar__sort-button .name {
   background-color: #1d2128;
   color: #fff;
   padding: 8.5px 13px;
-  margin-right: 8px;
-  margin-bottom: 8px;
   border-radius: 3px;
 }
 .catalog-toolbar__filters-actived .remove-filtered .shopwell-svg-icon {
@@ -799,9 +797,6 @@ button.mobile-catalog-toolbar__sort-button .name {
 .catalog-toolbar__filters-actived .remove-filtered-all {
   color: #1d2128;
   margin-left: 15px;
-}
-.catalog-toolbar__filters-actived.active {
-  padding-bottom: 16px;
 }
 
 /**

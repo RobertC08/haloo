@@ -298,7 +298,7 @@ get_header();
                             </div>
                         </div>
                         <div class="faq-image">
-                            <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/09/mobile.png" alt="Telefon refurbished" class="mobile-phone-image">
+                            <img src="https://haloo.ro/wp-content/uploads/2025/09/mobile.png" alt="Telefon refurbished" class="mobile-phone-image">
                         </div>
                     </div>
                 </div>

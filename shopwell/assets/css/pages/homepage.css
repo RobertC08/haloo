@@ -164,7 +164,7 @@
 
 /* Blog Posts Styling */
 .blog-posts .container { max-width: 1440px !important; margin: 0 auto !important; padding: 0 20px !important; }
-.posts-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 30px !important; margin-top: 40px !important; }
+.posts-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 30px !important; margin-bottom: 40px !important; }
 .blog-posts .post { background: white !important; border-radius: 12px !important; overflow: hidden !important; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08) !important; transition: all 0.3s ease !important; display: flex !important; flex-direction: column !important; height: 100% !important; margin: 0 !important; padding: 0 !important; }
 .blog-posts .post:hover { transform: translateY(-5px) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important; }
 .blog-posts .post-thumbnail { position: relative !important; overflow: hidden !important; width: 100% !important; }

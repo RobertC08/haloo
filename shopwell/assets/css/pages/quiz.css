@@ -6,7 +6,7 @@
 .quiz-container {
     max-width: 900px;
     margin: 0px auto;
-    padding: 20px 40px;
+    padding: 0px 0px 40px;
     background: #fff;
     border-radius: 20px;
 }
@@ -379,6 +379,9 @@
     color: #2A322F;
 }
 
+.site-content {
+    padding-top: 0px !important;
+}
 /* Responsive Design */
 @media (max-width: 768px) {
     .quiz-container {
@@ -441,8 +444,8 @@
 
 @media (max-width: 480px) {
     .quiz-container {
-        padding: 10px 15px;
-        margin: 5px;
+        padding: 0px;
+        margin: 0px 0px 36px 0px;
     }
     
     .quiz-title {

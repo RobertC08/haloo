@@ -30,6 +30,13 @@ function shopwell_enqueue_refactored_styles() {
                        (is_page() && get_the_ID() && get_page_template_slug(get_the_ID()) === 'page-contact.php') ||
                        (is_page() && strpos(get_page_template(), 'page-contact.php') !== false);
     $is_quiz_page = $current_template === 'page-quiz.php';
+    $is_terms_page = $current_template === 'page-termeni-si-conditii.php';
+    $is_returns_page = $current_template === 'page-retururi-si-inlocuiri.php';
+    $is_shipping_page = $current_template === 'page-tarife-si-politici-de-livrare.php';
+    $is_refund_page = $current_template === 'page-politica-de-rambursare.php';
+    $is_privacy_page = $current_template === 'page-politica-de-confidentialitate.php';
+    $is_delivery_page = $current_template === 'page-livrare-si-delivery.php';
+    $is_moneyback_page = $current_template === 'page-politica-banii-inapoi.php';
     
     // Base styles that are always loaded
     wp_enqueue_style(
@@ -82,7 +89,7 @@ function shopwell_enqueue_refactored_styles() {
             'shopwell-homepage-styles',
             get_template_directory_uri() . '/assets/css/pages/homepage.css',
             array('shopwell-refactored-base'),
-            '1.0.10'
+            '1.0.11'
         );
     }
 
@@ -150,14 +157,103 @@ function shopwell_enqueue_refactored_styles() {
         );
     }
     
+    if ($is_terms_page) {
+        wp_enqueue_style(
+            'shopwell-terms-styles',
+            get_template_directory_uri() . '/assets/css/pages/termeni-si-conditii.css',
+            array('shopwell-refactored-base'),
+            '1.0.1'
+        );
+    }
+    
+    if ($is_returns_page) {
+        wp_enqueue_style(
+            'shopwell-returns-styles',
+            get_template_directory_uri() . '/assets/css/pages/retururi-si-inlocuiri.css',
+            array('shopwell-refactored-base'),
+            '1.0.0'
+        );
+    }
+    
+    if ($is_shipping_page) {
+        wp_enqueue_style(
+            'shopwell-shipping-styles',
+            get_template_directory_uri() . '/assets/css/pages/tarife-si-politici-de-livrare.css',
+            array('shopwell-refactored-base'),
+            '1.0.0'
+        );
+    }
+    
+    if ($is_refund_page) {
+        wp_enqueue_style(
+            'shopwell-refund-styles',
+            get_template_directory_uri() . '/assets/css/pages/politica-de-rambursare.css',
+            array('shopwell-refactored-base'),
+            '1.0.0'
+        );
+    }
+    
+    if ($is_privacy_page) {
+        wp_enqueue_style(
+            'shopwell-privacy-styles',
+            get_template_directory_uri() . '/assets/css/pages/politica-de-confidentialitate.css',
+            array('shopwell-refactored-base'),
+            '1.0.0'
+        );
+    }
+    
+    if ($is_delivery_page) {
+        wp_enqueue_style(
+            'shopwell-delivery-styles',
+            get_template_directory_uri() . '/assets/css/pages/livrare-si-delivery.css',
+            array('shopwell-refactored-base'),
+            '1.0.0'
+        );
+    }
+    
+    if ($is_moneyback_page) {
+        wp_enqueue_style(
+            'shopwell-moneyback-styles',
+            get_template_directory_uri() . '/assets/css/pages/politica-banii-inapoi.css',
+            array('shopwell-refactored-base'),
+            '1.0.0'
+        );
+    }
+    
     // Footer styles are loaded on all pages
     wp_enqueue_style(
         'shopwell-footer-styles',
         get_template_directory_uri() . '/assets/css/layout/footer.css',
         array('shopwell-refactored-base'),
-        '1.0.18'
+        '1.0.19'
+    );
+}
+
+/**
+ * Enqueue custom fixes CSS
+ * This function loads custom CSS fixes that override theme styles
+ */
+function shopwell_enqueue_custom_fixes() {
+    // Only load on frontend
+    if (is_admin()) {
+        return;
+    }
+    
+    // Check if homepage styles are loaded (only on front page)
+    $dependencies = array('shopwell-refactored-base');
+    if (is_front_page() && wp_style_is('shopwell-homepage-styles', 'enqueued')) {
+        $dependencies[] = 'shopwell-homepage-styles';
+    }
+    
+    // Enqueue custom fixes CSS with high priority to override theme styles
+    wp_enqueue_style(
+        'shopwell-custom-fixes',
+        get_template_directory_uri() . '/assets/css/custom-fixes.css',
+        $dependencies, // Load after theme styles
+        '1.0.14' // Version number - increment this when you update the file
     );
 }
 
 // Hook into WordPress (high priority to override theme styles)
 add_action('wp_enqueue_scripts', 'shopwell_enqueue_refactored_styles', 100);
+add_action('wp_enqueue_scripts', 'shopwell_enqueue_custom_fixes', 999); // High priority to load last

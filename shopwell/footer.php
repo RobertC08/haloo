@@ -32,35 +32,34 @@
             </div>
             
             <div class="footer-section">
-                <h4>Cunoaște-ne</h4>
+                <h4>Despre noi</h4>
                 <ul>
+                    <li><a href="/alege-telefonul-pentru-tine">Găsește telefonul potrivit</a></li>
                     <li><a href="/despre-noi">Despre Haloo</a></li>
                     <li><a href="/faq">FAQ</a></li>
                     <li><a href="/blog">Blog</a></li>
                     <li><a href="/contact">Contact Haloo</a></li>
-                    <li><a href="/termeni">Termeni și condiții</a></li>
+                    <li><a href="/termeni-si-conditii">Termeni și condiții</a></li>
                 </ul>
             </div>
             
             <div class="footer-section">
                 <h4>Servicii Clienți</h4>
                 <ul>
-                    <li><a href="/accesibilitate">Declarația de Accesibilitate</a></li>
-                    <li><a href="/comenzile-tale">Comenzile Tale</a></li>
-                    <li><a href="/retururi">Retururi și Înlocuiri</a></li>
-                    <li><a href="/livrare">Tarife și Politici de Livrare</a></li>
-                    <li><a href="/rambursare">Politica de Rambursare</a></li>
-                    <li><a href="/confidentialitate">Politica de Confidențialitate</a></li>
+                    <li><a href="/contul-meu/comenzile-mele/">Comenzile Tale</a></li>
+                    <li><a href="/retururi-si-inlocuiri">Retururi și Înlocuiri</a></li>
+                    <li><a href="/tarife-si-politici-de-livrare">Tarife și Politici de Livrare</a></li>
+                    <li><a href="/politica-de-rambursare">Politica de Rambursare</a></li>
+                    <li><a href="/politica-de-confidentialitate">Politica de Confidențialitate</a></li>
                 </ul>
             </div>
             
             <div class="footer-section">
                 <h4>Comenzi și Retururi</h4>
                 <ul>
-                    <li><a href="/urmarire-comanda">Urmărește Comanda</a></li>
+                    <li><a href="/urmareste-comanda">Urmărește Comanda</a></li>
                     <li><a href="/livrare-si-delivery">Livrare și Delivery</a></li>
                     <li><a href="/politica-banii-inapoi">Politica Banii Înapoi</a></li>
-                    <li><a href="/gaseste-magazin">Găsește Magazinul</a></li>
                 </ul>
             </div>
             
@@ -68,22 +67,22 @@
                 <h4>Urmărește-ne</h4>
                 <div class="social-icons">
                     <a href="#" title="Facebook">
-                        <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/facebook.svg" alt="Facebook" width="20" height="20">
+                        <img src="https://haloo.ro/wp-content/uploads/2025/10/facebook.svg" alt="Facebook" width="20" height="20">
                     </a>
                     <a href="#" title="Instagram">
-                        <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/instagram.svg" alt="Instagram" width="20" height="20">
+                        <img src="https://haloo.ro/wp-content/uploads/2025/10/instagram.svg" alt="Instagram" width="20" height="20">
                     </a>
                     <a href="#" title="WhatsApp">
-                        <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/whatsapp.svg" alt="WhatsApp" width="20" height="20">
+                        <img src="https://haloo.ro/wp-content/uploads/2025/10/whatsapp.svg" alt="WhatsApp" width="20" height="20">
                     </a>
                 </div>
                 
                 <h5>Acceptăm</h5>
                 <div class="payment-icons">
-                    <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/visa.svg" alt="Visa" width="40" height="25">
-                    <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/mastercard.svg" alt="Mastercard" width="40" height="25">
-                    <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/applepay.svg" alt="Apple Pay" width="40" height="25">
-                    <img src="https://haloo.lemon.thisisfruit.com/wp-content/uploads/2025/10/googlepay.svg" alt="Google Pay" width="40" height="25">
+                    <img src="https://haloo.ro/wp-content/uploads/2025/10/visa.svg" alt="Visa" width="40" height="25">
+                    <img src="https://haloo.ro/wp-content/uploads/2025/10/mastercard.svg" alt="Mastercard" width="40" height="25">
+                    <img src="https://haloo.ro/wp-content/uploads/2025/10/applepay.svg" alt="Apple Pay" width="40" height="25">
+                    <img src="https://haloo.ro/wp-content/uploads/2025/10/googlepay.svg" alt="Google Pay" width="40" height="25">
                 </div>
             </div>
         </div>

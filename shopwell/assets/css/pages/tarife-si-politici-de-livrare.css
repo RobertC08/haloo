@@ -1,0 +1,247 @@
+/**
+ * Shipping Rates and Policies Page Styles
+ * Custom styles for the shipping rates and policies page template
+ */
+
+/* Hero Section */
+.shipping-hero {
+    background: #f8f9fa;
+    background-image: 
+        linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
+    padding: 4rem 0 3rem;
+    margin-bottom: 0;
+    width: 100vw !important;
+    position: relative !important;
+    left: 50% !important;
+    right: 50% !important;
+    margin-left: -50vw !important;
+    margin-right: -50vw !important;
+}
+
+.shipping-container {
+    max-width: 1200px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 2rem !important;
+}
+
+.shipping-header {
+    text-align: center;
+}
+
+.shipping-title {
+    margin: 0 0 1rem 0 !important;
+    margin-top: 0 !important;
+    font-size: 3rem;
+    font-weight: 500;
+    color: #111827;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.shipping-subtitle {
+    font-size: 1rem;
+    color: #6b7280;
+    margin: 0;
+    font-weight: 400;
+}
+
+/* Content Section */
+.shipping-content {
+    padding: 3rem 0 4rem;
+    background: #ffffff;
+}
+
+.shipping-section {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.shipping-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.shipping-section-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 1.5rem 0;
+    margin-top: 0 !important;
+    line-height: 1.3;
+}
+
+.shipping-section-content {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: #374151;
+}
+
+.shipping-section-content p {
+    margin: 0 0 1.25rem 0;
+}
+
+.shipping-section-content p:last-child {
+    margin-bottom: 0;
+}
+
+.shipping-subsection-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 2rem 0 1rem 0;
+    margin-top: 0 !important;
+    line-height: 1.4;
+}
+
+.shipping-subsection-title:first-child {
+    margin-top: 0;
+}
+
+/* Lists */
+.shipping-list {
+    margin: 1rem 0 1.5rem 0;
+    padding-left: 1.5rem;
+    list-style-type: disc;
+}
+
+.shipping-list li {
+    margin-bottom: 0.75rem;
+    line-height: 1.75;
+    color: #374151;
+}
+
+.shipping-list li:last-child {
+    margin-bottom: 0;
+}
+
+.shipping-list li strong {
+    color: #111827;
+    font-weight: 600;
+}
+
+/* Links */
+.shipping-link {
+    color: #2563eb;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+
+.shipping-link:hover {
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+.shipping-link:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* Site Content */
+.site-content {
+    padding: 0 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .shipping-hero {
+        padding: 3rem 0 2rem;
+    }
+
+    .shipping-title {
+        font-size: 2rem;
+    }
+
+    .shipping-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .shipping-container {
+        padding: 0 1.5rem !important;
+    }
+
+    .shipping-content {
+        padding: 2rem 0 3rem;
+    }
+
+    .shipping-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .shipping-section-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .shipping-subsection-title {
+        font-size: 1.125rem;
+        margin: 1.5rem 0 0.75rem 0;
+    }
+
+    .shipping-section-content {
+        font-size: 0.95rem;
+    }
+
+    .shipping-list {
+        margin: 0.75rem 0 1.25rem 0;
+        padding-left: 1.25rem;
+    }
+
+    .shipping-list li {
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .shipping-hero {
+        padding: 2rem 0 1.5rem;
+    }
+
+    .shipping-title {
+        font-size: 1.75rem;
+    }
+
+    .shipping-container {
+        padding: 0 1rem !important;
+    }
+
+    .shipping-content {
+        padding: 1.5rem 0 2rem;
+    }
+
+    .shipping-section-title {
+        font-size: 1.25rem;
+    }
+
+    .shipping-subsection-title {
+        font-size: 1rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .shipping-hero {
+        background: #ffffff;
+        padding: 2rem 0 1rem;
+    }
+
+    .shipping-content {
+        padding: 1rem 0;
+    }
+
+    .shipping-section {
+        page-break-inside: avoid;
+        margin-bottom: 1.5rem;
+    }
+
+    .shipping-link {
+        color: #000000;
+        text-decoration: underline;
+    }
+}
+

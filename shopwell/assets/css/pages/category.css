@@ -149,7 +149,7 @@ h1.page-header__title {
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    padding: 0 !important;
+    padding: 0 0 36px 0 !important;
 }
 
 .blog-post-card {
@@ -411,7 +411,7 @@ h1.page-header__title {
 
 .sidebar-recent-posts ul {
     list-style: none;
-    padding: 0;
+    padding: 0 0 1.5em 0em;
     margin: 0;
 }
 
@@ -502,6 +502,10 @@ h1.page-header__title {
     background: transparent;
     color: #6b7280;
     cursor: default;
+}
+
+.site-content{
+    padding-top: 0px !important;
 }
 
 /* Mobile Responsive */

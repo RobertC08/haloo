@@ -2541,22 +2541,83 @@
 	}
 
 	shopwell.historyBack = function () {
-        var $history= shopwell.$body.find('.shopwell-button--history');
-		if ( ! $history.length) {
-			return;
-		}
-
-        shopwell.$body.on('click', '.shopwell-button--history', function (e) {
-            if (document.referrer != '') {
-                e.preventDefault();
-
-                window.history.go(-1);
-                $(window).on('popstate', function (e) {
-                    window.location.reload(true);
-                });
+        // Check if we're in a sandboxed frame or scripts are blocked
+        try {
+            // Test if we can access history API
+            if (typeof window.history === 'undefined' || typeof window.history.back === 'undefined') {
+                // Scripts are blocked, let the default link behavior work
+                return;
             }
-
+        } catch (e) {
+            // If we can't access history, scripts are likely blocked
+            // The button will work with its href fallback
+            return;
+        }
+        
+        // Use event delegation to handle clicks on history buttons
+        // This works even if buttons are added dynamically
+        shopwell.$body.on('click', '.shopwell-button--history', function (e) {
+            try {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var $button = $(this);
+                var homeUrl = $button.attr('href') || window.location.origin;
+                
+                // Check if we can go back in history
+                // Use multiple checks to ensure we can navigate back
+                var canGoBack = false;
+                
+                // Check 1: History length
+                if (window.history && window.history.length > 1) {
+                    canGoBack = true;
+                }
+                
+                // Check 2: Document referrer exists and is different from current URL
+                if (document.referrer && document.referrer !== window.location.href) {
+                    canGoBack = true;
+                }
+                
+                // Check 3: Try to detect if we came from another page
+                // (Some browsers may not set referrer due to privacy settings)
+                try {
+                    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('shopwell_has_history') === 'true') {
+                        canGoBack = true;
+                    }
+                } catch (storageError) {
+                    // SessionStorage might be blocked, continue without it
+                }
+                
+                if (canGoBack) {
+                    // Mark that we have history for next time
+                    try {
+                        if (typeof sessionStorage !== 'undefined') {
+                            sessionStorage.setItem('shopwell_has_history', 'true');
+                        }
+                    } catch (storageError) {
+                        // SessionStorage might be blocked, continue anyway
+                    }
+                    window.history.back();
+                } else {
+                    // If no history, navigate to home URL
+                    window.location.href = homeUrl;
+                }
+            } catch (error) {
+                // If JavaScript fails, allow default link behavior
+                // Don't prevent default, let the href work
+                console.warn('History navigation failed, using default link behavior:', error);
+                return true; // Allow default behavior
+            }
         });
+        
+        // Mark that we have history when page loads (for next navigation)
+        try {
+            if (typeof sessionStorage !== 'undefined' && (document.referrer || (window.history && window.history.length > 1))) {
+                sessionStorage.setItem('shopwell_has_history', 'true');
+            }
+        } catch (storageError) {
+            // SessionStorage might be blocked, that's okay
+        }
     };
 
 	 /**

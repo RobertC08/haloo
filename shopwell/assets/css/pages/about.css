@@ -34,7 +34,12 @@
     text-align: center;
 }
 
+.site-content {
+    padding-top: 0px !important;
+}
+
 .about-title {
+    margin: 0px 0px 1.5rem 0px !important;
     font-size: 3rem;
     font-weight: 500;
     color: #111827;
@@ -43,7 +48,7 @@
     letter-spacing: -0.02em;
     position: relative;
     display: inline-block;
-    padding-bottom: 15px;
+    padding-bottom: 12px;
     z-index: 0;
 }
 
