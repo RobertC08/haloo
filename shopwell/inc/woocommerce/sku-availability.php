@@ -63,7 +63,13 @@ class Sku_Availability {
 	 * @return void
 	 */
 	public function enqueue_checkout_scripts() {
+		// Only enqueue on checkout page, NOT on order received/thankyou page
 		if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+			return;
+		}
+		
+		// Don't enqueue on order received page
+		if ( function_exists( 'is_order_received_page' ) && is_order_received_page() ) {
 			return;
 		}
 
@@ -105,6 +111,32 @@ class Sku_Availability {
 				'cartSkus'          => $cart_skus,
 			)
 		);
+	}
+
+	/**
+	 * Write log to shopwell-dropshipping-logs.txt file
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $message Log message.
+	 * @param array  $context Additional context data.
+	 * @return void
+	 */
+	private function write_log( $message, $context = array() ) {
+		$upload_dir = wp_upload_dir();
+		$log_file   = trailingslashit( $upload_dir['basedir'] ) . 'shopwell-dropshipping-logs.txt';
+
+		$timestamp = current_time( 'Y-m-d H:i:s' );
+		$log_entry = sprintf( '[%s] %s', $timestamp, $message );
+
+		if ( ! empty( $context ) ) {
+			$log_entry .= ' | ' . wp_json_encode( $context, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		}
+
+		$log_entry .= PHP_EOL;
+
+		// Append to log file
+		@file_put_contents( $log_file, $log_entry, FILE_APPEND | LOCK_EX );
 	}
 
 	/**
@@ -155,6 +187,18 @@ class Sku_Availability {
 			$headers[ $header_type ] = $api_key;
 		}
 
+		// Log request details
+		$this->write_log(
+			'SKU Availability Check - Request',
+			array(
+				'sku'            => $sku,
+				'method'         => 'GET',
+				'url'            => $api_url,
+				'headers'        => $headers,
+				'api_base_url'   => $api_base_url,
+			)
+		);
+
 		// Make API request.
 		$response = wp_remote_get(
 			$api_url,
@@ -168,10 +212,22 @@ class Sku_Availability {
 
 		// Check for errors.
 		if ( is_wp_error( $response ) ) {
+			$error_message = $response->get_error_message();
+			
+			// Log error
+			$this->write_log(
+				'SKU Availability Check - WP Error',
+				array(
+					'sku'    => $sku,
+					'url'    => $api_url,
+					'error'  => $error_message,
+				)
+			);
+
 			wp_send_json_error(
 				array(
 					'message' => esc_html__( 'Eroare la verificarea disponibilității produsului.', 'shopwell' ),
-					'error'   => $response->get_error_message(),
+					'error'   => $error_message,
 				)
 			);
 			return;
@@ -179,6 +235,17 @@ class Sku_Availability {
 
 		$response_code = wp_remote_retrieve_response_code( $response );
 		$response_body = wp_remote_retrieve_body( $response );
+
+		// Log response details
+		$this->write_log(
+			'SKU Availability Check - Response',
+			array(
+				'sku'           => $sku,
+				'response_code' => $response_code,
+				'response_body' => $response_body,
+				'url'           => $api_url,
+			)
+		);
 
 		// Debug info for console logging.
 		$debug_info = array(
@@ -210,6 +277,14 @@ class Sku_Availability {
 				case 503:
 					$error_message = esc_html__( 'Eroare server API. Te rugăm să încerci mai târziu.', 'shopwell' );
 					break;
+			}
+
+			// Add API response code and body to the error message for debugging
+			$error_message .= ' [HTTP ' . $response_code . ']';
+			if ( ! empty( $response_body ) ) {
+				// Truncate response body if too long (max 200 chars)
+				$body_preview = strlen( $response_body ) > 200 ? substr( $response_body, 0, 200 ) . '...' : $response_body;
+				$error_message .= ' Response: ' . esc_html( $body_preview );
 			}
 
 			wp_send_json_error(

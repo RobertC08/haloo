@@ -177,30 +177,36 @@
                             price: availability.price
                         });
 
+                        // Validate quantity response
+                        const availableQty = parseInt(availability.quantity) || 0;
+                        const requestedQty = parseInt(item.quantity) || 1;
+                        
                         // Check if quantity is sufficient
-                        if (availability.quantity < item.quantity) {
+                        if (availableQty === 0) {
                             errors.push({
                                 sku: item.sku,
                                 productName: item.productName,
-                                requested: item.quantity,
-                                available: availability.quantity,
-                                type: 'insufficient'
-                            });
-                        } else if (availability.quantity === 0) {
-                            errors.push({
-                                sku: item.sku,
-                                productName: item.productName,
-                                requested: item.quantity,
+                                requested: requestedQty,
                                 available: 0,
                                 type: 'unavailable'
                             });
+                        } else if (availableQty < requestedQty) {
+                            errors.push({
+                                sku: item.sku,
+                                productName: item.productName,
+                                requested: requestedQty,
+                                available: availableQty,
+                                type: 'insufficient'
+                            });
                         }
                     } catch (error) {
-                        // Ignore configuration errors - allow checkout to proceed
+                        // Ignore configuration errors and generic "not found" errors - allow checkout to proceed
                         const errorMessage = (error.message || error.error || JSON.stringify(error) || '').toString();
                         if (errorMessage.includes('Market API configuration missing') || 
-                            errorMessage.includes('configuration missing')) {
-                            console.warn('Market API not configured, skipping availability check for SKU:', item.sku);
+                            errorMessage.includes('configuration missing') ||
+                            errorMessage.includes('Produsul nu a fost găsit în sistem') ||
+                            errorMessage.includes('nu a fost găsit')) {
+                            console.warn('Market API error ignored, skipping availability check for SKU:', item.sku);
                             // Don't add to errors - allow checkout to proceed
                             // Skip this item and continue with next
                         } else {
@@ -230,11 +236,13 @@
          * Display WooCommerce error notices
          */
         function displayAvailabilityErrors(errors) {
-            // Filter out configuration errors as a safety measure
+            // Filter out configuration errors and generic "not found" errors as a safety measure
             errors = errors.filter(function(error) {
                 const errorMessage = error.error || error.message || '';
                 if (errorMessage.includes('Market API configuration missing') || 
-                    errorMessage.includes('configuration missing')) {
+                    errorMessage.includes('configuration missing') ||
+                    errorMessage.includes('Produsul nu a fost găsit în sistem') ||
+                    errorMessage.includes('nu a fost găsit')) {
                     return false; // Don't display this error
                 }
                 return true;
@@ -293,7 +301,7 @@
         });
 
         // Intercept form submit
-        checkoutForm.on('submit', async function(e) {
+        const submitHandler = async function(e) {
             // If we're already checking, block submission
             if (isCheckingAvailability || checkoutSubmitBlocked) {
                 e.preventDefault();
@@ -320,8 +328,14 @@
                         // As a fallback, we'll allow submission if we can't get SKUs
                         console.warn('Could not retrieve cart SKUs, allowing submission');
                         isCheckingAvailability = false;
-                        checkoutForm.off('submit').submit();
-                        return true;
+                        checkoutForm.off('submit', submitHandler);
+                        const formElement = checkoutForm[0];
+                        if (formElement && typeof formElement.submit === 'function') {
+                            formElement.submit();
+                        } else {
+                            checkoutForm.submit();
+                        }
+                        return false;
                     }
                 }
 
@@ -331,8 +345,14 @@
                 if (cartSkus.length === 0) {
                     console.warn('No valid SKUs found, allowing submission');
                     isCheckingAvailability = false;
-                    checkoutForm.off('submit').submit();
-                    return true;
+                    checkoutForm.off('submit', arguments.callee);
+                    const formElement = checkoutForm[0];
+                    if (formElement && typeof formElement.submit === 'function') {
+                        formElement.submit();
+                    } else {
+                        checkoutForm.submit();
+                    }
+                    return false;
                 }
 
                 // Check all SKUs
@@ -373,8 +393,18 @@
                     }
                 });
                 
-                checkoutForm.off('submit').submit();
-                return true;
+                // Allow normal form submission by removing our handler temporarily
+                // and triggering the native submit
+                checkoutForm.off('submit', arguments.callee);
+                
+                // Use native form submission to ensure WooCommerce processes it correctly
+                const formElement = checkoutForm[0];
+                if (formElement && typeof formElement.submit === 'function') {
+                    formElement.submit();
+                } else {
+                    checkoutForm.submit();
+                }
+                return false;
 
             } catch (error) {
                 console.error('Error checking SKU availability:', error);
@@ -386,10 +416,18 @@
                 // displayAvailabilityErrors([{ type: 'error', error: 'Eroare la verificare disponibilitate. Te rugăm să încerci din nou.' }]);
                 // return false;
                 
-                checkoutForm.off('submit').submit();
-                return true;
+                checkoutForm.off('submit', arguments.callee);
+                const formElement = checkoutForm[0];
+                if (formElement && typeof formElement.submit === 'function') {
+                    formElement.submit();
+                } else {
+                    checkoutForm.submit();
+                }
+                return false;
             }
-        });
+        };
+        
+        checkoutForm.on('submit', submitHandler);
     });
 
 })(jQuery);
