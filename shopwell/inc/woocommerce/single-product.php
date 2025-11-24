@@ -1004,6 +1004,12 @@ class Single_Product {
 			return;
 		}
 
+		// Don't show stock message for out of stock products here
+		// They will be displayed by outofstock() function to avoid duplication
+		if ( $_product->get_stock_status() === 'outofstock' ) {
+			return;
+		}
+
 		echo wc_get_stock_html( $product );
 	}
 
@@ -1015,7 +1021,7 @@ class Single_Product {
 	 * @return void
 	 */
 	public function outofstock() {
-		global $wp_query;
+		global $product, $wp_query;
 		$_product = wc_get_product( $wp_query->post->ID );
 
 		if ( $_product->is_type( 'grouped' ) ) {
@@ -1026,7 +1032,8 @@ class Single_Product {
 			return;
 		}
 
-		$this->stock();
+		// Display stock message directly to avoid duplication
+		echo wc_get_stock_html( $product );
 	}
 
 	/**

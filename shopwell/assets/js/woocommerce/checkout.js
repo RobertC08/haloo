@@ -105,7 +105,19 @@
                         sku: sku
                     },
                     success: function(response) {
-                        // Log to console for debugging
+                        // Check if error is about missing configuration first (before logging)
+                        if (!response.success) {
+                            const errorMessage = response.data?.message || '';
+                            if (errorMessage.includes('Market API configuration missing') || 
+                                errorMessage.includes('configuration missing')) {
+                                // Silently skip - don't log or show error
+                                // Resolve with a default response to allow checkout
+                                resolve({ quantity: 999, price: 0 });
+                                return;
+                            }
+                        }
+                        
+                        // Log to console for debugging (only for non-configuration errors)
                         console.log('=== Market API Check SKU Availability ===');
                         console.log('SKU:', sku);
                         console.log('Full Response:', response);
@@ -184,12 +196,22 @@
                             });
                         }
                     } catch (error) {
-                        errors.push({
-                            sku: item.sku,
-                            productName: item.productName,
-                            error: error.message || 'Error checking availability',
-                            type: 'error'
-                        });
+                        // Ignore configuration errors - allow checkout to proceed
+                        const errorMessage = (error.message || error.error || JSON.stringify(error) || '').toString();
+                        if (errorMessage.includes('Market API configuration missing') || 
+                            errorMessage.includes('configuration missing')) {
+                            console.warn('Market API not configured, skipping availability check for SKU:', item.sku);
+                            // Don't add to errors - allow checkout to proceed
+                            // Skip this item and continue with next
+                        } else {
+                            // Only add non-configuration errors
+                            errors.push({
+                                sku: item.sku,
+                                productName: item.productName,
+                                error: error.message || error.error || 'Error checking availability',
+                                type: 'error'
+                            });
+                        }
                     }
                 }
 
@@ -208,6 +230,21 @@
          * Display WooCommerce error notices
          */
         function displayAvailabilityErrors(errors) {
+            // Filter out configuration errors as a safety measure
+            errors = errors.filter(function(error) {
+                const errorMessage = error.error || error.message || '';
+                if (errorMessage.includes('Market API configuration missing') || 
+                    errorMessage.includes('configuration missing')) {
+                    return false; // Don't display this error
+                }
+                return true;
+            });
+
+            // If no errors left after filtering, don't display anything
+            if (errors.length === 0) {
+                return;
+            }
+
             // Remove existing notices
             $('.woocommerce-error, .woocommerce-info').remove();
 
@@ -318,6 +355,24 @@
 
                 // All checks passed, allow submission
                 checkoutSubmitBlocked = false;
+                
+                // Remove any configuration error messages before submission (safety measure)
+                $('.woocommerce-error li').each(function() {
+                    const $li = $(this);
+                    const text = $li.text();
+                    if (text.includes('Market API configuration missing') || 
+                        text.includes('configuration missing')) {
+                        $li.remove();
+                    }
+                });
+                
+                // Remove empty error lists
+                $('.woocommerce-error').each(function() {
+                    if ($(this).find('li').length === 0) {
+                        $(this).remove();
+                    }
+                });
+                
                 checkoutForm.off('submit').submit();
                 return true;
 

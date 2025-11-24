@@ -150,8 +150,9 @@ class Sku_Availability {
 
 		// Add API key to headers if provided.
 		if ( ! empty( $api_key ) ) {
-			// Market API uses X-ApiKey header (case-sensitive, exact match with curl example)
-			$headers['X-ApiKey'] = $api_key;
+			// Get header type from constant or use default
+			$header_type = defined( 'MARKET_API_KEY_HEADER_TYPE' ) ? MARKET_API_KEY_HEADER_TYPE : 'X-ApiKey';
+			$headers[ $header_type ] = $api_key;
 		}
 
 		// Make API request.
