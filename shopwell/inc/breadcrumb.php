@@ -228,7 +228,13 @@ class Breadcrumb {
 
 					foreach ( $terms as $term_id ) {
 						$term    = get_term( $term_id, $taxonomy );
-						$items[] = sprintf( $item_tpl, get_term_link( $term, $taxonomy ), $term->name );
+						// Use shop page URL with product_cat parameter instead of term link
+						if ( function_exists( 'wc_get_page_permalink' ) && $taxonomy === 'product_cat' ) {
+							$term_url = wc_get_page_permalink( 'shop' ) . '?product_cat=' . $term->slug;
+						} else {
+							$term_url = get_term_link( $term, $taxonomy );
+						}
+						$items[] = sprintf( $item_tpl, $term_url, $term->name );
 					}
 				}
 			}
@@ -269,7 +275,13 @@ class Breadcrumb {
 			if ( $terms ) {
 				foreach ( $terms as $term_id ) {
 					$term    = get_term( $term_id, $current_term->taxonomy );
-					$items[] = sprintf( $item_tpl, get_term_link( $term, $current_term->taxonomy ), $term->name );
+					// Use shop page URL with product_cat parameter for product categories
+					if ( function_exists( 'wc_get_page_permalink' ) && $current_term->taxonomy === 'product_cat' ) {
+						$term_url = wc_get_page_permalink( 'shop' ) . '?product_cat=' . $term->slug;
+					} else {
+						$term_url = get_term_link( $term, $current_term->taxonomy );
+					}
+					$items[] = sprintf( $item_tpl, $term_url, $term->name );
 				}
 			}
 

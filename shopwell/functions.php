@@ -2509,6 +2509,439 @@ function shopwell_add_model_to_breadcrumbs($crumbs, $breadcrumb) {
 add_filter('woocommerce_breadcrumb_items', 'shopwell_add_model_to_breadcrumbs', 10, 2);
 
 /**
+ * Convert product category breadcrumb links to use query parameter format
+ */
+function shopwell_convert_category_breadcrumb_links($crumbs, $breadcrumb) {
+    error_log('🔍 [BREADCRUMB FILTER] shopwell_convert_category_breadcrumb_links called');
+    error_log('🔍 [BREADCRUMB FILTER] Crumbs count: ' . (is_array($crumbs) ? count($crumbs) : 'not array'));
+    
+    if (!is_array($crumbs)) {
+        error_log('❌ [BREADCRUMB FILTER] Crumbs is not an array');
+        return $crumbs;
+    }
+    
+    // Get shop page URL
+    $shop_url = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : '';
+    if (empty($shop_url)) {
+        error_log('❌ [BREADCRUMB FILTER] Shop URL is empty');
+        return $crumbs;
+    }
+    error_log('✅ [BREADCRUMB FILTER] Shop URL: ' . $shop_url);
+    
+    // Get all product categories with their slugs
+    $all_categories = get_terms(array(
+        'taxonomy' => 'product_cat',
+        'hide_empty' => false
+    ));
+    
+    if (is_wp_error($all_categories) || empty($all_categories)) {
+        error_log('❌ [BREADCRUMB FILTER] No categories found or error: ' . (is_wp_error($all_categories) ? $all_categories->get_error_message() : 'empty'));
+        return $crumbs;
+    }
+    error_log('✅ [BREADCRUMB FILTER] Found ' . count($all_categories) . ' categories');
+    
+    // Create a map of slugs to term objects for quick lookup
+    $category_map = array();
+    foreach ($all_categories as $cat) {
+        $category_map[$cat->slug] = $cat;
+    }
+    
+    // Process each breadcrumb item
+    foreach ($crumbs as $key => $crumb) {
+        if (!is_array($crumb) || count($crumb) < 2) {
+            continue;
+        }
+        
+        $url = isset($crumb[1]) ? $crumb[1] : '';
+        if (empty($url)) {
+            continue;
+        }
+        
+        error_log('🔍 [BREADCRUMB FILTER] Processing crumb #' . $key . ': ' . $url);
+        
+        // Skip if already using query parameter format
+        if (strpos($url, '?product_cat=') !== false) {
+            error_log('⏭️ [BREADCRUMB FILTER] Already using query param format, skipping');
+            continue;
+        }
+        
+        // Parse URL
+        $url_parts = parse_url($url);
+        if (!isset($url_parts['path']) || empty($url_parts['path'])) {
+            error_log('⏭️ [BREADCRUMB FILTER] No path in URL, skipping');
+            continue;
+        }
+        
+        $path = trim($url_parts['path'], '/');
+        $path_parts = explode('/', $path);
+        $possible_slug = end($path_parts);
+        
+        error_log('🔍 [BREADCRUMB FILTER] Path: ' . $path . ', Possible slug: ' . $possible_slug);
+        
+        // Check if this slug matches any product category
+        if (isset($category_map[$possible_slug])) {
+            $category = $category_map[$possible_slug];
+            error_log('✅ [BREADCRUMB FILTER] Found matching category: ' . $category->slug);
+            
+            // More aggressive check: if URL contains category-related terms or slug matches
+            $url_lower = strtolower($url);
+            $has_category_indicator = (
+                strpos($url_lower, 'categorie') !== false ||
+                strpos($url_lower, 'category') !== false ||
+                strpos($url_lower, 'product-cat') !== false
+            );
+            
+            error_log('🔍 [BREADCRUMB FILTER] Has category indicator: ' . ($has_category_indicator ? 'yes' : 'no') . ', Path parts: ' . count($path_parts));
+            
+            // If we have a category match and URL suggests it's a category page
+            if ($has_category_indicator || count($path_parts) >= 2) {
+                // Build new URL with query parameter
+                $new_url = $shop_url . '?product_cat=' . $category->slug;
+                
+                // Preserve any existing query parameters from current URL
+                if (isset($url_parts['query']) && !empty($url_parts['query'])) {
+                    $new_url .= '&' . $url_parts['query'];
+                }
+                
+                error_log('🔄 [BREADCRUMB FILTER] Converting URL from: ' . $url . ' to: ' . $new_url);
+                $crumbs[$key][1] = esc_url($new_url);
+            } else {
+                error_log('⏭️ [BREADCRUMB FILTER] Category match but conditions not met, skipping');
+            }
+        } else {
+            error_log('⏭️ [BREADCRUMB FILTER] Slug ' . $possible_slug . ' not found in category map');
+        }
+    }
+    
+    error_log('✅ [BREADCRUMB FILTER] Returning ' . count($crumbs) . ' crumbs');
+    return $crumbs;
+}
+add_filter('woocommerce_breadcrumb_items', 'shopwell_convert_category_breadcrumb_links', 5, 2);
+
+/**
+ * Also modify breadcrumb HTML output directly using output buffer
+ * This catches cases where the filter might not work
+ */
+function shopwell_start_breadcrumb_category_buffer() {
+    if (!function_exists('is_woocommerce') || !is_woocommerce()) {
+        return;
+    }
+    
+    ob_start('shopwell_modify_breadcrumb_category_output');
+}
+add_action('woocommerce_before_main_content', 'shopwell_start_breadcrumb_category_buffer', 15);
+
+function shopwell_stop_breadcrumb_category_buffer() {
+    if (!function_exists('is_woocommerce') || !is_woocommerce()) {
+        return;
+    }
+    
+    if (ob_get_level() > 0) {
+        ob_end_flush();
+    }
+}
+add_action('woocommerce_before_main_content', 'shopwell_stop_breadcrumb_category_buffer', 25);
+
+
+/**
+ * Add inline JavaScript to intercept breadcrumb category links
+ */
+function shopwell_add_breadcrumb_category_js() {
+    if (!function_exists('is_woocommerce') || !is_woocommerce()) {
+        return;
+    }
+    
+    $shop_url = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : '';
+    if (empty($shop_url)) {
+        return;
+    }
+    
+    ?>
+    <script type="text/javascript">
+    (function($) {
+        console.log('🔍 [BREADCRUMB JS] Script loaded');
+        
+        var shopUrl = '<?php echo esc_js($shop_url); ?>';
+        console.log('✅ [BREADCRUMB JS] Shop URL: ' + shopUrl);
+        
+        function convertCategoryUrl(href) {
+            if (!href) return null;
+            
+            // Check if this is a category URL
+            var isCategoryUrl = (
+                href.indexOf('/categorie-produs/') !== -1 || 
+                href.indexOf('/product-category/') !== -1 ||
+                href.indexOf('/category/') !== -1
+            );
+            
+            if (!isCategoryUrl) return null;
+            
+            // Extract category slug from URL
+            var match = href.match(/\/(?:categorie-produs|product-category|category)\/([^\/\?]+)/);
+            
+            if (match && match[1]) {
+                var categorySlug = match[1];
+                var newUrl = shopUrl + '?product_cat=' + categorySlug;
+                
+                // Preserve any existing query parameters
+                var urlParts = href.split('?');
+                if (urlParts.length > 1) {
+                    newUrl += '&' + urlParts[1];
+                }
+                
+                return newUrl;
+            }
+            
+            return null;
+        }
+        
+        function processBreadcrumbLinks() {
+            console.log('🔍 [BREADCRUMB JS] Processing breadcrumb links');
+            
+            // Find all breadcrumb containers
+            var breadcrumbContainers = $('.woocommerce-breadcrumb, .site-breadcrumb');
+            console.log('🔍 [BREADCRUMB JS] Found ' + breadcrumbContainers.length + ' breadcrumb containers');
+            
+            // Find ALL links inside breadcrumbs (including nested ones)
+            var allLinks = breadcrumbContainers.find('a');
+            console.log('🔍 [BREADCRUMB JS] Found ' + allLinks.length + ' links in breadcrumbs');
+            
+            allLinks.each(function(index) {
+                var $link = $(this);
+                var href = $link.attr('href');
+                
+                if (!href) return;
+                
+                console.log('🔍 [BREADCRUMB JS] Link #' + index + ': ' + href);
+                
+                var newUrl = convertCategoryUrl(href);
+                if (newUrl) {
+                    console.log('🔄 [BREADCRUMB JS] Converting: ' + href + ' -> ' + newUrl);
+                    $link.attr('href', newUrl);
+                }
+            });
+        }
+        
+        // Use event delegation on document to catch ALL clicks, even on dynamically added links
+        $(document).on('click', 'a', function(e) {
+            var $link = $(this);
+            var href = $link.attr('href');
+            
+            if (!href) return;
+            
+            // Check if this is a category URL
+            var isCategoryUrl = (
+                href.indexOf('/categorie-produs/') !== -1 || 
+                href.indexOf('/product-category/') !== -1 ||
+                href.indexOf('/category/') !== -1
+            );
+            
+            if (!isCategoryUrl) return;
+            
+            // Check if link is in breadcrumbs, meta-cat, or product meta
+            var isInBreadcrumb = $link.closest('.woocommerce-breadcrumb, .site-breadcrumb').length > 0;
+            var isInMetaCat = $link.closest('.meta-cat, .product_meta, .posted_in').length > 0;
+            
+            if (isInBreadcrumb || isInMetaCat) {
+                console.log('🖱️ [BREADCRUMB JS] Clicked on category link: ' + href);
+                console.log('🔍 [BREADCRUMB JS] In breadcrumb: ' + isInBreadcrumb + ', In meta-cat: ' + isInMetaCat);
+                
+                var newUrl = convertCategoryUrl(href);
+                if (newUrl) {
+                    console.log('🔄 [BREADCRUMB JS] Intercepting and converting to: ' + newUrl);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.location.href = newUrl;
+                    return false;
+                }
+            }
+        });
+        
+        // Process links on document ready
+        $(document).ready(function() {
+            console.log('🔍 [BREADCRUMB JS] Document ready');
+            processBreadcrumbLinks();
+        });
+        
+        // Also process after a delay in case breadcrumbs load dynamically
+        setTimeout(function() {
+            console.log('🔍 [BREADCRUMB JS] Delayed processing');
+            processBreadcrumbLinks();
+        }, 500);
+        
+        // Process on any DOM changes (MutationObserver)
+        if (typeof MutationObserver !== 'undefined') {
+            var observer = new MutationObserver(function(mutations) {
+                var shouldProcess = false;
+                mutations.forEach(function(mutation) {
+                    if (mutation.addedNodes.length > 0) {
+                        for (var i = 0; i < mutation.addedNodes.length; i++) {
+                            var node = mutation.addedNodes[i];
+                            if (node.nodeType === 1) { // Element node
+                                if ($(node).is('.woocommerce-breadcrumb, .site-breadcrumb') || 
+                                    $(node).find('.woocommerce-breadcrumb, .site-breadcrumb').length > 0) {
+                                    shouldProcess = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                if (shouldProcess) {
+                    console.log('🔍 [BREADCRUMB JS] Breadcrumb DOM changed, reprocessing');
+                    setTimeout(processBreadcrumbLinks, 100);
+                }
+            });
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        }
+    })(jQuery);
+    </script>
+    <?php
+}
+add_action('wp_footer', 'shopwell_add_breadcrumb_category_js', 999);
+
+/**
+ * Filter wc_get_product_category_list output to use query parameter format
+ */
+function shopwell_filter_product_category_list($categories) {
+    if (empty($categories) || !is_string($categories)) {
+        return $categories;
+    }
+    
+    // Get shop page URL
+    $shop_url = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : '';
+    if (empty($shop_url)) {
+        return $categories;
+    }
+    
+    // Replace category term links with query parameter format
+    $categories = preg_replace_callback(
+        '/href=["\']([^"\']*\/categorie-produs\/([^\/\?]+)[^"\']*)["\']/i',
+        function($matches) use ($shop_url) {
+            $category_slug = $matches[2];
+            return 'href="' . esc_url($shop_url . '?product_cat=' . $category_slug) . '"';
+        },
+        $categories
+    );
+    
+    // Also handle product-category and category patterns
+    $categories = preg_replace_callback(
+        '/href=["\']([^"\']*\/(?:product-category|category)\/([^\/\?]+)[^"\']*)["\']/i',
+        function($matches) use ($shop_url) {
+            $category_slug = $matches[2];
+            return 'href="' . esc_url($shop_url . '?product_cat=' . $category_slug) . '"';
+        },
+        $categories
+    );
+    
+    return $categories;
+}
+add_filter('woocommerce_product_category_list', 'shopwell_filter_product_category_list', 10, 1);
+
+function shopwell_modify_breadcrumb_category_output($output) {
+    error_log('🔍 [OUTPUT BUFFER] shopwell_modify_breadcrumb_category_output called');
+    error_log('🔍 [OUTPUT BUFFER] Output length: ' . strlen($output));
+    
+    if (!function_exists('is_woocommerce') || !is_woocommerce()) {
+        error_log('⏭️ [OUTPUT BUFFER] Not WooCommerce page, skipping');
+        return $output;
+    }
+    
+    // Get shop page URL
+    $shop_url = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : '';
+    if (empty($shop_url)) {
+        error_log('❌ [OUTPUT BUFFER] Shop URL is empty');
+        return $output;
+    }
+    error_log('✅ [OUTPUT BUFFER] Shop URL: ' . $shop_url);
+    
+    // Get all product categories
+    $all_categories = get_terms(array(
+        'taxonomy' => 'product_cat',
+        'hide_empty' => false
+    ));
+    
+    if (is_wp_error($all_categories) || empty($all_categories)) {
+        error_log('❌ [OUTPUT BUFFER] No categories found');
+        return $output;
+    }
+    error_log('✅ [OUTPUT BUFFER] Found ' . count($all_categories) . ' categories');
+    
+    // Check if output contains category URLs
+    $has_category_url = (
+        strpos($output, '/categorie-produs/') !== false ||
+        strpos($output, '/product-category/') !== false ||
+        strpos($output, '/category/') !== false
+    );
+    error_log('🔍 [OUTPUT BUFFER] Contains category URLs: ' . ($has_category_url ? 'yes' : 'no'));
+    
+    // Method 1: Replace by exact term links
+    foreach ($all_categories as $category) {
+        // Get the term link to find the URL pattern
+        $term_link = get_term_link($category, 'product_cat');
+        if (is_wp_error($term_link)) {
+            continue;
+        }
+        
+        error_log('🔍 [OUTPUT BUFFER] Checking term link: ' . $term_link);
+        
+        // Escape special regex characters in URL
+        $term_link_escaped = preg_quote($term_link, '/');
+        
+        // Replace category URLs with query parameter format
+        $pattern = '/href=["\']' . $term_link_escaped . '["\']/i';
+        $replacement = 'href="' . esc_url($shop_url . '?product_cat=' . $category->slug) . '"';
+        $before = $output;
+        $output = preg_replace($pattern, $replacement, $output);
+        if ($before !== $output) {
+            error_log('✅ [OUTPUT BUFFER] Replaced term link: ' . $term_link);
+        }
+        
+        // Also try without trailing slash
+        $term_link_no_slash = rtrim($term_link, '/');
+        $term_link_escaped_no_slash = preg_quote($term_link_no_slash, '/');
+        $pattern_no_slash = '/href=["\']' . $term_link_escaped_no_slash . '["\']/i';
+        $before = $output;
+        $output = preg_replace($pattern_no_slash, $replacement, $output);
+        if ($before !== $output) {
+            error_log('✅ [OUTPUT BUFFER] Replaced term link (no slash): ' . $term_link_no_slash);
+        }
+    }
+    
+    // Method 2: Generic pattern matching for /categorie-produs/ or /product-category/
+    // This catches any URL structure that matches the pattern
+    foreach ($all_categories as $category) {
+        $category_slug = $category->slug;
+        $category_slug_escaped = preg_quote($category_slug, '/');
+        
+        // Match URLs like /categorie-produs/slug/ or /product-category/slug/
+        $patterns = array(
+            '/href=["\']([^"\']*\/categorie-produs\/' . $category_slug_escaped . '\/?[^"\']*)["\']/i',
+            '/href=["\']([^"\']*\/product-category\/' . $category_slug_escaped . '\/?[^"\']*)["\']/i',
+            '/href=["\']([^"\']*\/category\/' . $category_slug_escaped . '\/?[^"\']*)["\']/i',
+        );
+        
+        $replacement = 'href="' . esc_url($shop_url . '?product_cat=' . $category->slug) . '"';
+        
+        foreach ($patterns as $pattern_index => $pattern) {
+            $before = $output;
+            $output = preg_replace($pattern, $replacement, $output);
+            if ($before !== $output) {
+                error_log('✅ [OUTPUT BUFFER] Replaced pattern #' . $pattern_index . ' for category: ' . $category->slug);
+            }
+        }
+    }
+    
+    error_log('✅ [OUTPUT BUFFER] Final output length: ' . strlen($output));
+    return $output;
+}
+
+/**
  * Alternative method: Modify breadcrumb output using output buffer
  */
 function shopwell_start_breadcrumb_buffer() {

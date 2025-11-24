@@ -881,10 +881,17 @@ class Single_Product {
 		$terms    = get_the_terms( $product->get_id(), $taxonomy );
 
 		if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+			// Use shop page URL with query parameter for product categories
+			if ( $taxonomy === 'product_cat' && function_exists( 'wc_get_page_permalink' ) ) {
+				$term_link = wc_get_page_permalink( 'shop' ) . '?product_cat=' . $terms[0]->slug;
+			} else {
+				$term_link = get_term_link( $terms[0], $taxonomy );
+			}
+			
 			printf(
 				'<div class="meta meta-cat">%s <a href="%s">%s</a></div>',
 				esc_html__( 'in', 'shopwell' ),
-				esc_url( get_term_link( $terms[0] ), $taxonomy ),
+				esc_url( $term_link ),
 				esc_html( $terms[0]->name )
 			);
 		}
