@@ -1588,7 +1588,6 @@
 
 			$style_tag = shopwell_get_style_tag( 'shopwell_help_center_search_bg' );
 			var style_css = shopwell_design_options_css( '.search-bar-hc', newval, 'background' );
-			//console.log(style_css)
 			$style_tag.html( style_css );
 		});
 	});

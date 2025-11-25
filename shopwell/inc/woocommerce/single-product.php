@@ -190,14 +190,36 @@ class Single_Product {
 		);
 
 
-		wp_enqueue_script( 'shopwell-countdown', get_template_directory_uri() . '/assets/js/plugins/countdown.js', array(), '1.0' );
-		wp_register_script( 'threesixty', get_template_directory_uri() . '/assets/js/plugins/threesixty.min.js', array(), '2.0.5', true );
-
-		wp_enqueue_style( 'magnific', get_template_directory_uri() . '/assets/css/magnific-popup.css', array(), '1.0' );
-		wp_enqueue_script( 'magnific', get_template_directory_uri() . '/assets/js/plugins/jquery.magnific-popup.js', array(), '1.0' );
-
+		// OPTIMIZATION: Load countdown only if needed (deferred)
+		wp_enqueue_script( 
+			'shopwell-countdown', 
+			get_template_directory_uri() . '/assets/js/plugins/countdown.js', 
+			array(), 
+			'1.0',
+			array( 'strategy' => 'defer' )
+		);
+		
+		// OPTIMIZATION: Register 360 script only if product has 360 view
 		if ( ! empty( $this->check_360() ) ) {
-			wp_enqueue_script( 'threesixty' );
+			wp_enqueue_script( 
+				'threesixty', 
+				get_template_directory_uri() . '/assets/js/plugins/threesixty.min.js', 
+				array(), 
+				'2.0.5', 
+				array( 'strategy' => 'defer' )
+			);
+		}
+
+		// OPTIMIZATION: Load magnific popup only if lightbox is enabled (deferred)
+		if ( Helper::get_option( 'product_image_lightbox' ) ) {
+			wp_enqueue_style( 'magnific', get_template_directory_uri() . '/assets/css/magnific-popup.css', array(), '1.0' );
+			wp_enqueue_script( 
+				'magnific', 
+				get_template_directory_uri() . '/assets/js/plugins/jquery.magnific-popup.js', 
+				array(), 
+				'1.0',
+				array( 'strategy' => 'defer' )
+			);
 		}
 	}
 

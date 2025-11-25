@@ -13,7 +13,6 @@
 	}
 
 	shopwell.init = function () {
-		console.log('Shopwell JavaScript initialized');
 		shopwell.$body   = $(document.body),
 		shopwell.$window = $(window),
 		shopwell.$header = $('#site-header');
@@ -1724,7 +1723,6 @@
 	 * Product instance search
 	 */
 	 shopwell.instanceSearch = function () {
-		console.log('Search functionality initialized');
 		if (shopwellData.header_ajax_search != '1') {
 			return;
 		}
@@ -1737,19 +1735,14 @@
 		var debounceTimeout = null;
 
 		$modal.on('keydown', '.header-search__field, .search-modal__field', function (e) {
-			console.log('Key pressed in search field:', e.which, e.keyCode);
 			// Handle Enter key for form submission
 			if (e.which === 13 || e.keyCode === 13) {
-				console.log('Enter key pressed in search field');
 				e.preventDefault();
 				e.stopPropagation();
 				var $search = $(this);
 				var $currentForm = $search.closest('.header-search__form, .search-modal__form');
 				if ($search.val().trim().length >= 2) {
-					console.log('Submitting search form with:', $search.val());
 					$currentForm.submit();
-				} else {
-					console.log('Search term too short:', $search.val());
 				}
 				return false;
 			}

@@ -31,7 +31,6 @@
         tmceInit.init_instance_callback = function (editor) {
           if (typeof settings === "object") {
             if (typeof settings.mod === "string" && settings.mod === "html") {
-              // console.log( settings.mod  );
               switchEditors.go(id, settings.mod);
             }
             // editor.theme.resizeTo('100%', 500);

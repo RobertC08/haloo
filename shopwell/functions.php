@@ -15,6 +15,72 @@ if (!defined('WP_MEMORY_LIMIT')) {
     define('WP_MEMORY_LIMIT', '512M');
 }
 
+/**
+ * Log messages to file in uploads folder
+ * Replaces console.log and error_log for better debugging
+ */
+function shopwell_log_to_file( $message, $data = null, $type = 'js' ) {
+    // Only log if WP_DEBUG is enabled
+    if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+        return;
+    }
+    
+    $upload_dir = wp_upload_dir();
+    $log_dir = $upload_dir['basedir'] . '/shopwell-logs';
+    
+    // Create log directory if it doesn't exist
+    if ( ! file_exists( $log_dir ) ) {
+        wp_mkdir_p( $log_dir );
+        // Add .htaccess to protect log files
+        $htaccess_content = "deny from all\n";
+        @file_put_contents( $log_dir . '/.htaccess', $htaccess_content );
+    }
+    
+    $log_file = $log_dir . '/' . $type . '-debug.log';
+    
+    // Format message with type prefix
+    $type_prefix = strtoupper( $type );
+    $log_message = '[' . date( 'Y-m-d H:i:s' ) . '] [' . $type_prefix . '] ' . $message;
+    
+    if ( $data !== null ) {
+        if ( is_array( $data ) || is_object( $data ) ) {
+            $log_message .= ' | Data: ' . json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+        } else {
+            $log_message .= ' | Data: ' . $data;
+        }
+    }
+    
+    $log_message .= PHP_EOL;
+    
+    // Write to file (append mode)
+    @file_put_contents( $log_file, $log_message, FILE_APPEND | LOCK_EX );
+    
+    // Rotate log file if it gets too large (max 5MB)
+    if ( file_exists( $log_file ) && filesize( $log_file ) > 5 * 1024 * 1024 ) {
+        $backup_file = $log_dir . '/' . $type . '-debug-' . date( 'Y-m-d-His' ) . '.log';
+        @rename( $log_file, $backup_file );
+    }
+}
+
+/**
+ * AJAX handler for JavaScript logging
+ */
+function shopwell_ajax_log_message() {
+    check_ajax_referer( 'shopwell_log_nonce', 'nonce' );
+    
+    $message = isset( $_POST['message'] ) ? sanitize_text_field( $_POST['message'] ) : '';
+    $data = isset( $_POST['data'] ) ? $_POST['data'] : null;
+    
+    if ( ! empty( $message ) ) {
+        shopwell_log_to_file( $message, $data );
+        wp_send_json_success();
+    } else {
+        wp_send_json_error( 'No message provided' );
+    }
+}
+add_action( 'wp_ajax_shopwell_log_message', 'shopwell_ajax_log_message' );
+add_action( 'wp_ajax_nopriv_shopwell_log_message', 'shopwell_ajax_log_message' );
+
 // Start session for general functionality
 if (!session_id()) {
     session_start();
@@ -123,10 +189,12 @@ function shopwell_get_filtered_price_range( $type = 'both' ) {
                    isset( $_GET['filter_pa_marca'] );
     
     // Create a new query to get products with current filters applied (excluding price filters)
+    // OPTIMIZATION: Use fields => 'ids' to reduce memory usage, then batch load prices
     $args = array(
         'post_type'      => 'product',
         'post_status'    => 'publish',
-        'posts_per_page' => -1,
+        'posts_per_page' => 500, // Limit to 500 products max instead of -1
+        'fields'         => 'ids', // Only get IDs to reduce memory
         'meta_query'     => array(
             array(
                 'key'     => '_price',
@@ -190,19 +258,51 @@ function shopwell_get_filtered_price_range( $type = 'both' ) {
     
     $prices = array();
     
-    foreach ( $query->posts as $product_post ) {
-        $product = wc_get_product( $product_post->ID );
-        
-        if ( $product && $product->is_purchasable() ) {
-            if ( $product->is_type( 'variable' ) ) {
+    // OPTIMIZATION: Use direct meta queries for simple products, batch load variations
+    $product_ids = $query->posts;
+    
+    // Get simple product prices directly from meta (faster than loading full product objects)
+    global $wpdb;
+    if ( ! empty( $product_ids ) ) {
+        $placeholders = implode( ',', array_fill( 0, count( $product_ids ), '%d' ) );
+        $simple_product_prices = $wpdb->get_col( $wpdb->prepare(
+            "SELECT meta_value FROM {$wpdb->postmeta} 
+            WHERE post_id IN ($placeholders)
+            AND meta_key = '_price'
+            AND CAST(meta_value AS DECIMAL(10,2)) > 0",
+            $product_ids
+        ) );
+    } else {
+        $simple_product_prices = array();
+    }
+    
+    if ( $simple_product_prices ) {
+        $prices = array_merge( $prices, array_map( 'floatval', $simple_product_prices ) );
+    }
+    
+    // For variable products, we need to check variations
+    // Get variable product IDs
+    if ( ! empty( $product_ids ) ) {
+        $placeholders = implode( ',', array_fill( 0, count( $product_ids ), '%d' ) );
+        $variable_product_ids = $wpdb->get_col( $wpdb->prepare(
+            "SELECT post_id FROM {$wpdb->postmeta}
+            WHERE post_id IN ($placeholders)
+            AND meta_key = '_product_type'
+            AND meta_value = 'variable'",
+            $product_ids
+        ) );
+    } else {
+        $variable_product_ids = array();
+    }
+    
+    // Get variation prices for variable products (batch query)
+    if ( ! empty( $variable_product_ids ) ) {
+        foreach ( $variable_product_ids as $product_id ) {
+            $product = wc_get_product( $product_id );
+            if ( $product && $product->is_type( 'variable' ) ) {
                 $variation_prices = $product->get_variation_prices();
                 if ( ! empty( $variation_prices['price'] ) ) {
                     $prices = array_merge( $prices, array_values( $variation_prices['price'] ) );
-                }
-            } else {
-                $price = $product->get_price();
-                if ( $price > 0 ) {
-                    $prices[] = $price;
                 }
             }
         }
@@ -1093,6 +1193,29 @@ function shopwell_auto_select_variations() {
     // when using pushState and navigating back in history
     window.onunload = function(){};
     
+    // Logging function that writes to file instead of console
+    // Make it globally available
+    window.shopwellLog = function(message, data) {
+        // Only log if WP_DEBUG is enabled or debug_logging is set in shopwellData
+        var shouldLog = false;
+        if (typeof shopwellData !== 'undefined' && shopwellData.debug_logging) {
+            shouldLog = true;
+        } else if (typeof wp !== 'undefined' && wp.debug && wp.debug === true) {
+            shouldLog = true;
+        }
+        
+        if (shouldLog && typeof ajaxurl !== 'undefined') {
+            jQuery.post(ajaxurl, {
+                action: 'shopwell_log_message',
+                nonce: '<?php echo wp_create_nonce( 'shopwell_log_nonce' ); ?>',
+                message: message,
+                data: data ? JSON.stringify(data) : null
+            }).fail(function() {
+                // Silently fail - don't break functionality if logging fails
+            });
+        }
+    };
+    
     jQuery(document).ready(function($) {
         // Helper function to convert simplified URL parameter to attribute name
         function urlParamToAttributeName(paramName) {
@@ -1161,30 +1284,29 @@ function shopwell_auto_select_variations() {
                         }
                     });
                 } catch(e) {
-                    console.log('Could not parse referrer');
+                    shopwellLog('Could not parse referrer');
                 }
             }
             
-            console.log('Filter attributes to apply:', filterAttributes);
             
             function selectVariations() {
                 var $variationForm = $('form.variations_form');
                 
                 if (!$variationForm.length) {
-                    console.log('Variation form not found');
+                    shopwellLog('Variation form not found');
                     return false;
                 }
                 
                 var $selects = $variationForm.find('select[name^="attribute_"]');
                 
                 if (!$selects.length) {
-                    console.log('No variation selects found');
+                    shopwellLog('No variation selects found');
                     return false;
                 }
                 
                 // Get available variations data
                 var variationsData = $variationForm.data('product_variations');
-                console.log('Available variations data:', variationsData);
+                shopwellLog('Available variations data', variationsData);
                 
                 var allSelected = true;
                 var madeSelection = false;
@@ -1193,7 +1315,7 @@ function shopwell_auto_select_variations() {
                 var targetCombination = {};
                 
                 if (variationsData && variationsData.length > 0 && Object.keys(filterAttributes).length > 0) {
-                    console.log('Looking for valid combination with filters:', filterAttributes);
+                    shopwellLog('Looking for valid combination with filters', filterAttributes);
                     
                     // Find variations that match our filter attributes
                     var matchingVariations = variationsData.filter(function(variation) {
@@ -1233,12 +1355,12 @@ function shopwell_auto_select_variations() {
                         return matches;
                     });
                     
-                    console.log('Found', matchingVariations.length, 'matching variations');
+                    shopwellLog('Found ' + matchingVariations.length + ' matching variations');
                     
                     if (matchingVariations.length > 0) {
                         // Use the first matching variation
                         targetCombination = matchingVariations[0].attributes;
-                        console.log('Target combination:', targetCombination);
+                        shopwellLog('Target combination', targetCombination);
                     }
                 }
                 
@@ -1249,7 +1371,7 @@ function shopwell_auto_select_variations() {
                     
                     // Skip if no options available
                     if (!$options.length) {
-                        console.log('No options for', selectName);
+                        shopwellLog('No options for ' + selectName);
                         return;
                     }
                     
@@ -1260,7 +1382,7 @@ function shopwell_auto_select_variations() {
                         // Try to find value from target combination
                         if (targetCombination[selectName]) {
                             valueToSelect = targetCombination[selectName];
-                            console.log('Using value from valid combination:', valueToSelect, 'for', selectName);
+                            shopwellLog('Using value from valid combination: ' + valueToSelect + ' for ' + selectName);
                         }
                     }
                     
@@ -1294,7 +1416,7 @@ function shopwell_auto_select_variations() {
                         
                         if (filterValue) {
                             valueToSelect = filterValue;
-                            console.log('Using filter value:', valueToSelect, 'for', selectName);
+                            shopwellLog('Using filter value: ' + valueToSelect + ' for ' + selectName);
                         }
                     }
                     
@@ -1314,19 +1436,19 @@ function shopwell_auto_select_variations() {
                         });
                         
                         if ($matchingOption.length) {
-                            console.log('Found match:', $matchingOption.first().val(), 'for', selectName);
+                            shopwellLog('Found match: ' + $matchingOption.first().val() + ' for ' + selectName);
                             $select.val($matchingOption.first().val()).trigger('change');
                             madeSelection = true;
                             return; // Skip first option selection
                         } else {
-                            console.log('No match found for', valueToSelect, 'in', selectName);
-                            console.log('Available options:', $options.map(function() { return $(this).val(); }).get());
+                            shopwellLog('No match found for ' + valueToSelect + ' in ' + selectName);
+                            shopwellLog('Available options', $options.map(function() { return $(this).val(); }).get());
                         }
                     }
                     
                     // Skip if already selected (check after filter attempt)
                     if ($select.val() && $select.val() !== '') {
-                        console.log(selectName, 'already selected:', $select.val());
+                        shopwellLog(selectName + ' already selected: ' + $select.val());
                         return;
                     }
                     
@@ -1334,7 +1456,7 @@ function shopwell_auto_select_variations() {
                     var $firstOption = $options.first();
                     
                     if ($firstOption.length) {
-                        console.log('Selecting first option:', $firstOption.val(), 'for', selectName);
+                        shopwellLog('Selecting first option: ' + $firstOption.val() + ' for ' + selectName);
                         $select.val($firstOption.val()).trigger('change');
                         madeSelection = true;
                     } else {
@@ -1359,10 +1481,10 @@ function shopwell_auto_select_variations() {
             
             function trySelect() {
                 attempts++;
-                console.log('Attempt', attempts, 'to select variations');
+                shopwellLog('Attempt ' + attempts + ' to select variations');
                 
                 if (selectVariations()) {
-                    console.log('Successfully selected variations');
+                    shopwellLog('Successfully selected variations');
                     return;
                 }
                 
@@ -1376,7 +1498,7 @@ function shopwell_auto_select_variations() {
             
             // Also listen to WooCommerce events
             $(document).on('wc_variation_form', function() {
-                console.log('WC variation form event fired');
+                shopwellLog('WC variation form event fired');
                 setTimeout(selectVariations, 200);
             });
         }
@@ -1388,30 +1510,30 @@ function shopwell_auto_select_variations() {
                 $('body').hasClass('tax-product_tag') || 
                 $('body').hasClass('post-type-archive-product')) {
                 
-                console.log('HandleFilterVariations running on catalog page');
-                console.log('Current URL:', window.location.href);
+                shopwellLog('HandleFilterVariations running on catalog page');
+                shopwellLog('Current URL: ' + window.location.href);
                 
                 // Get URL parameters for active filters
                 var urlParams = new URLSearchParams(window.location.search);
                 var filterAttributes = {};
                 
-                console.log('All URL params:', Array.from(urlParams.entries()));
+                shopwellLog('All URL params', Array.from(urlParams.entries()));
                 
                 // Collect all attribute filters from URL
                 urlParams.forEach(function(value, key) {
-                    console.log('Checking param:', key, '=', value);
+                    shopwellLog('Checking param: ' + key + ' = ' + value);
                     if (key.startsWith('filter_') || key.startsWith('pa_')) {
                         var attrName = key.replace('filter_', '').replace('pa_', '');
                         filterAttributes[attrName] = value.split(',');
-                        console.log('Added filter attribute:', attrName, '=', filterAttributes[attrName]);
+                        shopwellLog('Added filter attribute: ' + attrName, filterAttributes[attrName]);
                     }
                 });
                 
-                console.log('Final filterAttributes:', filterAttributes);
+                shopwellLog('Final filterAttributes', filterAttributes);
                 
                 // Add filter parameters to product links
                 if (Object.keys(filterAttributes).length > 0) {
-                    console.log('Adding filter params to product links:', filterAttributes);
+                    shopwellLog('Adding filter params to product links', filterAttributes);
                     
                     // Find all product links with various possible selectors
                     var $productLinks = $('ul.products li.product a').filter(function() {
@@ -1426,7 +1548,7 @@ function shopwell_auto_select_variations() {
                                !$(this).hasClass('button');
                     });
                     
-                    console.log('Found', $productLinks.length, 'product links');
+                    shopwellLog('Found ' + $productLinks.length + ' product links');
                     
                     $productLinks.each(function() {
                         var $link = $(this);
@@ -1443,9 +1565,9 @@ function shopwell_auto_select_variations() {
                             
                             var newHref = url.toString();
                             $link.attr('href', newHref);
-                            console.log('Updated link:', href, '->', newHref);
+                            shopwellLog('Updated link: ' + href + ' -> ' + newHref);
                         } catch(e) {
-                            console.log('Error updating link:', href, e);
+                            shopwellLog('Error updating link: ' + href, e.message);
                         }
                     });
                 }
@@ -1648,9 +1770,10 @@ function shopwell_auto_select_variations() {
                         newUrl += '?' + queryString;
                     }
                     
-                    // Use History API to update URL without reloading page
-                    if (window.history && window.history.pushState) {
-                        window.history.pushState({}, '', newUrl);
+                    // Use replaceState instead of pushState to avoid creating history entries
+                    // This allows the back button to work properly
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState({}, '', newUrl);
                     }
                 }
             }
@@ -1830,7 +1953,7 @@ function shopwell_register_memory_attribute() {
         $result = wc_create_attribute($args);
         
         if (is_wp_error($result)) {
-            error_log('Shopwell: Failed to create memory attribute - ' . $result->get_error_message());
+            shopwell_log_to_file('Failed to create memory attribute: ' . $result->get_error_message(), null, 'php');
             return;
         }
         
@@ -2512,21 +2635,21 @@ add_filter('woocommerce_breadcrumb_items', 'shopwell_add_model_to_breadcrumbs', 
  * Convert product category breadcrumb links to use query parameter format
  */
 function shopwell_convert_category_breadcrumb_links($crumbs, $breadcrumb) {
-    error_log('🔍 [BREADCRUMB FILTER] shopwell_convert_category_breadcrumb_links called');
-    error_log('🔍 [BREADCRUMB FILTER] Crumbs count: ' . (is_array($crumbs) ? count($crumbs) : 'not array'));
+    shopwell_log_to_file('[BREADCRUMB FILTER] shopwell_convert_category_breadcrumb_links called', null, 'php');
+    shopwell_log_to_file('[BREADCRUMB FILTER] Crumbs count: ' . (is_array($crumbs) ? count($crumbs) : 'not array'), null, 'php');
     
     if (!is_array($crumbs)) {
-        error_log('❌ [BREADCRUMB FILTER] Crumbs is not an array');
+        shopwell_log_to_file('[BREADCRUMB FILTER] Crumbs is not an array', null, 'php');
         return $crumbs;
     }
     
     // Get shop page URL
     $shop_url = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : '';
     if (empty($shop_url)) {
-        error_log('❌ [BREADCRUMB FILTER] Shop URL is empty');
+        shopwell_log_to_file('[BREADCRUMB FILTER] Shop URL is empty', null, 'php');
         return $crumbs;
     }
-    error_log('✅ [BREADCRUMB FILTER] Shop URL: ' . $shop_url);
+    shopwell_log_to_file('[BREADCRUMB FILTER] Shop URL: ' . $shop_url, null, 'php');
     
     // Get all product categories with their slugs
     $all_categories = get_terms(array(
@@ -2535,10 +2658,10 @@ function shopwell_convert_category_breadcrumb_links($crumbs, $breadcrumb) {
     ));
     
     if (is_wp_error($all_categories) || empty($all_categories)) {
-        error_log('❌ [BREADCRUMB FILTER] No categories found or error: ' . (is_wp_error($all_categories) ? $all_categories->get_error_message() : 'empty'));
+        shopwell_log_to_file('[BREADCRUMB FILTER] No categories found or error: ' . (is_wp_error($all_categories) ? $all_categories->get_error_message() : 'empty'), null, 'php');
         return $crumbs;
     }
-    error_log('✅ [BREADCRUMB FILTER] Found ' . count($all_categories) . ' categories');
+    shopwell_log_to_file('[BREADCRUMB FILTER] Found ' . count($all_categories) . ' categories', null, 'php');
     
     // Create a map of slugs to term objects for quick lookup
     $category_map = array();
@@ -2557,18 +2680,18 @@ function shopwell_convert_category_breadcrumb_links($crumbs, $breadcrumb) {
             continue;
         }
         
-        error_log('🔍 [BREADCRUMB FILTER] Processing crumb #' . $key . ': ' . $url);
+        shopwell_log_to_file('[BREADCRUMB FILTER] Processing crumb #' . $key . ': ' . $url, null, 'php');
         
         // Skip if already using query parameter format
         if (strpos($url, '?product_cat=') !== false) {
-            error_log('⏭️ [BREADCRUMB FILTER] Already using query param format, skipping');
+            shopwell_log_to_file('[BREADCRUMB FILTER] Already using query param format, skipping', null, 'php');
             continue;
         }
         
         // Parse URL
         $url_parts = parse_url($url);
         if (!isset($url_parts['path']) || empty($url_parts['path'])) {
-            error_log('⏭️ [BREADCRUMB FILTER] No path in URL, skipping');
+            shopwell_log_to_file('[BREADCRUMB FILTER] No path in URL, skipping', null, 'php');
             continue;
         }
         
@@ -2576,12 +2699,12 @@ function shopwell_convert_category_breadcrumb_links($crumbs, $breadcrumb) {
         $path_parts = explode('/', $path);
         $possible_slug = end($path_parts);
         
-        error_log('🔍 [BREADCRUMB FILTER] Path: ' . $path . ', Possible slug: ' . $possible_slug);
+        shopwell_log_to_file('[BREADCRUMB FILTER] Path: ' . $path . ', Possible slug: ' . $possible_slug, null, 'php');
         
         // Check if this slug matches any product category
         if (isset($category_map[$possible_slug])) {
             $category = $category_map[$possible_slug];
-            error_log('✅ [BREADCRUMB FILTER] Found matching category: ' . $category->slug);
+            shopwell_log_to_file('[BREADCRUMB FILTER] Found matching category: ' . $category->slug, null, 'php');
             
             // More aggressive check: if URL contains category-related terms or slug matches
             $url_lower = strtolower($url);
@@ -2591,7 +2714,7 @@ function shopwell_convert_category_breadcrumb_links($crumbs, $breadcrumb) {
                 strpos($url_lower, 'product-cat') !== false
             );
             
-            error_log('🔍 [BREADCRUMB FILTER] Has category indicator: ' . ($has_category_indicator ? 'yes' : 'no') . ', Path parts: ' . count($path_parts));
+            shopwell_log_to_file('[BREADCRUMB FILTER] Has category indicator: ' . ($has_category_indicator ? 'yes' : 'no') . ', Path parts: ' . count($path_parts), null, 'php');
             
             // If we have a category match and URL suggests it's a category page
             if ($has_category_indicator || count($path_parts) >= 2) {
@@ -2603,17 +2726,17 @@ function shopwell_convert_category_breadcrumb_links($crumbs, $breadcrumb) {
                     $new_url .= '&' . $url_parts['query'];
                 }
                 
-                error_log('🔄 [BREADCRUMB FILTER] Converting URL from: ' . $url . ' to: ' . $new_url);
+                shopwell_log_to_file('[BREADCRUMB FILTER] Converting URL from: ' . $url . ' to: ' . $new_url, null, 'php');
                 $crumbs[$key][1] = esc_url($new_url);
             } else {
-                error_log('⏭️ [BREADCRUMB FILTER] Category match but conditions not met, skipping');
+                shopwell_log_to_file('[BREADCRUMB FILTER] Category match but conditions not met, skipping', null, 'php');
             }
         } else {
-            error_log('⏭️ [BREADCRUMB FILTER] Slug ' . $possible_slug . ' not found in category map');
+            shopwell_log_to_file('[BREADCRUMB FILTER] Slug ' . $possible_slug . ' not found in category map', null, 'php');
         }
     }
     
-    error_log('✅ [BREADCRUMB FILTER] Returning ' . count($crumbs) . ' crumbs');
+    shopwell_log_to_file('[BREADCRUMB FILTER] Returning ' . count($crumbs) . ' crumbs', null, 'php');
     return $crumbs;
 }
 add_filter('woocommerce_breadcrumb_items', 'shopwell_convert_category_breadcrumb_links', 5, 2);
@@ -2659,10 +2782,10 @@ function shopwell_add_breadcrumb_category_js() {
     ?>
     <script type="text/javascript">
     (function($) {
-        console.log('🔍 [BREADCRUMB JS] Script loaded');
+        shopwellLog('[BREADCRUMB JS] Script loaded');
         
         var shopUrl = '<?php echo esc_js($shop_url); ?>';
-        console.log('✅ [BREADCRUMB JS] Shop URL: ' + shopUrl);
+        shopwellLog('[BREADCRUMB JS] Shop URL: ' + shopUrl);
         
         function convertCategoryUrl(href) {
             if (!href) return null;
@@ -2696,15 +2819,15 @@ function shopwell_add_breadcrumb_category_js() {
         }
         
         function processBreadcrumbLinks() {
-            console.log('🔍 [BREADCRUMB JS] Processing breadcrumb links');
+            shopwellLog('[BREADCRUMB JS] Processing breadcrumb links');
             
             // Find all breadcrumb containers
             var breadcrumbContainers = $('.woocommerce-breadcrumb, .site-breadcrumb');
-            console.log('🔍 [BREADCRUMB JS] Found ' + breadcrumbContainers.length + ' breadcrumb containers');
+            shopwellLog('[BREADCRUMB JS] Found ' + breadcrumbContainers.length + ' breadcrumb containers');
             
             // Find ALL links inside breadcrumbs (including nested ones)
             var allLinks = breadcrumbContainers.find('a');
-            console.log('🔍 [BREADCRUMB JS] Found ' + allLinks.length + ' links in breadcrumbs');
+            shopwellLog('[BREADCRUMB JS] Found ' + allLinks.length + ' links in breadcrumbs');
             
             allLinks.each(function(index) {
                 var $link = $(this);
@@ -2712,11 +2835,11 @@ function shopwell_add_breadcrumb_category_js() {
                 
                 if (!href) return;
                 
-                console.log('🔍 [BREADCRUMB JS] Link #' + index + ': ' + href);
+                shopwellLog('[BREADCRUMB JS] Link #' + index + ': ' + href);
                 
                 var newUrl = convertCategoryUrl(href);
                 if (newUrl) {
-                    console.log('🔄 [BREADCRUMB JS] Converting: ' + href + ' -> ' + newUrl);
+                    shopwellLog('[BREADCRUMB JS] Converting: ' + href + ' -> ' + newUrl);
                     $link.attr('href', newUrl);
                 }
             });
@@ -2743,12 +2866,12 @@ function shopwell_add_breadcrumb_category_js() {
             var isInMetaCat = $link.closest('.meta-cat, .product_meta, .posted_in').length > 0;
             
             if (isInBreadcrumb || isInMetaCat) {
-                console.log('🖱️ [BREADCRUMB JS] Clicked on category link: ' + href);
-                console.log('🔍 [BREADCRUMB JS] In breadcrumb: ' + isInBreadcrumb + ', In meta-cat: ' + isInMetaCat);
+                shopwellLog('[BREADCRUMB JS] Clicked on category link: ' + href);
+                shopwellLog('[BREADCRUMB JS] In breadcrumb: ' + isInBreadcrumb + ', In meta-cat: ' + isInMetaCat);
                 
                 var newUrl = convertCategoryUrl(href);
                 if (newUrl) {
-                    console.log('🔄 [BREADCRUMB JS] Intercepting and converting to: ' + newUrl);
+                    shopwellLog('[BREADCRUMB JS] Intercepting and converting to: ' + newUrl);
                     e.preventDefault();
                     e.stopPropagation();
                     window.location.href = newUrl;
@@ -2759,13 +2882,13 @@ function shopwell_add_breadcrumb_category_js() {
         
         // Process links on document ready
         $(document).ready(function() {
-            console.log('🔍 [BREADCRUMB JS] Document ready');
+            shopwellLog('[BREADCRUMB JS] Document ready');
             processBreadcrumbLinks();
         });
         
         // Also process after a delay in case breadcrumbs load dynamically
         setTimeout(function() {
-            console.log('🔍 [BREADCRUMB JS] Delayed processing');
+            shopwellLog('[BREADCRUMB JS] Delayed processing');
             processBreadcrumbLinks();
         }, 500);
         
@@ -2789,7 +2912,7 @@ function shopwell_add_breadcrumb_category_js() {
                 });
                 
                 if (shouldProcess) {
-                    console.log('🔍 [BREADCRUMB JS] Breadcrumb DOM changed, reprocessing');
+                    shopwellLog('[BREADCRUMB JS] Breadcrumb DOM changed, reprocessing');
                     setTimeout(processBreadcrumbLinks, 100);
                 }
             });
@@ -2844,21 +2967,21 @@ function shopwell_filter_product_category_list($categories) {
 add_filter('woocommerce_product_category_list', 'shopwell_filter_product_category_list', 10, 1);
 
 function shopwell_modify_breadcrumb_category_output($output) {
-    error_log('🔍 [OUTPUT BUFFER] shopwell_modify_breadcrumb_category_output called');
-    error_log('🔍 [OUTPUT BUFFER] Output length: ' . strlen($output));
+    shopwell_log_to_file('[OUTPUT BUFFER] shopwell_modify_breadcrumb_category_output called', null, 'php');
+    shopwell_log_to_file('[OUTPUT BUFFER] Output length: ' . strlen($output), null, 'php');
     
     if (!function_exists('is_woocommerce') || !is_woocommerce()) {
-        error_log('⏭️ [OUTPUT BUFFER] Not WooCommerce page, skipping');
+        shopwell_log_to_file('[OUTPUT BUFFER] Not WooCommerce page, skipping', null, 'php');
         return $output;
     }
     
     // Get shop page URL
     $shop_url = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : '';
     if (empty($shop_url)) {
-        error_log('❌ [OUTPUT BUFFER] Shop URL is empty');
+        shopwell_log_to_file('[OUTPUT BUFFER] Shop URL is empty', null, 'php');
         return $output;
     }
-    error_log('✅ [OUTPUT BUFFER] Shop URL: ' . $shop_url);
+    shopwell_log_to_file('[OUTPUT BUFFER] Shop URL: ' . $shop_url, null, 'php');
     
     // Get all product categories
     $all_categories = get_terms(array(
@@ -2867,10 +2990,10 @@ function shopwell_modify_breadcrumb_category_output($output) {
     ));
     
     if (is_wp_error($all_categories) || empty($all_categories)) {
-        error_log('❌ [OUTPUT BUFFER] No categories found');
+        shopwell_log_to_file('[OUTPUT BUFFER] No categories found', null, 'php');
         return $output;
     }
-    error_log('✅ [OUTPUT BUFFER] Found ' . count($all_categories) . ' categories');
+    shopwell_log_to_file('[OUTPUT BUFFER] Found ' . count($all_categories) . ' categories', null, 'php');
     
     // Check if output contains category URLs
     $has_category_url = (
@@ -2878,7 +3001,7 @@ function shopwell_modify_breadcrumb_category_output($output) {
         strpos($output, '/product-category/') !== false ||
         strpos($output, '/category/') !== false
     );
-    error_log('🔍 [OUTPUT BUFFER] Contains category URLs: ' . ($has_category_url ? 'yes' : 'no'));
+    shopwell_log_to_file('[OUTPUT BUFFER] Contains category URLs: ' . ($has_category_url ? 'yes' : 'no'), null, 'php');
     
     // Method 1: Replace by exact term links
     foreach ($all_categories as $category) {
@@ -2888,7 +3011,7 @@ function shopwell_modify_breadcrumb_category_output($output) {
             continue;
         }
         
-        error_log('🔍 [OUTPUT BUFFER] Checking term link: ' . $term_link);
+        shopwell_log_to_file('[OUTPUT BUFFER] Checking term link: ' . $term_link, null, 'php');
         
         // Escape special regex characters in URL
         $term_link_escaped = preg_quote($term_link, '/');
@@ -2899,7 +3022,7 @@ function shopwell_modify_breadcrumb_category_output($output) {
         $before = $output;
         $output = preg_replace($pattern, $replacement, $output);
         if ($before !== $output) {
-            error_log('✅ [OUTPUT BUFFER] Replaced term link: ' . $term_link);
+            shopwell_log_to_file('[OUTPUT BUFFER] Replaced term link: ' . $term_link, null, 'php');
         }
         
         // Also try without trailing slash
@@ -2909,7 +3032,7 @@ function shopwell_modify_breadcrumb_category_output($output) {
         $before = $output;
         $output = preg_replace($pattern_no_slash, $replacement, $output);
         if ($before !== $output) {
-            error_log('✅ [OUTPUT BUFFER] Replaced term link (no slash): ' . $term_link_no_slash);
+            shopwell_log_to_file('[OUTPUT BUFFER] Replaced term link (no slash): ' . $term_link_no_slash, null, 'php');
         }
     }
     
@@ -2932,12 +3055,12 @@ function shopwell_modify_breadcrumb_category_output($output) {
             $before = $output;
             $output = preg_replace($pattern, $replacement, $output);
             if ($before !== $output) {
-                error_log('✅ [OUTPUT BUFFER] Replaced pattern #' . $pattern_index . ' for category: ' . $category->slug);
+                shopwell_log_to_file('[OUTPUT BUFFER] Replaced pattern #' . $pattern_index . ' for category: ' . $category->slug, null, 'php');
             }
         }
     }
     
-    error_log('✅ [OUTPUT BUFFER] Final output length: ' . strlen($output));
+    shopwell_log_to_file('[OUTPUT BUFFER] Final output length: ' . strlen($output), null, 'php');
     return $output;
 }
 

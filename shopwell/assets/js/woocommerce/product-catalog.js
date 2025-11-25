@@ -186,8 +186,6 @@
             var filterValue = $this.data('filter-value');
             var value = $this.data('value');
             
-            console.log('🗑️ Removing filter:', filterType, '=', filterValue, 'value:', value);
-            
             // Remove from URL based on filter type
             var currentUrl = new URL(window.location.href);
             var params = new URLSearchParams(currentUrl.search);
@@ -233,10 +231,7 @@
             if (removed) {
                 currentUrl.search = params.toString();
                 currentUrl.searchParams.set('paged', '1'); // Reset to first page
-                console.log('🔄 Navigating to clean URL:', currentUrl.toString());
                 window.location.href = currentUrl.toString();
-            } else {
-                console.log('⚠️ No matching parameter found to remove');
             }
 
             return false;
@@ -433,15 +428,7 @@
 	};
 
 	shopwell.changeCatalogElementsFiltered = function () {
-		console.log('🔧 Initializing auto-apply filters...');
-		
-		// Debug: Check what filter elements exist
-		console.log('🔍 Found filter links:', $('.woocommerce-widget-layered-nav-list a').length);
-		console.log('🔍 Found filter checkboxes:', $('.woocommerce-widget-layered-nav-list input[type="checkbox"]').length);
-		console.log('🔍 Found filter buttons:', $('.products-filter__button .reset-button, .products-filter__button .filter-button').length);
-		console.log('🔍 Found category filters:', $('.products-filter__option.filter-list-item').length);
-		console.log('🔍 Found condition filters:', $('.products-filter__option.swatch.swatch-button[class*="swatch-"]').length);
-		
+			
 		// Function to clean filter parameters before adding new ones
 		function cleanFilterParams(params) {
 			// Remove all existing filter parameters
@@ -476,12 +463,6 @@
 		
 		// Function to determine filter type and set appropriate parameter
 		function setFilterParameter(params, classes, dataValue, dataSlug, $element) {
-			console.log('🔍 Analyzing filter:', {
-				classes: classes,
-				dataValue: dataValue,
-				dataSlug: dataSlug,
-				element: $element ? $element.length : 0
-			});
 			
 			// Check if this element is inside a model filter widget
 			var isModelFilter = false;
@@ -489,20 +470,14 @@
 				var $widget = $element.closest('.shopwell-model-filter-widget');
 				if ($widget.length > 0) {
 					isModelFilter = true;
-					console.log('📱 Detected model filter widget');
 				}
 			}
 			
 			// Priority 1: Use data-value if available
 			if (dataValue && dataValue !== 'button' && dataValue !== '') {
-				console.log('🔍 USING dataValue:', dataValue, 'Type:', typeof dataValue, 'Length:', dataValue.length);
-				console.log('🔍 Checking includes - gb:', dataValue.includes('gb'), 'tb:', dataValue.includes('tb'));
-				console.log('🔍 String representation:', JSON.stringify(dataValue));
-				
 				// Check if it's a model filter (must be checked first if element is in model widget)
 				if (isModelFilter) {
 					params.set('filter_pa_model', dataValue);
-					console.log('📱 Setting model filter from data-value:', dataValue);
 					return { success: true, filterType: 'model' };
 				}
 				
@@ -510,15 +485,11 @@
 				if (dataValue.includes('ca-nou') || dataValue.includes('excelent') || 
 					dataValue.includes('foarte-bun') || dataValue.includes('bun')) {
 					params.set('filter_pa_stare', dataValue);
-					console.log('⭐ Setting condition filter from data-value:', dataValue);
 					return { success: true, filterType: 'stare' };
 				}
 				// Check if it's a memory filter
 				else if (dataValue.includes('gb') || dataValue.includes('tb')) {
-					console.log('💾 MEMORY CONDITION MATCHED! dataValue:', dataValue);
-					console.log('💾 FOUND MEMORY VALUE:', dataValue);
 					params.set('filter_pa_memorie', dataValue);
-					console.log('💾 Setting memory filter from data-value:', dataValue);
 					return { success: true, filterType: 'memorie' };
 				}
 				// Check if it's a color filter (any color that's not a condition or memory)
@@ -536,7 +507,6 @@
 				// Check if it's a model filter (must be checked first if element is in model widget)
 				if (isModelFilter) {
 					params.set('filter_pa_model', dataSlug);
-					console.log('📱 Setting model filter from data-slug:', dataSlug);
 					return { success: true, filterType: 'model' };
 				}
 				
@@ -544,13 +514,11 @@
 				if (dataSlug.includes('ca-nou') || dataSlug.includes('excelent') || 
 					dataSlug.includes('foarte-bun') || dataSlug.includes('bun')) {
 					params.set('filter_pa_stare', dataSlug);
-					console.log('⭐ Setting condition filter from data-slug:', dataSlug);
 					return { success: true, filterType: 'stare' };
 				}
 				// Check if it's a memory filter
 				else if (dataSlug.includes('gb') || dataSlug.includes('tb')) {
 					params.set('filter_pa_memorie', dataSlug);
-					console.log('💾 Setting memory filter from data-slug:', dataSlug);
 					return { success: true, filterType: 'memorie' };
 				}
 				// Check if it's a color filter (any color that's not a condition or memory)
@@ -571,7 +539,6 @@
 				var conditionMatch = classes.match(/swatch-([a-z-]+)/);
 				if (conditionMatch) {
 					params.set('filter_pa_stare', conditionMatch[1]);
-					console.log('⭐ Setting condition filter from class:', conditionMatch[1]);
 					return { success: true, filterType: 'stare' };
 				}
 			}
@@ -585,7 +552,6 @@
 				var memoryMatch = classes.match(/swatch-([a-z0-9]+)/);
 				if (memoryMatch) {
 					params.set('filter_pa_memorie', memoryMatch[1]);
-					console.log('💾 Setting memory filter from class:', memoryMatch[1]);
 					return { success: true, filterType: 'memorie' };
 				}
 			}
@@ -606,96 +572,59 @@
 				}
 			}
 			
-			console.log('⚠️ No valid filter value found');
 			return { success: false, filterType: null };
 		}
 		
 		// Function to update active filters display
+		// OPTIMIZATION: Removed console.log statements for production performance
 		function updateActiveFiltersDisplay() {
-			console.log('🔄 updateActiveFiltersDisplay called');
 			var $primaryFilter = $('.catalog-toolbar__filters-actived');
 			var $panelFilter = $('.filter-sidebar-panel');
 			var $widgetFilter = $panelFilter.find('.products-filter__activated-items');
 			
-			console.log('🔍 Primary filter found:', $primaryFilter.length);
-			console.log('🔍 Panel filter found:', $panelFilter.length);
-			console.log('🔍 Widget filter found:', $widgetFilter.length);
-			console.log('🔍 Widget content:', $widgetFilter.html());
-			
 			if ($primaryFilter.length && $widgetFilter.length) {
 				if ($.trim($widgetFilter.html())) {
-					console.log('🔧 Updating primary filter with content');
 					$primaryFilter.html('');
 					$primaryFilter.removeClass('active');
 					$primaryFilter.prepend($widgetFilter.html() + '<a href="#" class="remove-filtered-all shopwell-button shopwell-button--subtle">Șterge tot</a>');
 					$primaryFilter.addClass('active');
-					console.log('✅ Primary filter updated and activated');
 				} else {
-					console.log('🔧 Clearing primary filter - no widget content');
 					$primaryFilter.html('');
 					$primaryFilter.removeClass('active');
 				}
-			} else {
-				console.log('⚠️ Missing elements - Primary:', $primaryFilter.length, 'Widget:', $widgetFilter.length);
 			}
 		}
 		
+		// Debounce timer for filter sidebar refresh
+		var refreshFilterSidebarTimeout;
+		
 		// Function to refresh filter sidebar after any filter change
+		// OPTIMIZATION: Added debouncing to prevent multiple rapid calls
 		function refreshFilterSidebar() {
-			console.log('🔄 Refreshing filter sidebar...');
+			// Clear existing timeout
+			clearTimeout(refreshFilterSidebarTimeout);
 			
-			// Force update of filter widgets via AJAX
-			refreshFilterWidgets();
-			
-			// Force update of active filters display
-			setTimeout(function() {
-				updateActiveFiltersDisplay();
-			}, 500);
+			// Debounce: only execute after 300ms of no changes
+			refreshFilterSidebarTimeout = setTimeout(function() {
+				// Force update of filter widgets via AJAX (now optimized)
+				refreshFilterWidgets();
+				
+				// Force update of active filters display
+				setTimeout(function() {
+					updateActiveFiltersDisplay();
+				}, 200); // Reduced from 500ms to 200ms
+			}, 300); // Wait 300ms before executing
 		}
 		
 		// Function to refresh filter widgets via AJAX
+		// OPTIMIZATION: Disabled full page reload - widgets update automatically via WooCommerce
+		// This was causing major performance issues by reloading entire page on every filter change
 		function refreshFilterWidgets() {
-			console.log('🔄 Refreshing filter widgets via AJAX...');
-			
-			var $filterPanel = $('.filter-sidebar-panel');
-			if ($filterPanel.length === 0) {
-				console.log('⚠️ Filter panel not found');
-				return;
-			}
-			
-			// Get current URL parameters
-			var currentUrl = new URL(window.location.href);
-			var params = currentUrl.search;
-			
-			// Make AJAX request to refresh filter widgets
-			$.ajax({
-				url: window.location.href,
-				type: 'GET',
-				data: params + '&ajax=1',
-				success: function(response) {
-					console.log('✅ Filter widgets refreshed successfully');
-					
-					// Extract the filter panel content from the response
-					var $response = $(response);
-					var $newFilterPanel = $response.find('.filter-sidebar-panel');
-					
-					if ($newFilterPanel.length > 0) {
-						// Update the filter panel content
-						$filterPanel.html($newFilterPanel.html());
-						
-						// Re-initialize any JavaScript components
-						$(document.body).trigger('updated_wc_div');
-					}
-				},
-				error: function(xhr, status, error) {
-					console.log('❌ Error refreshing filter widgets:', error);
-					
-					// Fallback: reload the page
-					setTimeout(function() {
-						window.location.reload();
-					}, 1000);
-				}
-			});
+			// Widgets are already updated by WooCommerce's AJAX filtering system
+			// No need to reload the entire page - this was causing 2-5 second delays
+			// Just trigger WooCommerce update event if needed
+			$(document.body).trigger('updated_wc_div');
+			return;
 		}
 		
 		
@@ -718,16 +647,11 @@
 	
 	// Function to add active filter to the display
 	function addActiveFilter(filterType, filterValue, filterText) {
-		console.log('➕ addActiveFilter called with:', filterType, filterValue, filterText);
 		var $panelFilter = $('.filter-sidebar-panel');
 		var $widgetFilter = $panelFilter.find('.products-filter__activated-items');
 		
-		console.log('🔍 Panel filter found:', $panelFilter.length);
-		console.log('🔍 Widget filter found:', $widgetFilter.length);
-		
 		if ($widgetFilter.length === 0) {
 			// Create the activated items container if it doesn't exist
-			console.log('🔧 Creating products-filter__activated-items container');
 			$widgetFilter = $('<div class="products-filter__activated-items"></div>');
 			$panelFilter.find('.panel__content').prepend($widgetFilter);
 		}
@@ -739,30 +663,18 @@
 		var filterElement = '<a href="#" class="remove-filtered" data-filter-type="' + filterType + '" data-filter-value="' + filterValue + '" data-value="' + filterValue + '">' + 
 			cleanText + ' <span class="shopwell-svg-icon">×</span></a>';
 		
-		console.log('🔧 Created filter element:', filterElement);
-		
 		// Add to the widget
 		$widgetFilter.append(filterElement);
 		
-		console.log('🔧 Filter added to widget. Widget content:', $widgetFilter.html());
-		
 		// Update the display
-		console.log('🔄 Calling updateActiveFiltersDisplay');
 		updateActiveFiltersDisplay();
-		console.log('✅ updateActiveFiltersDisplay completed');
 	}
 	
 	// Function to load existing active filters from URL on page load
 	shopwell.loadExistingActiveFilters = function() {
-		console.log('🔄 Loading existing active filters from URL...');
-		console.log('🔄 Current URL:', window.location.href);
 		var urlParams = new URLSearchParams(window.location.search);
 		var $panelFilter = $('.filter-sidebar-panel');
 		var $widgetFilter = $panelFilter.find('.products-filter__activated-items');
-		
-		console.log('🔍 Found panel filter:', $panelFilter.length);
-		console.log('🔍 Found widget filter:', $widgetFilter.length);
-		console.log('🔍 All URL params:', Array.from(urlParams.entries()));
 		
 		// Clear existing filters
 		if ($widgetFilter.length) {
@@ -772,12 +684,10 @@
 		// Load category filter
 		var category = urlParams.get('product_cat');
 		if (category) {
-			console.log('📂 Found category filter:', category);
 			
 			// Use the category slug from URL directly, just capitalize it
 			var categoryName = category.charAt(0).toUpperCase() + category.slice(1);
 			
-			console.log('📂 Category name:', categoryName);
 			addActiveFilter('categorie', category, categoryName);
 		}
 		
@@ -792,41 +702,30 @@
 		// Load condition filter
 		var condition = urlParams.get('filter_pa_stare');
 		if (condition) {
-			console.log('⭐ Found condition filter:', condition);
 			
 			// Use the condition slug from URL directly, just capitalize it
 			var conditionName = condition.charAt(0).toUpperCase() + condition.slice(1);
 			
-			console.log('⭐ Condition name:', conditionName);
 			addActiveFilter('stare', condition, conditionName);
 		}
 		
 		// Load memory filter
 		var memory = urlParams.get('filter_pa_memorie');
-		console.log('💾 Memory filter check:', memory);
 		if (memory) {
-			console.log('💾 Found memory filter:', memory);
 			
 			// Use the memory slug from URL directly, just capitalize it
 			var memoryName = memory.charAt(0).toUpperCase() + memory.slice(1);
 			
-			console.log('💾 Memory name:', memoryName);
-			console.log('💾 About to call addActiveFilter with:', 'memorie', memory, memoryName);
 			addActiveFilter('memorie', memory, memoryName);
-			console.log('💾 addActiveFilter called for memory');
-		} else {
-			console.log('💾 No memory filter found in URL');
 		}
 		
 		// Load model filter
 		var model = urlParams.get('filter_pa_model');
 		if (model) {
-			console.log('📱 Found model filter:', model);
 			
 			// Use the model slug from URL directly, just capitalize it
 			var modelName = model.charAt(0).toUpperCase() + model.slice(1);
 			
-			console.log('📱 Model name:', modelName);
 			addActiveFilter('model', model, modelName);
 		}
 		
@@ -834,7 +733,6 @@
 		var minPrice = urlParams.get('min_price');
 		var maxPrice = urlParams.get('max_price');
 		if (minPrice || maxPrice) {
-			console.log('💰 Found price filter:', minPrice, '-', maxPrice);
 			
 			// Format price range for display
 			var priceText = '';
@@ -846,7 +744,6 @@
 				priceText = 'Până la ' + maxPrice + ' lei';
 			}
 			
-			console.log('💰 Price text:', priceText);
 			addActiveFilter('pret', minPrice + '-' + maxPrice, priceText);
 		}
 	}
@@ -871,7 +768,6 @@
 		// Auto-apply filters on interaction - more specific selectors
 		shopwell.$body.on('click', '.woocommerce-widget-layered-nav-list a', function(e) {
 			var href = $(this).attr('href');
-			console.log('🔗 Category filter clicked, navigating to:', href);
 			
 			if (href && href.indexOf('product_cat=') !== -1) {
 				// Navigate to filtered URL immediately
@@ -883,7 +779,6 @@
 		// Also handle direct filter links
 		shopwell.$body.on('click', 'a[href*="filter_"], a[href*="pa_"], a[href*="product_cat="]', function(e) {
 			var href = $(this).attr('href');
-			console.log('🔗 Direct filter link clicked:', href);
 			
 			if (href) {
 				window.location.href = href;
@@ -894,11 +789,9 @@
 		// General filter click handler - catch all filter interactions
 		shopwell.$body.on('click', '.woocommerce-widget-layered-nav-list a, .woocommerce-widget-layered-nav-list__item a', function(e) {
 			var href = $(this).attr('href');
-			console.log('🔗 General filter link clicked:', href);
 			
 			if (href && (href.indexOf('filter_') !== -1 || href.indexOf('pa_') !== -1 || href.indexOf('product_cat=') !== -1)) {
 				e.preventDefault();
-				console.log('🔄 Preventing default and navigating to:', href);
 				window.location.href = href;
 				
 				return false;
@@ -913,23 +806,14 @@
 			var dataSlug = $this.data('slug');
 			var text = $this.text().trim();
 			
-			console.log('📂 Category filter clicked:', {
-				href: href,
-				dataValue: dataValue,
-				dataSlug: dataSlug,
-				text: text
-			});
-			
 			// Try to find the link inside this element
 			var $link = $this.find('a');
 			if ($link.length) {
 				href = $link.attr('href');
-				console.log('📂 Found link inside:', href);
 			}
 			
 			if (href) {
 				e.preventDefault();
-				console.log('🔄 Navigating to category:', href);
 				window.location.href = href;
 				return false;
 			} else if (dataValue || dataSlug) {
@@ -937,13 +821,8 @@
 				var currentUrl = new URL(window.location.href);
 				var params = new URLSearchParams(currentUrl.search);
 				
-				console.log('🔄 Replacing category filter');
-				console.log('🔄 Current URL params before:', Array.from(params.entries()));
-				
 				// Clean only the category filter type
 				params = cleanSpecificFilterType(params, 'categorie');
-				
-				console.log('🔄 URL params after cleaning category:', Array.from(params.entries()));
 				
 				// Set the new category
 				if (dataSlug) {
@@ -951,8 +830,6 @@
 				} else if (dataValue) {
 					params.set('product_cat', dataValue);
 				}
-				
-				console.log('🔄 URL params after setting new category:', Array.from(params.entries()));
 				
 				// Get the category text for display
 				var categoryText = cleanFilterText(text || dataValue || dataSlug);
@@ -962,7 +839,6 @@
 				
 				currentUrl.search = params.toString();
 				currentUrl.searchParams.set('paged', '1'); // Reset to first page
-				console.log('🔄 Building category URL:', currentUrl.toString());
 				
 				// Update model filter visibility before navigation
 				updateModelFilterVisibility();
@@ -1014,7 +890,6 @@
 				$modelFilters.show();
 				$modelFilters.find('.products-filter__option').show();
 				
-				console.log('✅ Model filter widgets shown for category:', selectedCategory);
 			} else {
 				// Hide model widgets completely
 				if ($modelWidgets.length > 0) {
@@ -1026,7 +901,6 @@
 				$modelFilters.hide();
 				$modelFilters.find('.products-filter__option').hide();
 				
-				console.log('❌ Model filter widgets hidden - no product_cat in URL');
 			}
 		}
 		
@@ -1074,7 +948,6 @@
 						widgetClass.toLowerCase().indexOf('model') !== -1 ||
 						widgetClass.toLowerCase().indexOf('marca') !== -1) {
 						$modelWidget = $parentWidget;
-						console.log('📱 Found model widget by ID/class:', widgetId, widgetClass);
 					}
 				}
 			}
@@ -1090,16 +963,6 @@
 			var dataSlug = $this.data('slug');
 			var text = $this.text().trim();
 			
-			console.log('📱 Model filter handler triggered!', {
-				href: href,
-				dataValue: dataValue,
-				dataSlug: dataSlug,
-				text: text,
-				widgetFound: $modelWidget.length,
-				widgetClasses: $modelWidget.attr('class'),
-				elementClasses: $this.attr('class')
-			});
-			
 			// Stop event propagation to prevent other handlers from running
 			e.stopImmediatePropagation();
 			e.preventDefault();
@@ -1108,7 +971,6 @@
 			var $link = $this.find('a');
 			if ($link.length) {
 				href = $link.attr('href');
-				console.log('📱 Found link inside:', href);
 			}
 			
 			if (href) {
@@ -1124,20 +986,16 @@
 						params.set('filter_pa_model', value);
 						url.search = params.toString();
 						href = url.toString();
-						console.log('📱 Fixed href - changed filter_pa_culoare to filter_pa_model:', href);
 					}
 					// If it doesn't have filter_pa_model but we have dataValue/dataSlug, add it
 					else if (!params.has('filter_pa_model') && (dataValue || dataSlug)) {
 						params.set('filter_pa_model', dataSlug || dataValue);
 						url.search = params.toString();
 						href = url.toString();
-						console.log('📱 Added filter_pa_model to href:', href);
 					}
 				} catch (err) {
-					console.log('📱 Error parsing href, using as is:', err);
 				}
 				
-				console.log('🔄 Navigating to model filter:', href);
 				window.location.href = href;
 				return false;
 			} else if (dataValue || dataSlug) {
@@ -1162,8 +1020,7 @@
 				addActiveFilter('model', dataValue || dataSlug, modelText);
 				
 				currentUrl.search = params.toString();
-				currentUrl.searchParams.set('paged', '1'); // Reset to first page
-				console.log('🔄 Building model filter URL:', currentUrl.toString());
+				currentUrl.searchParams.set('paged', '1'); // Reset to first page		
 				window.location.href = currentUrl.toString();
 				
 				return false;
@@ -1196,25 +1053,15 @@
 			
 			// Stop event propagation to prevent color handler from running
 			e.stopImmediatePropagation();
-			
-			console.log('💾 Memory swatch filter clicked:', {
-				href: href,
-				dataValue: dataValue,
-				dataSlug: dataSlug,
-				classes: classes,
-				text: text
-			});
-			
+
 			// Try to find the link inside this element
 			var $link = $this.find('a');
 			if ($link.length) {
 				href = $link.attr('href');
-				console.log('💾 Found link inside:', href);
 			}
 			
 			if (href) {
 				e.preventDefault();
-				console.log('🔄 Navigating to memory filter:', href);
 				window.location.href = href;
 				return false;
 			} else if (dataValue || dataSlug || classes.includes('swatch-')) {
@@ -1226,20 +1073,13 @@
 				var filterResult = setFilterParameter(params, classes, dataValue, dataSlug, $this);
 				
 				if (filterResult.success) {
-					console.log('🔄 Replacing memory filter type:', filterResult.filterType);
-					console.log('🔄 Current URL params before:', Array.from(params.entries()));
-					
 					// Clean only the specific filter type that's being replaced
 					params = cleanSpecificFilterType(params, filterResult.filterType);
-					
-					console.log('🔄 URL params after cleaning:', Array.from(params.entries()));
 					
 					// Re-apply the filter parameter
 					if (filterResult.filterType === 'memorie') {
 						params.set('filter_pa_memorie', dataValue || dataSlug);
 					}
-					
-					console.log('🔄 URL params after setting new filter:', Array.from(params.entries()));
 					
 					// Get the filter text for display
 					var filterText = cleanFilterText(text || dataValue || dataSlug);
@@ -1249,7 +1089,6 @@
 					
 					currentUrl.search = params.toString();
 					currentUrl.searchParams.set('paged', '1'); // Reset to first page
-					console.log('🔄 Building memory filter URL:', currentUrl.toString());
 					window.location.href = currentUrl.toString();
 					
 					return false;
@@ -1294,24 +1133,14 @@
 			var href = $this.attr('href');
 			var text = $this.text().trim();
 			
-			console.log('🎨 Swatch filter clicked:', {
-				href: href,
-				dataValue: dataValue,
-				dataSlug: dataSlug,
-				classes: classes,
-				text: text
-			});
-			
 			// Try to find the link inside this element
 			var $link = $this.find('a');
 			if ($link.length) {
 				href = $link.attr('href');
-				console.log('🎨 Found link inside:', href);
 			}
 			
 			if (href) {
 				e.preventDefault();
-				console.log('🔄 Navigating to filter:', href);
 				window.location.href = href;
 				return false;
 			} else if (dataValue || dataSlug || classes.includes('swatch-')) {
@@ -1323,13 +1152,8 @@
 				var filterResult = setFilterParameter(params, classes, dataValue, dataSlug, $this);
 				
 				if (filterResult.success) {
-					console.log('🔄 Replacing filter type:', filterResult.filterType);
-					console.log('🔄 Current URL params before:', Array.from(params.entries()));
-					
 					// Clean only the specific filter type that's being replaced
 					params = cleanSpecificFilterType(params, filterResult.filterType);
-					
-					console.log('🔄 URL params after cleaning:', Array.from(params.entries()));
 					
 					// Re-apply the filter parameter
 					if (filterResult.filterType === 'stare') {
@@ -1342,8 +1166,6 @@
 						params.set('filter_pa_model', dataValue || dataSlug);
 					}
 					
-					console.log('🔄 URL params after setting new filter:', Array.from(params.entries()));
-					
 					// Get the filter text for display - clean it up
 					var filterText = cleanFilterText(text || dataValue || dataSlug || 'Filter');
 					
@@ -1352,7 +1174,6 @@
 					
 					currentUrl.search = params.toString();
 					currentUrl.searchParams.set('paged', '1'); // Reset to first page
-					console.log('🔄 Building filter URL:', currentUrl.toString());
 					window.location.href = currentUrl.toString();
 					
 					return false;
@@ -1369,18 +1190,14 @@
 			
 			// Skip if this is a model filter (already handled above)
 			if ($this.closest('.shopwell-model-filter-widget').length > 0) {
-				console.log('🔧 General handler skipping model filter');
 				return;
 			}
 			
 			var href = $this.attr('href');
 			var classes = $this.attr('class');
 			
-			console.log('🔧 General filter option clicked:', href, 'Classes:', classes);
-			
 			if (href) {
 				e.preventDefault();
-				console.log('🔄 Navigating to filter:', href);
 				window.location.href = href;
 				
 				return false;
@@ -1396,8 +1213,6 @@
 			var value = $this.val();
 			var checked = $this.is(':checked');
 			
-			console.log('☑️ Attribute filter changed:', name, '=', value, 'checked:', checked);
-			
 			// Build URL with current filter state
 			var currentUrl = new URL(window.location.href);
 			var params = new URLSearchParams(currentUrl.search);
@@ -1410,7 +1225,6 @@
 			
 			currentUrl.search = params.toString();
 			currentUrl.searchParams.set('paged', '1'); // Reset to first page
-			console.log('🔄 Navigating to:', currentUrl.toString());
 			
 			// Navigate to filtered URL immediately
 			window.location.href = currentUrl.toString();
@@ -1423,8 +1237,6 @@
 			var value = $this.val();
 			var checked = $this.is(':checked');
 			
-			console.log('☑️ Other checkbox filter changed:', name, '=', value, 'checked:', checked);
-			
 			// Build URL with current filter state
 			var currentUrl = new URL(window.location.href);
 			var params = new URLSearchParams(currentUrl.search);
@@ -1437,7 +1249,6 @@
 			
 			currentUrl.search = params.toString();
 			currentUrl.searchParams.set('paged', '1'); // Reset to first page
-			console.log('🔄 Navigating to:', currentUrl.toString());
 			
 			// Navigate to filtered URL immediately
 			window.location.href = currentUrl.toString();
@@ -1448,8 +1259,6 @@
 			var $this = $(this);
 			var name = $this.attr('name');
 			var value = $this.val();
-			
-			console.log('🔘 Radio filter changed:', name, '=', value);
 			
 			// Build URL with current filter state
 			var currentUrl = new URL(window.location.href);
@@ -1473,8 +1282,6 @@
 			var $this = $(this);
 			var name = $this.attr('name');
 			var value = $this.val();
-			
-			console.log('📋 Select filter changed:', name, '=', value);
 			
 			// Build URL with current filter state
 			var currentUrl = new URL(window.location.href);
@@ -1512,8 +1319,6 @@
 			var minPrice = $form.find('input[name="min_price"]').val();
 			var maxPrice = $form.find('input[name="max_price"]').val();
 			
-			console.log('💰 Price filter changed:', 'min:', minPrice, 'max:', maxPrice);
-			
 			// Debounce the price filter application
 			clearTimeout(shopwell.priceFilterTimeout);
 			shopwell.priceFilterTimeout = setTimeout(function() {
@@ -1543,8 +1348,6 @@
 
 		// Auto-apply when price slider changes
 		shopwell.$body.on('slidechange', '.price_slider', function(e, ui) {
-			console.log('🎚️ Price slider changed:', ui.values);
-			
 			// Build URL with price filters
 			var currentUrl = new URL(window.location.href);
 			var params = new URLSearchParams(currentUrl.search);
@@ -1823,14 +1626,11 @@
      * Document ready
      */
     $(function () {
-        console.log('🚀 Document ready - initializing shopwell');
         shopwell.init();
         
         // Load existing active filters from URL on page load
         // Use setTimeout to ensure DOM is fully ready
-        console.log('⏰ Setting timeout to load existing active filters');
         setTimeout(function() {
-            console.log('⏰ Timeout reached - calling loadExistingActiveFilters');
             if (typeof shopwell.loadExistingActiveFilters === 'function') {
                 shopwell.loadExistingActiveFilters();
             } else {

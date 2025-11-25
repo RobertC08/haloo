@@ -105,6 +105,7 @@ class Sku_Availability {
 			array(
 				'ajaxUrl'           => admin_url( 'admin-ajax.php' ),
 				'nonce'             => wp_create_nonce( 'check_sku_availability_nonce' ),
+				'logNonce'          => wp_create_nonce( 'shopwell_log_nonce' ), // Nonce for logging
 				'checkingText'      => esc_html__( 'Verificăm disponibilitatea produselor...', 'shopwell' ),
 				'unavailableText'   => esc_html__( 'Nu mai este disponibil.', 'shopwell' ),
 				'insufficientText'  => esc_html__( 'Cantitate insuficientă în stoc. Disponibil:', 'shopwell' ),

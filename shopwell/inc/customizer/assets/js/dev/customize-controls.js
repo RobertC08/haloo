@@ -65,7 +65,6 @@
 
 				api.control( 'shopwell_info_section_spacing' ).setting( data );
 
-				// console.log( 'New value', api.control( 'shopwell_info_section_spacing' ).setting() );
 			} else {
 				var data = {
 					'desktop': { 'top': 10, 'bottom': 10 },
@@ -76,7 +75,6 @@
 
 				api.control( 'shopwell_info_section_spacing' ).setting( data );
 
-				// console.log( 'New value', api.control( 'shopwell_info_section_spacing' ).setting() );
 			}
 			var selector = api.control( 'shopwell_info_section_spacing' ).selector;
 			setSpacingFieldValue( selector, data );

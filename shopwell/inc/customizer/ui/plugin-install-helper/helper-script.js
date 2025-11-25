@@ -76,7 +76,6 @@ jQuery( document ).ready(
 							} else {
 								msg = 'Uncaught Error.\n' + jqXHR.responseText;
 							}
-							console.log( msg );
 						}
 					}
 				);

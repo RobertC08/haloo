@@ -19,11 +19,9 @@ get_header();
 document.addEventListener('DOMContentLoaded', function() {
     const track = document.querySelector('.testimonials-carousel-right .carousel-track');
     if (!track) {
-        console.log('Carousel track not found');
         return;
     }
     
-    console.log('Carousel initialized');
     
     // Mouse events for desktop testing
     let isDown = false;
@@ -61,7 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
     track.addEventListener('touchstart', e => {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        console.log('Touch start:', touchStartX, touchStartY);
     }, { passive: true });
 
     track.addEventListener('touchend', e => {
@@ -70,20 +67,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const diffX = touchStartX - touchEndX;
         const diffY = touchStartY - touchEndY;
         
-        console.log('Touch end - diffX:', diffX, 'diffY:', diffY);
-        
         // Only respond to clear horizontal swipes (not vertical scrolling)
         if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 80) {
             const cardWidth = track.querySelector('.testimonial-item').offsetWidth;
             const newScrollLeft = track.scrollLeft + (diffX > 0 ? cardWidth : -cardWidth);
-            console.log('Swipe detected - scrolling to:', newScrollLeft);
             
             track.scrollTo({
                 left: newScrollLeft,
                 behavior: 'smooth'
             });
         } else {
-            console.log('No clear swipe detected - staying in place');
         }
     }, { passive: true });
     
@@ -114,11 +107,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const wrapper = document.querySelector('.catalog-top-categories__wrapper');
     
     if (!slider || !prevBtn || !nextBtn || !wrapper) {
-        console.log('Categories slider elements not found');
         return;
     }
     
-    console.log('All slider elements found, initializing...');
     
     const items = slider.querySelectorAll('.catalog-top-categories__item');
     const totalItems = items.length;
@@ -419,7 +410,6 @@ document.addEventListener('DOMContentLoaded', function() {
     itemsPerView = getItemsPerView();
     updateSlider();
     
-    console.log('Categories slider initialized');
 });
 
 </script>

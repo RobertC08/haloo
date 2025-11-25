@@ -8,6 +8,42 @@
 (function($) {
     'use strict';
 
+    // Ensure shopwellLog is available (fallback if not defined in functions.php)
+    // This ensures logging works even if checkout.js loads before the inline script in functions.php
+    if (typeof window.shopwellLog === 'undefined') {
+        window.shopwellLog = function(message, data) {
+            // Only log if WP_DEBUG is enabled (check via ajaxurl availability)
+            if (typeof ajaxurl === 'undefined') {
+                return; // Don't log if ajaxurl is not available
+            }
+            
+            // Try to get nonce from various sources
+            var nonce = '';
+            if (typeof shopwellCheckoutSku !== 'undefined' && shopwellCheckoutSku.logNonce) {
+                nonce = shopwellCheckoutSku.logNonce;
+            } else if (typeof shopwellData !== 'undefined' && shopwellData.logNonce) {
+                nonce = shopwellData.logNonce;
+            } else if (typeof wp !== 'undefined' && wp.ajax && wp.ajax.settings && wp.ajax.settings.nonce) {
+                nonce = wp.ajax.settings.nonce;
+            }
+            
+            // If no nonce found, try to get it via AJAX or skip logging
+            if (!nonce) {
+                // Silently skip if no nonce available
+                return;
+            }
+            
+            $.post(ajaxurl, {
+                action: 'shopwell_log_message',
+                nonce: nonce,
+                message: message,
+                data: data ? JSON.stringify(data) : null
+            }).fail(function() {
+                // Silently fail - don't break functionality if logging fails
+            });
+        };
+    }
+
     $(document).ready(function() {
         const checkoutForm = $('form.checkout');
         
@@ -118,36 +154,36 @@
                         }
                         
                         // Log to console for debugging (only for non-configuration errors)
-                        console.log('=== Market API Check SKU Availability ===');
-                        console.log('SKU:', sku);
-                        console.log('Full Response:', response);
+                        shopwellLog('=== Market API Check SKU Availability ===');
+                        shopwellLog('SKU:', sku);
+                        shopwellLog('Full Response:', response);
                         
                         if (response.data && response.data.debug_info) {
-                            console.log('--- Request Details ---');
-                            console.log('URL:', response.data.debug_info.request_url);
-                            console.log('Headers:', response.data.debug_info.request_headers);
-                            console.log('Method:', response.data.debug_info.request_method);
-                            console.log('--- Response Details ---');
-                            console.log('Response Code:', response.data.debug_info.response_code);
-                            console.log('Response Body:', response.data.debug_info.response_body);
+                            shopwellLog('--- Request Details ---');
+                            shopwellLog('URL:', response.data.debug_info.request_url);
+                            shopwellLog('Headers:', response.data.debug_info.request_headers);
+                            shopwellLog('Method:', response.data.debug_info.request_method);
+                            shopwellLog('--- Response Details ---');
+                            shopwellLog('Response Code:', response.data.debug_info.response_code);
+                            shopwellLog('Response Body:', response.data.debug_info.response_body);
                         }
                         
                         if (response.success) {
-                            console.log('✅ Success - Availability:', response.data);
+                            shopwellLog('✅ Success - Availability:', response.data);
                             resolve(response.data);
                         } else {
-                            console.error('❌ Error:', response.data);
+                            shopwellLog('❌ Error:', response.data);
                             reject(response.data || { message: 'Unknown error' });
                         }
-                        console.log('========================================');
+                        shopwellLog('========================================');
                     },
                     error: function(xhr, status, error) {
-                        console.error('=== Market API AJAX Error ===');
-                        console.error('SKU:', sku);
-                        console.error('Status:', status);
-                        console.error('Error:', error);
-                        console.error('XHR:', xhr);
-                        console.error('======================================');
+                        shopwellLog('=== Market API AJAX Error ===');
+                        shopwellLog('SKU:', sku);
+                        shopwellLog('Status:', status);
+                        shopwellLog('Error:', error);
+                        shopwellLog('XHR:', xhr);
+                        shopwellLog('======================================');
                         reject({ message: error || 'Network error' });
                     }
                 });
@@ -206,7 +242,7 @@
                             errorMessage.includes('configuration missing') ||
                             errorMessage.includes('Produsul nu a fost găsit în sistem') ||
                             errorMessage.includes('nu a fost găsit')) {
-                            console.warn('Market API error ignored, skipping availability check for SKU:', item.sku);
+                            shopwellLog('Market API error ignored, skipping availability check for SKU: ' + item.sku);
                             // Don't add to errors - allow checkout to proceed
                             // Skip this item and continue with next
                         } else {
@@ -324,9 +360,9 @@
                     try {
                         cartSkus = await getCartSkusFromWooCommerce();
                     } catch (error) {
-                        console.warn('Could not retrieve cart SKUs via AJAX:', error);
+                        shopwellLog('Could not retrieve cart SKUs via AJAX', error);
                         // As a fallback, we'll allow submission if we can't get SKUs
-                        console.warn('Could not retrieve cart SKUs, allowing submission');
+                        shopwellLog('Could not retrieve cart SKUs, allowing submission');
                         isCheckingAvailability = false;
                         checkoutForm.off('submit', submitHandler);
                         const formElement = checkoutForm[0];
@@ -343,7 +379,7 @@
                 cartSkus = cartSkus.filter(item => item.sku && item.sku.trim() !== '');
 
                 if (cartSkus.length === 0) {
-                    console.warn('No valid SKUs found, allowing submission');
+                    shopwellLog('No valid SKUs found, allowing submission');
                     isCheckingAvailability = false;
                     checkoutForm.off('submit', arguments.callee);
                     const formElement = checkoutForm[0];
@@ -407,7 +443,7 @@
                 return false;
 
             } catch (error) {
-                console.error('Error checking SKU availability:', error);
+                shopwellLog('Error checking SKU availability', error);
                 isCheckingAvailability = false;
                 checkoutSubmitBlocked = false;
                 
