@@ -3264,7 +3264,7 @@ body.socials-popup-opened {
   display: block;
 }
 .single-product div.product table.variations tr .wcboost-variation-swatches--button .wcboost-variation-swatches__item:last-child {
-  margin: 0 25px 0 5px;
+  margin: 0 5px 0 5px;
 }
 .single-product div.product table.variations td,
 .single-product div.product table.variations th {

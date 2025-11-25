@@ -882,14 +882,19 @@
 			'auriu-roz': 'rgba(183, 110, 121, 0.2)',
 			'bej': 'rgba(245, 245, 220, 0.2)',
 			'bronz': 'rgba(205, 127, 50, 0.2)',
+			'copper': 'rgba(184, 115, 51, 0.2)',
 			'galben': 'rgba(255, 255, 0, 0.2)',
 			'gri': 'rgba(128, 128, 128, 0.2)',
+			'lamaie': 'rgba(255, 255, 0, 0.2)',
 			'maro': 'rgba(165, 42, 42, 0.2)',
+			'mint': 'rgba(152, 255, 152, 0.2)',
 			'negru': 'rgba(0, 0, 0, 0.2)',
+			'negru-jet': 'rgba(0, 0, 0, 0.2)',
 			'portocaliu': 'rgba(255, 165, 0, 0.2)',
 			'roșu': 'rgba(255, 0, 0, 0.2)',
 			'rosu': 'rgba(255, 0, 0, 0.2)',
 			'roz': 'rgba(255, 192, 203, 0.2)',
+			'special': 'rgba(200, 200, 200, 0.2)',
 			'transparent': 'rgba(245, 245, 245, 0.2)',
 			'turcoaz': 'rgba(64, 224, 208, 0.2)',
 			'verde': 'rgba(0, 128, 0, 0.2)',
@@ -1088,32 +1093,50 @@
 				}
 				
 			if (matchedColor) {
-				// Find the color swatch span (not the name span)
-				var $colorSpan = $item.find('span:not(.wcboost-variation-swatches__name)').first();
-				
-				if ($colorSpan.length === 0) {
-					$colorSpan = $('<span></span>');
-					$item.prepend($colorSpan);
+				// Convert rgba with opacity to full opacity for circle
+				var fullOpacityColor = matchedColor;
+				if (matchedColor.indexOf('rgba') === 0) {
+					// Extract RGB values and create new rgba with opacity 1
+					var match = matchedColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+					if (match) {
+						fullOpacityColor = 'rgba(' + match[1] + ', ' + match[2] + ', ' + match[3] + ', 1)';
+					}
 				}
 				
-				// Apply background color ONLY to the color swatch circle span
-				$colorSpan.css({
-					'background-color': matchedColor,
-					'display': 'block',
-					'width': '100%',
-					'height': '100%',
-					'border-radius': '50%'
-				});
-				
-				// Set via style attribute for maximum priority
-				if ($colorSpan[0]) {
-					$colorSpan[0].style.setProperty('background-color', matchedColor, 'important');
+				// Check if color circle already exists
+				if ($item.find('.color-circle').length === 0) {
+					// Create color circle element
+					var $circle = $('<span class="color-circle"></span>');
+					$circle.css({
+						'display': 'inline-block',
+						'width': '16px',
+						'height': '16px',
+						'border-radius': '50%',
+						'background-color': fullOpacityColor,
+						'margin-right': '8px',
+						'vertical-align': 'middle',
+						'flex-shrink': '0',
+						'border': '1px solid rgba(0, 0, 0, 0.1)'
+					});
+					
+					// Insert circle before the text content
+					var $nameSpan = $item.find('.wcboost-variation-swatches__name');
+					if ($nameSpan.length) {
+						$nameSpan.prepend($circle);
+					} else {
+						// If no name span, prepend to the item itself
+						$item.prepend($circle);
+					}
+					
+					// Mark as processed
+					$item.attr('data-color-circle-applied', 'true');
+					$item.addClass('has-color-circle');
 				}
 				
-				// Apply to item itself as backup
-				$item.css('background-color', matchedColor);
+				// Remove background color from item itself (we only want the circle)
+				$item.css('background-color', 'transparent');
 				if ($item[0]) {
-					$item[0].style.setProperty('background-color', matchedColor, 'important');
+					$item[0].style.setProperty('background-color', 'transparent', 'important');
 				}
 				
 				// Remove background and border-radius from name span explicitly
@@ -1139,7 +1162,7 @@
 				}
 				
 				// Find and apply to all text elements inside (excluding the color swatch span)
-				var $textElements = $item.find('.wcboost-variation-swatches__name, span:not(.wcboost-variation-swatches__color):not([style*="background-color"]), div:not([style*="background-color"]), a, button');
+				var $textElements = $item.find('.wcboost-variation-swatches__name, span:not(.wcboost-variation-swatches__color):not(.color-circle):not([style*="background-color"]), div:not([style*="background-color"]), a, button');
 				$textElements.css('color', textColor);
 				$textElements.each(function() {
 					if (this.style) {

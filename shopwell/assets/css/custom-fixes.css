@@ -297,3 +297,77 @@
 .products-filter-widget .filter-list li.products-filter__option.filter-list-item.has-color-circle:hover {
     transition: none !important;
 }
+
+/**
+ * Color circles in single product page
+ * Display color circles to the left of color variation text
+ */
+.single-product div.product .wcboost-variation-swatches__item.has-color-circle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    background-color: transparent !important;
+    min-width: auto !important;
+}
+
+.single-product div.product .wcboost-variation-swatches__item.has-color-circle .color-circle {
+    display: inline-block !important;
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 50% !important;
+    margin-right: 8px !important;
+    vertical-align: middle !important;
+    flex-shrink: 0 !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.single-product div.product .wcboost-variation-swatches__item.has-color-circle .wcboost-variation-swatches__name {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex: 0 1 auto !important;
+    transition: none !important;
+    white-space: nowrap !important;
+    margin-right: 0 !important;
+    background-color: transparent !important;
+}
+
+/* Remove hover animations for color swatches in single product */
+.single-product div.product .wcboost-variation-swatches__item.has-color-circle:hover {
+    transition: none !important;
+}
+
+.single-product div.product .wcboost-variation-swatches__item.has-color-circle .wcboost-variation-swatches__name:hover:after {
+    display: none !important;
+    width: 0 !important;
+    transition: none !important;
+}
+
+.single-product div.product .wcboost-variation-swatches__item.has-color-circle .wcboost-variation-swatches__name:after {
+    display: none !important;
+    transition: none !important;
+}
+
+/* Override color swatch styles for button format */
+.single-product div.product .wcboost-variation-swatches--button .wcboost-variation-swatches__item.has-color-circle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    background-color: transparent !important;
+    border: 2px solid #ebeff3 !important;
+}
+
+.single-product div.product .wcboost-variation-swatches--button .wcboost-variation-swatches__item.has-color-circle:hover {
+    border-color: #1d2128 !important;
+    background-color: transparent !important;
+}
+
+.single-product div.product .wcboost-variation-swatches--button .wcboost-variation-swatches__item.has-color-circle.selected {
+    border-color: #1d2128 !important;
+    background-color: #1d2128 !important;
+    color: #fff !important;
+}
+
+.single-product div.product .wcboost-variation-swatches--button .wcboost-variation-swatches__item.has-color-circle.selected .wcboost-variation-swatches__name {
+    color: #fff !important;
+}
