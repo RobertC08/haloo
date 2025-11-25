@@ -93,7 +93,6 @@
 .catalog-toolbar-wrapper .catalog-toolbar--top {
     display: flex !important;
     align-items: center !important;
-    margin-right: 24px !important;
     margin-bottom: 0 !important;
     order: 2 !important; /* Filtering/sorting on the right */
 }
@@ -150,7 +149,6 @@
 .catalog-toolbar--top .mobile-catalog-toolbar__sort-button,
 .catalog-toolbar--top .catalog-order {
     flex-direction: column !important;
-    min-height: 88px !important;
     align-items: center !important;
     justify-content: center !important;
 }
@@ -181,9 +179,9 @@
 .mobile-catalog-toolbar__sort-button {
     font-size: 16px !important;
 }
-urmareste-
+
 .catalog-toolbar--top{
-    padding: 0px;
+    margin-bottom: 12px;
 }
 
 /**

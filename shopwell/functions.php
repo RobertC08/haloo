@@ -3212,4 +3212,28 @@ function shopwell_wrap_catalog_toolbar_elements() {
 }
 add_action('wp', 'shopwell_wrap_catalog_toolbar_elements', 25);
 
+/**
+ * AJAX handler to render WooCommerce products shortcode
+ * Used to display recommended products from quiz
+ */
+function shopwell_render_products_shortcode() {
+    check_ajax_referer('shopwell_products_shortcode', 'nonce');
+    
+    if (!isset($_POST['product_ids']) || empty($_POST['product_ids'])) {
+        wp_send_json_error(array('message' => 'Product IDs are required'));
+        return;
+    }
+    
+    $product_ids = sanitize_text_field($_POST['product_ids']);
+    $columns = isset($_POST['columns']) ? intval($_POST['columns']) : 4;
+    
+    // Use WooCommerce shortcode to render products
+    $shortcode = '[products ids="' . esc_attr($product_ids) . '" columns="' . esc_attr($columns) . '" orderby="post__in"]';
+    $output = do_shortcode($shortcode);
+    
+    wp_send_json_success(array('html' => $output));
+}
+add_action('wp_ajax_shopwell_render_products_shortcode', 'shopwell_render_products_shortcode');
+add_action('wp_ajax_nopriv_shopwell_render_products_shortcode', 'shopwell_render_products_shortcode');
+
 

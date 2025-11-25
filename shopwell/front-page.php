@@ -566,14 +566,322 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <!-- Featured Products Section -->
             <section class="woocommerce">
-                <div class="container">
+                <div class="container" style="max-width: 1440px; margin: 0 auto 24px; padding: 0 24px; box-sizing: border-box;">
                     <h2 class="section-title">Telefoane Recomandate</h2>
-                    <?php
-                    // Use WooCommerce shortcode to get the exact same layout as category page
-                    echo do_shortcode('[products limit="8" columns="4" orderby="featured" order="desc"]');
-                    ?>
+                    <ul id="quiz-recommended-products" class="products columns-4">
+                        <li class="loading-products" style="text-align: center; padding: 40px; grid-column: 1 / -1;">
+                            <p>Se încarcă produsele recomandate...</p>
+                        </li>
+                    </ul>
                 </div>
             </section>
+            
+            <style>
+            #quiz-recommended-products.products {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 20px !important;
+                list-style: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            #quiz-recommended-products .product {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            #quiz-recommended-products .product-inner {
+                background: #fff;
+                border-radius: 8px;
+                overflow: hidden;
+                transition: box-shadow 0.3s ease;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            #quiz-recommended-products .product-inner:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            
+            #quiz-recommended-products .product-thumbnail {
+                position: relative;
+                padding-top: 100%;
+                overflow: hidden;
+                background: #f5f5f5;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            #quiz-recommended-products .product-thumbnail a {
+                display: block;
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            
+            #quiz-recommended-products .product-thumbnail img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                max-width: 100%;
+                display: block;
+            }
+            
+            #quiz-recommended-products .product-summary {
+                padding: 15px;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            #quiz-recommended-products .woocommerce-loop-product__title {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 500;
+                line-height: 1.4;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            #quiz-recommended-products .woocommerce-loop-product__title a {
+                color: #2A322F;
+                text-decoration: none;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            #quiz-recommended-products .woocommerce-loop-product__title a:hover {
+                color: #66fa95;
+            }
+            
+            #quiz-recommended-products .recommendation-badge {
+                background: #66fa95;
+                color: #2A322F;
+                padding: 5px 10px;
+                border-radius: 15px;
+                display: inline-block;
+                margin: 0 0 10px 0;
+                font-size: 12px;
+                font-weight: 500;
+                width: fit-content;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            #quiz-recommended-products .price {
+                font-size: 18px;
+                font-weight: 600;
+                color: #2A322F;
+                margin-bottom: 15px;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            #quiz-recommended-products .button {
+                background:rgba(132, 177, 160, 0);
+                color: #2A322F;
+                border-radius: 8px;
+                border: 1px solid #2A322F;
+                text-decoration: none;
+                display: block;
+                text-align: center;
+                font-weight: 500;
+                transition: background 0.3s ease;
+                margin-top: auto;
+                min-width: auto !important;
+                padding: 0;
+                min-height: 44px;
+                line-height: 44px;
+                box-sizing: border-box;
+            }
+            
+            @media (max-width: 768px) {
+                section.woocommerce .container {
+                    padding: 0 10px !important;
+                    max-width: 100% !important;
+                    box-sizing: border-box !important;
+                    width: 100% !important;
+                }
+                
+                #quiz-recommended-products.products {
+                    grid-template-columns: repeat(2, 1fr) !important;
+                    gap: 10px !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    box-sizing: border-box !important;
+                    margin: 0 auto !important;
+                    padding: 0 !important;
+                    justify-items: stretch !important;
+                    display: grid !important;
+                }
+                
+                #quiz-recommended-products .product {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    box-sizing: border-box !important;
+                    justify-self: stretch !important;
+                    min-width: 0 !important;
+                }
+                
+                #quiz-recommended-products .product-inner {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    height: auto !important;
+                    min-height: 100%;
+                    box-sizing: border-box !important;
+                    overflow: hidden !important;
+                }
+                
+                #quiz-recommended-products .product-thumbnail {
+                    padding-top: 100%;
+                    width: 100%;
+                    max-width: 100%;
+                    min-width: 0;
+                }
+                
+                #quiz-recommended-products .product-summary {
+                    padding: 10px;
+                    min-height: auto;
+                    width: 100%;
+                    box-sizing: border-box;
+                    overflow: hidden;
+                }
+                
+                #quiz-recommended-products .woocommerce-loop-product__title {
+                    font-size: 13px;
+                    line-height: 1.3;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                    margin-bottom: 6px;
+                }
+                
+                #quiz-recommended-products .recommendation-badge {
+                    font-size: 10px;
+                    padding: 3px 6px;
+                    margin: 0 0 6px 0;
+                    max-width: 100%;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                
+                #quiz-recommended-products .price {
+                    font-size: 15px;
+                    margin-bottom: 10px;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                }
+                
+                #quiz-recommended-products .button {
+                    font-size: 13px;
+                    padding: 0;
+                    min-height: 40px;
+                    line-height: 40px;
+                    min-width: auto !important;
+                    box-sizing: border-box;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+            }
+            </style>
+            
+            <script>
+            jQuery(document).ready(function($) {
+                // Load top recommended products from quiz using the AJAX endpoint
+                function loadTopRecommendations() {
+                    $.ajax({
+                        url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                        type: 'POST',
+                        data: {
+                            action: 'quiz_get_top_recommendations'
+                        },
+                        timeout: 10000,
+                        success: function(response) {
+                            if (response.success && response.data && response.data.recommendations && response.data.recommendations.length > 0) {
+                                renderRecommendations(response.data.recommendations);
+                            } else {
+                                $('#quiz-recommended-products').html('<p style="text-align: center; padding: 40px;">Nu există recomandări încă.</p>');
+                            }
+                        },
+                        error: function() {
+                            $('#quiz-recommended-products').html('<p style="text-align: center; padding: 40px;">Eroare la încărcarea recomandărilor.</p>');
+                        }
+                    });
+                }
+                
+                function renderRecommendations(recommendations) {
+                    var html = '';
+                    
+                    recommendations.forEach(function(product) {
+                        html += '<li class="product type-product">';
+                        html += '<div class="product-inner">';
+                        
+                        // Product image
+                        html += '<div class="product-thumbnail">';
+                        html += '<a href="' + product.url + '" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">';
+                        html += '<img src="' + product.image + '" alt="' + product.name + '" class="attachment-woocommerce_thumbnail size-woocommerce_thumbnail wp-post-image" />';
+                        html += '</a>';
+                        html += '</div>';
+                        
+                        // Product summary
+                        html += '<div class="product-summary">';
+                        
+                        // Product title
+                        html += '<h2 class="woocommerce-loop-product__title">';
+                        html += '<a href="' + product.url + '">' + product.name + '</a>';
+                        html += '</h2>';
+                        
+                        // Recommendation badge (between title and price)
+                        if (product.recommendation_count > 0) {
+                            var recommendationText = product.recommendation_count === 1 
+                                ? 'O recomandare' 
+                                : product.recommendation_count + ' recomandări';
+                            
+                            html += '<div class="recommendation-badge" style="background: #66fa95; color: #2A322F; padding: 5px 10px; border-radius: 15px; display: inline-block; margin: 10px 0; font-size: 12px; font-weight: 500;">';
+                            html += recommendationText;
+                            html += '</div>';
+                        }
+                        
+                        // Product price
+                        html += '<span class="price">' + product.price + '</span>';
+                        
+                        // View product button (not add to cart)
+                        html += '<a href="' + product.url + '" class="button product_type_simple">Vezi detalii</a>';
+                        
+                        html += '</div>'; // .product-summary
+                        html += '</div>'; // .product-inner
+                        html += '</li>';
+                    });
+                    
+                    $('#quiz-recommended-products').html(html);
+                }
+                
+                // Load on page load
+                loadTopRecommendations();
+            });
+            </script>
 
             <!-- Testimonials Section -->
             <section class="testimonials-section">
