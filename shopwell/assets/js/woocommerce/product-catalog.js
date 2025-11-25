@@ -798,6 +798,78 @@
 			}
 		});
 
+		// Handle color filters in list format (products-filter__option filter-list-item with color data-value)
+		// This handler must come BEFORE the category handler to take priority
+		shopwell.$body.on('click', '.products-filter__option.filter-list-item', function(e) {
+			var $this = $(this);
+			var href = $this.attr('href');
+			var dataValue = $this.data('value');
+			var dataSlug = $this.data('slug');
+			var text = $this.text().trim();
+			
+			// Check if this is a color filter by checking data-value
+			// Color filters have color names like: negru, albastru, alb, gri, verde, violet, etc.
+			var isColorFilter = false;
+			if (dataValue) {
+				var colorNames = ['negru', 'albastru', 'alb', 'gri', 'verde', 'violet', 'argintiu', 'roz', 'auriu', 
+					'bej', 'galben', 'rosu', 'albastru-gheata', 'portocaliu', 'mint', 'bronz', 'negru-jet', 
+					'copper', 'lamaie', 'special', 'maro', 'turcoaz', 'amurg', 'auriu-roz', 'albastru-aura'];
+				var lowerValue = dataValue.toLowerCase();
+				for (var i = 0; i < colorNames.length; i++) {
+					if (lowerValue === colorNames[i] || lowerValue.includes(colorNames[i])) {
+						isColorFilter = true;
+						break;
+					}
+				}
+			}
+			
+			// If not a color filter, skip (let category handler process it)
+			if (!isColorFilter) {
+				return;
+			}
+			
+			// Stop event propagation to prevent category handler from running
+			e.stopImmediatePropagation();
+			
+			// Try to find the link inside this element
+			var $link = $this.find('a');
+			if ($link.length) {
+				href = $link.attr('href');
+			}
+			
+			if (href) {
+				e.preventDefault();
+				window.location.href = href;
+				return false;
+			} else if (dataValue || dataSlug) {
+				// Build URL manually if we have data attributes
+				var currentUrl = new URL(window.location.href);
+				var params = new URLSearchParams(currentUrl.search);
+				
+				// Clean only the color filter type
+				params = cleanSpecificFilterType(params, 'culoare');
+				
+				// Set the new color filter
+				if (dataSlug) {
+					params.set('filter_pa_culoare', dataSlug);
+				} else if (dataValue) {
+					params.set('filter_pa_culoare', dataValue);
+				}
+				
+				// Get the color text for display
+				var colorText = cleanFilterText(text || dataValue || dataSlug);
+				
+				// Add to active filters display
+				addActiveFilter('culoare', dataValue || dataSlug, colorText);
+				
+				currentUrl.search = params.toString();
+				currentUrl.searchParams.set('paged', '1'); // Reset to first page
+				window.location.href = currentUrl.toString();
+				
+				return false;
+			}
+		});
+		
 		// Handle category filters (products-filter__option filter-list-item)
 		shopwell.$body.on('click', '.products-filter__option.filter-list-item', function(e) {
 			var $this = $(this);
@@ -1693,14 +1765,19 @@
 				'auriu-roz': 'rgba(183, 110, 121, 0.2)',
 				'bej': 'rgba(245, 245, 220, 0.2)',
 				'bronz': 'rgba(205, 127, 50, 0.2)',
+				'copper': 'rgba(184, 115, 51, 0.2)',
 				'galben': 'rgba(255, 255, 0, 0.2)',
 				'gri': 'rgba(128, 128, 128, 0.2)',
+				'lamaie': 'rgba(255, 255, 0, 0.2)',
 				'maro': 'rgba(165, 42, 42, 0.2)',
+				'mint': 'rgba(152, 255, 152, 0.2)',
 				'negru': 'rgba(0, 0, 0, 0.2)',
+				'negru-jet': 'rgba(0, 0, 0, 0.2)',
 				'portocaliu': 'rgba(255, 165, 0, 0.2)',
 				'roșu': 'rgba(255, 0, 0, 0.2)',
 				'rosu': 'rgba(255, 0, 0, 0.2)',
 				'roz': 'rgba(255, 192, 203, 0.2)',
+				'special': 'rgba(200, 200, 200, 0.2)',
 				'transparent': 'rgba(245, 245, 245, 0.2)',
 				'turcoaz': 'rgba(64, 224, 208, 0.2)',
 				'verde': 'rgba(0, 128, 0, 0.2)',
@@ -1825,6 +1902,69 @@
 				}
 			});
 			
+			// Also handle color filters in list format (.products-filter__option.filter-list-item)
+			$('.products-filter__option.filter-list-item').each(function() {
+				var $item = $(this);
+				var dataValue = $item.data('value') || '';
+				
+				// Check if this is a color filter by checking data-value
+				var colorNames = ['negru', 'albastru', 'alb', 'gri', 'verde', 'violet', 'argintiu', 'roz', 'auriu', 
+					'bej', 'galben', 'rosu', 'albastru-gheata', 'portocaliu', 'mint', 'bronz', 'negru-jet', 
+					'copper', 'lamaie', 'special', 'maro', 'turcoaz', 'amurg', 'auriu-roz', 'albastru-aura'];
+				var isColorFilter = false;
+				var lowerValue = dataValue.toLowerCase();
+				for (var i = 0; i < colorNames.length; i++) {
+					if (lowerValue === colorNames[i] || lowerValue.includes(colorNames[i])) {
+						isColorFilter = true;
+						break;
+					}
+				}
+				
+				if (isColorFilter && dataValue && typeof shopwell.getColorByName === 'function') {
+					var color = shopwell.getColorByName(dataValue);
+					if (color) {
+						// Check if color circle already exists
+						if ($item.find('.color-circle').length === 0) {
+							// Convert rgba with opacity to full opacity for circle
+							var fullOpacityColor = color;
+							if (color.indexOf('rgba') === 0) {
+								// Extract RGB values and create new rgba with opacity 1
+								var match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+								if (match) {
+									fullOpacityColor = 'rgba(' + match[1] + ', ' + match[2] + ', ' + match[3] + ', 1)';
+								}
+							}
+							
+							// Create color circle element
+							var $circle = $('<span class="color-circle"></span>');
+							$circle.css({
+								'display': 'inline-block',
+								'width': '16px',
+								'height': '16px',
+								'border-radius': '50%',
+								'background-color': fullOpacityColor,
+								'margin-right': '8px',
+								'vertical-align': 'middle',
+								'flex-shrink': '0'
+							});
+							
+							// Insert circle before the text content
+							var $optionName = $item.find('.products-filter__option-name');
+							if ($optionName.length) {
+								$optionName.prepend($circle);
+							} else {
+								// If no option-name element, prepend to the item itself
+								$item.prepend($circle);
+							}
+							
+							// Mark as processed and add class for CSS targeting
+							$item.attr('data-color-circle-applied', 'true');
+							$item.addClass('has-color-circle');
+						}
+					}
+				}
+			});
+			
 			// Sort colors alphabetically after applying colors
 			if (typeof shopwell.sortColorFiltersAlphabetically === 'function') {
 				shopwell.sortColorFiltersAlphabetically();
@@ -1832,7 +1972,7 @@
 		}, 200);
 		
 		// Reapply when filters are updated via AJAX
-		$(document.body).on('shopwell_ajax_filter_updated', function() {
+		$(document.body).on('shopwell_ajax_filter_updated updated_wc_div shopwell_products_filter_widget_updated', function() {
 			setTimeout(function() {
 				shopwell.applyFilterColorSwatches();
 			}, 300);

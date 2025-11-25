@@ -181,7 +181,7 @@
 }
 
 .catalog-toolbar--top{
-    margin-bottom: 12px;
+    margin-bottom: 12px !important;
 }
 
 /**
@@ -213,4 +213,87 @@
 
 .page-id-20710 .woocommerce{
     margin-bottom: 36px !important;
+}
+
+/**
+ * Color filter circles in vertical list format
+ * Display color circles to the left of color filter text
+ * Only apply to color filters (those that have the has-color-circle class)
+ */
+.products-filter__option.filter-list-item.has-color-circle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+}
+
+.products-filter__option.filter-list-item .color-circle {
+    display: inline-block !important;
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 50% !important;
+    margin-right: 8px !important;
+    vertical-align: middle !important;
+    flex-shrink: 0 !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.products-filter__option.filter-list-item.has-color-circle .products-filter__option-name {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex: 0 1 auto !important;
+    transition: none !important;
+    white-space: nowrap !important;
+    margin-right: 0 !important;
+}
+
+/* Remove hover animations for color filter list items only */
+.products-filter__option.filter-list-item.has-color-circle:hover,
+.products-filter__option.filter-list-item.has-color-circle .products-filter__option-name:hover {
+    transition: none !important;
+}
+
+.products-filter__option.filter-list-item.has-color-circle .products-filter__option-name:hover:after {
+    display: none !important;
+    width: 0 !important;
+    transition: none !important;
+}
+
+.products-filter__option.filter-list-item.has-color-circle .products-filter__option-name:after {
+    display: none !important;
+    transition: none !important;
+}
+
+/* Position count next to text with more space - keep it inline with text (only for color filters) */
+.products-filter__option.filter-list-item.has-color-circle .counter,
+.products-filter__option.filter-list-item.has-color-circle .products-filter__count {
+    margin-left: 12px !important;
+    margin-right: 0 !important;
+    position: static !important;
+    display: inline-block !important;
+    flex-shrink: 0 !important;
+    order: 2 !important;
+}
+
+/* Ensure option-name comes before count (only for color filters) */
+.products-filter__option.filter-list-item.has-color-circle .products-filter__option-name {
+    order: 1 !important;
+}
+
+/* Override any flex-wrap that might separate count from text (only for color filters) */
+.products-filter-widget .filter-list li.products-filter__option.filter-list-item.has-color-circle {
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+}
+
+/* Remove all transitions and animations from color filter list items only */
+.products-filter__option.filter-list-item.has-color-circle,
+.products-filter__option.filter-list-item.has-color-circle *,
+.products-filter-widget .filter-list li.products-filter__option.filter-list-item.has-color-circle {
+    transition: none !important;
+}
+
+/* Remove hover color change animations (only for color filters) */
+.products-filter-widget .filter-list li.products-filter__option.filter-list-item.has-color-circle:hover {
+    transition: none !important;
 }
