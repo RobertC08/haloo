@@ -225,7 +225,7 @@ function shopwell_enqueue_refactored_styles() {
         'shopwell-footer-styles',
         get_template_directory_uri() . '/assets/css/layout/footer.css',
         array('shopwell-refactored-base'),
-        '1.0.19'
+        '1.0.20'
     );
 }
 

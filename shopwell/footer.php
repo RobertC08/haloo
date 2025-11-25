@@ -32,31 +32,34 @@
             </div>
             
             <div class="footer-section">
-                <h4>Despre noi</h4>
+                <h4>Informații & Companie</h4>
                 <ul>
-                    <li><a href="/alege-telefonul-pentru-tine">Găsește telefonul potrivit</a></li>
                     <li><a href="/despre-noi">Despre Haloo</a></li>
-                    <li><a href="/faq">FAQ</a></li>
                     <li><a href="/blog">Blog</a></li>
                     <li><a href="/contact">Contact Haloo</a></li>
+                    <li><a href="/faq">FAQ</a></li>
                     <li><a href="/termeni-si-conditii">Termeni și condiții</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-section">
-                <h4>Servicii Clienți</h4>
-                <ul>
-                    <li><a href="/contul-meu/comenzile-mele/">Comenzile Tale</a></li>
-                    <li><a href="/retururi-si-inlocuiri">Retururi și Înlocuiri</a></li>
-                    <li><a href="/tarife-si-politici-de-livrare">Tarife și Politici de Livrare</a></li>
-                    <li><a href="/politica-de-rambursare">Politica de Rambursare</a></li>
                     <li><a href="/politica-de-confidentialitate">Politica de Confidențialitate</a></li>
                 </ul>
             </div>
             
             <div class="footer-section">
-                <h4>Comenzi și Retururi</h4>
+                <h4>Ghiduri & Parteneriate</h4>
                 <ul>
+                    <li><a href="/alege-telefonul-potrivit">Găsește telefonul potrivit</a></li>
+                    <li><a href="/alege-telefonul-pentru-tine">Program Affiliate</a></li>
+                    <li><a href="/regulament-afiliere">Regulament Affiliate</a></li>
+                    <li><a href="/termeni-afiliere/">Termeni Affiliate</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Suport Clienți</h4>
+                <ul>
+                    <li><a href="/contul-meu/comenzile-mele/">Comenzile Tale</a></li>
+                    <li><a href="/retururi-si-inlocuiri">Retururi și Înlocuiri</a></li>
+                    <li><a href="/tarife-si-politici-de-livrare">Tarife și Politici de Livrare</a></li>
+                    <li><a href="/politica-de-rambursare">Politica de Rambursare</a></li>
                     <li><a href="/urmareste-comanda">Urmărește Comanda</a></li>
                     <li><a href="/livrare-si-delivery">Livrare și Delivery</a></li>
                     <li><a href="/politica-banii-inapoi">Politica Banii Înapoi</a></li>

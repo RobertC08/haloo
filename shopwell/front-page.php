@@ -950,6 +950,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </section>
 
+            <!-- Quiz Section -->
+            <?php
+            // Find the quiz page
+            $quiz_pages = get_pages(array(
+                'meta_key' => '_wp_page_template',
+                'meta_value' => 'page-quiz.php',
+                'number' => 1
+            ));
+            
+            $quiz_url = '#';
+            if (!empty($quiz_pages)) {
+                $quiz_url = get_permalink($quiz_pages[0]->ID);
+            } else {
+                // Fallback: try to find by slug
+                $quiz_page = get_page_by_path('quiz');
+                if ($quiz_page) {
+                    $quiz_url = get_permalink($quiz_page->ID);
+                }
+            }
+            ?>
+            <section class="quiz-cta-section">
+                <div class="container">
+                    <div class="quiz-cta-content">
+                        <div class="quiz-cta-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <h2 class="quiz-cta-title">Nu știi ce telefon să alegi?</h2>
+                        <p class="quiz-cta-description">Răspunde la câteva întrebări simple și îți vom recomanda cel mai potrivit smartphone refurbished pentru tine</p>
+                        <a href="<?php echo esc_url($quiz_url); ?>" class="quiz-cta-button">
+                            <span>Începe</span>
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" fill="currentColor"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
             <!-- Latest Blog Posts -->
             <section class="blog-posts">
                 <div class="container">
