@@ -78,6 +78,12 @@ class Haloo_Product_Search_Autocomplete {
 		$terms = get_terms( $cat_args );
 
 		if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+			// Get shop URL for category links
+			$shop_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : '';
+			if ( empty( $shop_url ) ) {
+				$shop_url = home_url( '/shop/' );
+			}
+			
 			foreach ( $terms as $term ) {
 				$thumbnail_id = get_term_meta( $term->term_id, 'thumbnail_id', true );
 				$image = '';
@@ -88,10 +94,13 @@ class Haloo_Product_Search_Autocomplete {
 					$image = '<div style="width:60px;height:60px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;border-radius:8px;">📁</div>';
 				}
 
+				// Convert category URL to shop page format
+				$category_url = $shop_url . '?product_cat=' . $term->slug;
+
 				$categories[] = array(
 					'id'          => $term->term_id,
 					'title'       => $term->name,
-					'url'         => get_term_link( $term ),
+					'url'         => $category_url,
 					'image'       => $image,
 					'count'       => $term->count . ' produse',
 					'type'        => 'category',
@@ -130,6 +139,14 @@ class Haloo_Product_Search_Autocomplete {
 					
 					// Add category to list if not already there
 					if ( ! in_array( $product_cats[0]->term_id, $category_ids ) ) {
+						// Get shop URL for category links
+						if ( ! isset( $shop_url ) ) {
+							$shop_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : '';
+							if ( empty( $shop_url ) ) {
+								$shop_url = home_url( '/shop/' );
+							}
+						}
+						
 						$thumbnail_id = get_term_meta( $product_cats[0]->term_id, 'thumbnail_id', true );
 						$image = '';
 						
@@ -139,10 +156,13 @@ class Haloo_Product_Search_Autocomplete {
 							$image = '<div style="width:60px;height:60px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;border-radius:8px;">📁</div>';
 						}
 
+						// Convert category URL to shop page format
+						$category_url = $shop_url . '?product_cat=' . $product_cats[0]->slug;
+
 						$product_categories[] = array(
 							'id'          => $product_cats[0]->term_id,
 							'title'       => $product_cats[0]->name,
-							'url'         => get_term_link( $product_cats[0] ),
+							'url'         => $category_url,
 							'image'       => $image,
 							'count'       => $product_cats[0]->count . ' produse',
 							'type'        => 'category',

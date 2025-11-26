@@ -236,6 +236,14 @@ class Frontend {
 		if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 			wp_enqueue_script( 'comment-reply' );
 		}
+		$shop_url = '';
+		if ( function_exists( 'wc_get_page_permalink' ) ) {
+			$shop_url = wc_get_page_permalink( 'shop' );
+		}
+		if ( empty( $shop_url ) ) {
+			$shop_url = home_url( '/shop/' );
+		}
+
 		$shopwell_data = array(
 			'direction'                        => is_rtl() ? 'true' : 'false',
 			'ajax_url'                         => class_exists( 'WC_AJAX' ) ? \WC_AJAX::get_endpoint( '%%endpoint%%' ) : '',
@@ -253,6 +261,7 @@ class Frontend {
 			'navigation_cutoff_text'           => Helper::get_option( 'header_navigation_cutoff_text' ),
 			'post_type'                        => \Shopwell\Header\Search::type(),
 			'mobile_product_columns'           => Helper::get_option( 'mobile_product_columns' ),
+			'shop_url'                         => $shop_url,
 		);
 
 		$shopwell_data = apply_filters( 'shopwell_wp_script_data', $shopwell_data );

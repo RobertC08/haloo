@@ -1685,6 +1685,83 @@
 	};
 
 	/**
+	 * Helper function to redirect search to shop page when on category page
+	 * Shared function used by both AJAX and non-AJAX search handlers
+	 */
+	function redirectSearchFromCategory($currentForm) {
+			var currentUrl = window.location.href;
+			var isCategoryPage = (
+				currentUrl.indexOf('/categorie-produs/') !== -1 || 
+				currentUrl.indexOf('/product-category/') !== -1 ||
+				shopwell.$body.hasClass('tax-product_cat')
+			);
+
+			if (!isCategoryPage) {
+				return false; // Not on category page, allow normal submission
+			}
+
+			// Debug log
+			if (typeof console !== 'undefined' && console.log) {
+				console.log('[Search Redirect] Detected category page:', currentUrl);
+			}
+
+			// Extract category slug from URL
+			var categorySlug = null;
+			var match = currentUrl.match(/\/(?:categorie-produs|product-category|category)\/([^\/\?]+)/);
+			if (match && match[1]) {
+				categorySlug = match[1];
+			} else if (shopwell.$body.hasClass('tax-product_cat')) {
+				// Try to get from URL path
+				var pathParts = window.location.pathname.split('/');
+				for (var i = 0; i < pathParts.length; i++) {
+					if (pathParts[i] === 'categorie-produs' && i + 1 < pathParts.length) {
+						categorySlug = pathParts[i + 1];
+						break;
+					}
+				}
+			}
+
+			if (!categorySlug) {
+				return false; // Couldn't extract category slug
+			}
+
+			// Get search term
+			var $searchField = $currentForm.find('.header-search__field, .search-modal__field');
+			var searchTerm = $searchField.val().trim();
+			if (searchTerm.length < 2) {
+				return false; // Search term too short
+			}
+
+			// Get shop URL from shopwellData or form action
+			var shopUrl = '';
+			if (typeof shopwellData !== 'undefined' && shopwellData.shop_url) {
+				shopUrl = shopwellData.shop_url;
+			} else {
+				// Fallback: construct from current URL
+				var baseUrl = window.location.origin;
+				shopUrl = baseUrl + '/shop/';
+			}
+
+			// Build redirect URL
+			var redirectUrl = shopUrl + '?product_cat=' + encodeURIComponent(categorySlug) + '&s=' + encodeURIComponent(searchTerm);
+			
+			// Add post_type if it's a product search
+			var postType = $currentForm.find('input.header-search__post-type, input.search-modal__post-type').val();
+			if (postType === 'product') {
+				redirectUrl += '&post_type=product';
+			}
+
+			// Debug log
+			if (typeof console !== 'undefined' && console.log) {
+				console.log('[Search Redirect] Redirecting to:', redirectUrl);
+			}
+
+			// Redirect
+			window.location.href = redirectUrl;
+			return true; // Prevent default form submission
+	}
+
+	/**
 	 * Product instance search
 	 */
 	 shopwell.instanceSearch = function () {
@@ -1707,6 +1784,10 @@
 				var $search = $(this);
 				var $currentForm = $search.closest('.header-search__form, .search-modal__form');
 				if ($search.val().trim().length >= 2) {
+					// Check if we need to redirect from category page
+					if (redirectSearchFromCategory($currentForm)) {
+						return false;
+					}
 					$currentForm.submit();
 				}
 				return false;
@@ -1878,7 +1959,25 @@
 			var $searchField = $currentForm.find('.header-search__field, .search-modal__field');
 			
 			if ($searchField.val().trim().length >= 2) {
+				// Check if we need to redirect from category page
+				if (redirectSearchFromCategory($currentForm)) {
+					return false;
+				}
 				$currentForm.submit();
+			}
+		});
+
+		// Also intercept direct form submission
+		$modal.on('submit', '.header-search__form, .search-modal__form', function(e) {
+			var $currentForm = $(this);
+			var $searchField = $currentForm.find('.header-search__field, .search-modal__field');
+			
+			if ($searchField.val().trim().length >= 2) {
+				// Check if we need to redirect from category page
+				if (redirectSearchFromCategory($currentForm)) {
+					e.preventDefault();
+					return false;
+				}
 			}
 		});
 	}
@@ -2614,10 +2713,31 @@
 	}
 
 	/**
+	 * Handle search form submission from category pages
+	 * This works for both AJAX and non-AJAX search forms
+	 */
+	shopwell.handleCategorySearchRedirect = function() {
+		// Handle all search form submissions (works for both AJAX and non-AJAX)
+		$(document).on('submit', '.header-search__form, .search-modal__form', function(e) {
+			var $currentForm = $(this);
+			var $searchField = $currentForm.find('.header-search__field, .search-modal__field');
+			
+			if ($searchField.length && $searchField.val().trim().length >= 2) {
+				// Check if we need to redirect from category page
+				if (redirectSearchFromCategory($currentForm)) {
+					e.preventDefault();
+					return false;
+				}
+			}
+		});
+	};
+
+	/**
 	 * Document ready
 	 */
 	$(function () {
 		shopwell.init();
+		shopwell.handleCategorySearchRedirect();
 	});
 
 })(jQuery);
