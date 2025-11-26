@@ -38,19 +38,6 @@ class Helper {
 		return $html;
 	}
 
-	/**
-	 *  Add the link to compare
-	 *
-	 * @since 1.0.0
-	 * @author Francesco Licandro
-	 * @param mixed $product_id The product ID.
-	 * @param array $args An array of link arguments.
-	 */
-	public static function product_compare_button() {
-		if ( shortcode_exists( 'wcboost_compare_button' ) ) {
-			echo do_shortcode( '[wcboost_compare_button]' );
-		}
-	}
 
 	public static function is_cartflows_template() {
 		if ( ! class_exists( 'Cartflows_Loader' ) || ! function_exists( '_get_wcf_step_id' ) ) {

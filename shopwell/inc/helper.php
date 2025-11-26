@@ -301,7 +301,6 @@ class Helper {
 			} elseif ( $account == 'wishlist' ) {
 				$output[] = '<li class="account-panel__link">' . self::wishlist_link() . '</li>';
 			} elseif ( $account == 'compare' ) {
-				$output[] = '<li class="account-panel__link">' . self::compare_link() . '</li>';
 			} elseif ( $account == 'track-order' ) {
 				$output[] = '<li class="account-panel__link">' . self::track_order_link() . '</li>';
 			} elseif ( $account == 'help-center' ) {

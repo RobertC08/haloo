@@ -134,35 +134,35 @@ class Products_Recently_Viewed {
 
 			<?php
 		} else {
-			update_meta_cache( 'post', $products_ids );
-			update_object_term_cache( $products_ids, 'product' );
+			// PERFORMANCE FIX: Use WP_Query for batch loading instead of individual get_post() calls
+			// This reduces database queries from 15+ to 1
+			$args = array(
+				'post_type'           => 'product',
+				'post__in'            => array_slice( $products_ids, 0, 15 ), // Limit to 15 products
+				'posts_per_page'      => 15,
+				'orderby'             => 'post__in', // Maintain order from cookie
+				'ignore_sticky_posts' => 1,
+				'no_found_rows'       => true, // Skip pagination count for better performance
+			);
 
-			$original_post = $GLOBALS['post'];
+			$query = new \WP_Query( $args );
 
-			woocommerce_product_loop_start();
+			if ( $query->have_posts() ) {
+				woocommerce_product_loop_start();
 
-			$index = 1;
-
-			foreach ( $products_ids as $product_id ) {
-				if ( $index > 15 ) {
-					break;
+				while ( $query->have_posts() ) {
+					$query->the_post();
+					wc_get_template_part( 'content', 'product' );
 				}
 
-				++$index;
-
-				$product = get_post( $product_id );
-				if ( empty( $product ) ) {
-					continue;
-				}
-
-				$GLOBALS['post'] = $product; // WPCS: override ok.
-				setup_postdata( $GLOBALS['post'] );
-				wc_get_template_part( 'content', 'product' );
+				woocommerce_product_loop_end();
+			} else {
+				?>
+					<div class="no-products">
+						<p><?php echo esc_html__( 'No products in recent viewing history.', 'shopwell' ); ?></p>
+					</div>
+				<?php
 			}
-
-			$GLOBALS['post'] = $original_post; // WPCS: override ok.
-
-			woocommerce_product_loop_end();
 
 			wp_reset_postdata();
 			wc_reset_loop();

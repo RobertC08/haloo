@@ -794,9 +794,8 @@ class Single_Product {
 	 * @return void
 	 */
 	public static function product_featured_buttons() {
-		if ( self::enable_wishlist_button() || self::enable_compare_button() ) {
+		if ( self::enable_wishlist_button() ) {
 			echo '<div class="product-featured-icons">';
-			self::product_compare_button();
 			self::product_wishlist_button();
 			echo '</div>';
 		}
@@ -860,27 +859,6 @@ class Single_Product {
 		}
 	}
 
-	/**
-	 * Check Compare Button
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return void
-	 */
-	public static function enable_compare_button() {
-		if ( ! function_exists( 'wcboost_products_compare' ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 *  Compare button
-	 */
-	public static function product_compare_button() {
-		\Shopwell\WooCommerce\Helper::product_compare_button();
-	}
 
 	/**
 	 * Get product taxonomy
@@ -1366,7 +1344,10 @@ class Single_Product {
 
 		if ( $images_dg ) {
 			foreach ( $images_dg as $image ) {
-				$image_dg           = wp_get_attachment_image_src( $image, 'full' );
+				// PERFORMANCE FIX: Use large size for 360 view (still high quality but optimized)
+				// For 360 view, we need larger images but not necessarily full size
+				$image_size_360 = apply_filters( 'shopwell_product_360_image_size', 'large' );
+				$image_dg           = wp_get_attachment_image_src( $image, $image_size_360 );
 				$product_images_dg .= $product_images_dg ? ',' : '';
 				$product_images_dg .= $image_dg ? $image_dg[0] : '';
 			}

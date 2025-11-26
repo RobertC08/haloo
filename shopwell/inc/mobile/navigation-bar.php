@@ -142,12 +142,6 @@ class Navigation_bar {
 					}
 					break;
 
-				case 'compare':
-					if ( ! function_exists( 'wcboost_products_compare' ) ) {
-						$template_file = '';
-						break;
-					}
-					break;
 				case 'wishlist':
 					if ( ! function_exists( 'wcboost_wishlist' ) ) {
 						$template_file = '';

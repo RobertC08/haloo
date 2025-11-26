@@ -192,10 +192,6 @@ class Product_Card {
 					add_action( 'shopwell_product_loop_thumbnail', array( $this, 'product_wishlist_button' ), 10 );
 				}
 
-				if ( $this->enable_compare_button() ) {
-					add_action( 'shopwell_product_loop_thumbnail', array( $this, 'product_compare_button' ), 11 );
-				}
-
 				add_action( 'shopwell_product_loop_thumbnail', array( $this, 'product_featured_icons_close' ), 15 );
 
 				add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_actions_open' ), 5 );
@@ -207,16 +203,11 @@ class Product_Card {
 						add_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_price', 9 );
 					}
 					// featured icons in product actions
-					if ( $this->enable_wishlist_button() || $this->enable_compare_button() ) {
+					if ( $this->enable_wishlist_button() ) {
 						add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_featured_icons_open' ), 40 );
-						if ( $this->enable_compare_button() ) {
-							add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_compare_button' ), 43 );
-						}
-
 						if ( $this->enable_wishlist_button() ) {
 							add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_wishlist_button' ), 45 );
 						}
-
 						add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_featured_icons_close' ), 50 );
 					}
 				}
@@ -246,10 +237,6 @@ class Product_Card {
 					add_action( 'shopwell_product_loop_thumbnail', array( $this, 'product_wishlist_button' ), 10 );
 				}
 
-				if ( $this->enable_compare_button() ) {
-					add_action( 'shopwell_product_loop_thumbnail', array( $this, 'product_compare_button' ), 11 );
-				}
-
 				add_action( 'shopwell_product_loop_thumbnail', array( $this, 'product_featured_icons_close' ), 15 );
 
 				add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_actions_open' ), 5 );
@@ -261,16 +248,11 @@ class Product_Card {
 						add_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_price', 9 );
 					}
 					// featured icons in product actions
-					if ( $this->enable_wishlist_button() || $this->enable_compare_button() ) {
+					if ( $this->enable_wishlist_button() ) {
 						add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_featured_icons_open' ), 40 );
-						if ( $this->enable_compare_button() ) {
-							add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_compare_button' ), 43 );
-						}
-
 						if ( $this->enable_wishlist_button() ) {
 							add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_wishlist_button' ), 45 );
 						}
-
 						add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_featured_icons_close' ), 50 );
 					}
 				}
@@ -293,10 +275,6 @@ class Product_Card {
 
 				if ( $this->enable_wishlist_button() ) {
 					add_action( 'shopwell_product_loop_thumbnail', array( $this, 'product_wishlist_button' ), 7 );
-				}
-
-				if ( $this->enable_compare_button() ) {
-					add_action( 'shopwell_product_loop_thumbnail', array( $this, 'product_compare_button' ), 10 );
 				}
 
 				add_action( 'shopwell_product_loop_thumbnail', array( $this, 'product_featured_icons_close' ), 15 );
@@ -329,16 +307,11 @@ class Product_Card {
 						add_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_price', 9 );
 					}
 					// featured icons in product actions
-					if ( $this->enable_wishlist_button() || $this->enable_compare_button() ) {
+					if ( $this->enable_wishlist_button() ) {
 						add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_featured_icons_open' ), 40 );
-						if ( $this->enable_compare_button() ) {
-							add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_compare_button' ), 43 );
-						}
-
 						if ( $this->enable_wishlist_button() ) {
 							add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_wishlist_button' ), 45 );
 						}
-
 						add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_featured_icons_close' ), 50 );
 					}
 				}
@@ -364,14 +337,10 @@ class Product_Card {
 				}
 
 				// featured icons in product actions
-				if ( $this->enable_wishlist_button() || $this->enable_compare_button() || Helper::get_option( 'product_card_quick_view_button' ) ) {
+				if ( $this->enable_wishlist_button() || Helper::get_option( 'product_card_quick_view_button' ) ) {
 					add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_featured_icons_open' ), 40 );
 					if ( Helper::get_option( 'product_card_quick_view_button' ) ) {
 						add_action( 'woocommerce_after_shop_loop_item', array( \Shopwell\WooCommerce\QuickView::instance(), 'quick_view_icon' ), 41 );
-					}
-
-					if ( $this->enable_compare_button() ) {
-						add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_compare_button' ), 43 );
 					}
 
 					if ( $this->enable_wishlist_button() ) {
@@ -409,10 +378,6 @@ class Product_Card {
 					add_action( 'shopwell_product_loop_thumbnail', array( $this, 'product_wishlist_button' ), 10 );
 				}
 
-				if ( $this->enable_compare_button() ) {
-					add_action( 'shopwell_product_loop_thumbnail', array( $this, 'product_compare_button' ), 11 );
-				}
-
 				if ( Helper::get_option( 'product_card_quick_view_button' ) ) {
 					add_action( 'shopwell_product_loop_thumbnail', array( \Shopwell\WooCommerce\QuickView::instance(), 'quick_view_icon' ), 12 );
 				}
@@ -432,16 +397,11 @@ class Product_Card {
 					}
 
 					// featured icons in product actions
-					if ( $this->enable_wishlist_button() || $this->enable_compare_button() ) {
+					if ( $this->enable_wishlist_button() ) {
 						add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_featured_icons_open' ), 40 );
-						if ( $this->enable_compare_button() ) {
-							add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_compare_button' ), 43 );
-						}
-
 						if ( $this->enable_wishlist_button() ) {
 							add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_wishlist_button' ), 45 );
 						}
-
 						add_action( 'woocommerce_after_shop_loop_item', array( $this, 'product_featured_icons_close' ), 50 );
 					}
 				}
@@ -622,11 +582,17 @@ class Product_Card {
 
 			case 'zoom';
 				echo '<div class="product-thumbnail product-thumbnails--zoom">';
-					$image = wp_get_attachment_image_src( get_post_thumbnail_id(), 'full' );
+					// PERFORMANCE FIX: Use optimized image size instead of 'full'
+					// Use woocommerce_single for zoom (larger but still optimized)
+					$zoom_image_size = apply_filters( 'shopwell_product_zoom_image_size', 'woocommerce_single' );
+					$image = wp_get_attachment_image_src( get_post_thumbnail_id(), $zoom_image_size );
+					// Get full size only for zoom data attribute (not for display)
+					$full_image = wp_get_attachment_image_src( get_post_thumbnail_id(), 'full' );
 
 				if ( $image ) {
 					$link = apply_filters( 'woocommerce_loop_product_link', get_the_permalink(), $product );
-					echo '<a href="' . esc_url( $link ) . '" class="woocommerce-LoopProduct-link product-thumbnail-zoom" data-zoom_image="' . $image[0] . '">';
+					$zoom_image_url = $full_image ? $full_image[0] : $image[0];
+					echo '<a href="' . esc_url( $link ) . '" class="woocommerce-LoopProduct-link product-thumbnail-zoom" data-zoom_image="' . esc_url( $zoom_image_url ) . '">';
 				} else {
 					woocommerce_template_loop_product_link_open();
 				}
@@ -875,31 +841,6 @@ class Product_Card {
 	}
 
 
-	/**
-	 * Check Compare Button
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return void
-	 */
-	public function enable_compare_button() {
-		if ( ! function_exists( 'wcboost_products_compare' ) ) {
-			return false;
-		}
-
-		if ( ! Helper::get_option( 'product_card_compare' ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 *  Compare button
-	 */
-	public function product_compare_button() {
-		\Shopwell\WooCommerce\Helper::product_compare_button();
-	}
 
 	/**
 	 * Product Short Description

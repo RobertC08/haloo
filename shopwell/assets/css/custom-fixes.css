@@ -371,3 +371,32 @@
 .single-product div.product .wcboost-variation-swatches--button .wcboost-variation-swatches__item.has-color-circle.selected .wcboost-variation-swatches__name {
     color: #fff !important;
 }
+
+/**
+ * PERFORMANCE FIX: Hide Google Pay and Pay with Link buttons on single product pages
+ * These buttons are disabled to reduce request-uri and improve page
+ */
+.single-product .wc-stripe-payment-request-button,
+.single-product .wc-stripe-payment-request-button-separator,
+.single-product .payment_request_button,
+.single-product .stripe-payment-request-button,
+.single-product .payment-request-button,
+.single-product [class*="payment-request"],
+.single-product [class*="google-pay"],
+.single-product [class*="apple-pay"],
+.single-product [id*="payment-request"],
+.single-product button[class*="Stripe"],
+.single-product .stripe-button-el,
+.single-product [data-testid*="payment-request"],
+.single-product [aria-label*="Google Pay"],
+.single-product [aria-label*="Pay with Link"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+}

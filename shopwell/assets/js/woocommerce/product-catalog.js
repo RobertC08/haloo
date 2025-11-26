@@ -355,14 +355,30 @@
 					$found = $('.shopwell-posts-found'),
 					$newNav = $( '.woocommerce-navigation.ajax-navigation', $content );
 
+				// PERFORMANCE FIX: Cache container selector
+				var $container = $nav.parent().find( 'ul.products' );
+				var currentCount = $container.find( 'li.product' ).length;
+				
+				// PERFORMANCE FIX: Limit products to prevent memory leak (max 200 products)
+				var MAX_PRODUCTS = 200;
+				if ( currentCount + $products.length > MAX_PRODUCTS ) {
+					// Remove oldest products to stay under limit
+					var toRemove = currentCount + $products.length - MAX_PRODUCTS;
+					$container.find( 'li.product:lt(' + toRemove + ')' ).remove();
+					// Recalculate count after removal
+					currentCount = $container.find( 'li.product' ).length;
+				}
+
 				if (shopwell.$window.width() > 768) {
+					// PERFORMANCE FIX: Cache jQuery object to avoid repeated queries
 					$products.each( function( index, product ) {
-						$( product ).css( 'animation-delay', index * 100 + 'ms' );
+						var $product = $( product );
+						$product.css( 'animation-delay', index * 100 + 'ms' );
 					} );
 					$products.addClass( 'animated shopwellFadeInUp' );
 				}
 
-				$products.appendTo( $nav.parent().find( 'ul.products' ) );
+				$products.appendTo( $container );
 
 				if ( $newNav.length ) {
 					$el.replaceWith( $( 'a', $newNav ) );

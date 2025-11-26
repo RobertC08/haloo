@@ -463,10 +463,6 @@ class Main {
 					$args = $this->wishlist_options( $options );
 					break;
 
-				case 'compare':
-					$args = $this->compare_options( $options );
-					break;
-
 				case 'category-menu':
 					$args = $this->category_menu_options( $options );
 					break;
@@ -821,47 +817,6 @@ class Main {
 
 		if ( $args['wishlist_type'] ) {
 			$args['wishlist_classes'] .= ' shopwell-button--' . $args['wishlist_type'];
-		}
-
-		return $args;
-	}
-
-	/**
-	 * Compare options
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array $options
-	 * @return array $args
-	 */
-	public function compare_options( $options ) {
-		$options = isset( $options['compare'] ) ? $options['compare'] : '';
-		$args    = array();
-
-		$args['compare_display']       = ! empty( $options ) && isset( $options['compare_display'] ) ? $options['compare_display'] : Helper::get_option( 'header_compare_display' );
-		$args['compare_icon_position'] = ! empty( $options ) && isset( $options['compare_icon_position'] ) ? $options['compare_icon_position'] : Helper::get_option( 'header_compare_icon_position' );
-		$args['compare_type']          = ! empty( $options ) && isset( $options['compare_type'] ) ? $options['compare_type'] : Helper::get_option( 'header_compare_type' );
-
-		$args['compare_classes'] = $args['compare_classes'] = $args['compare_classes'] = '';
-
-		switch ( $args['compare_display'] ) {
-			case 'icon':
-				$args['compare_classes']    = 'shopwell-button--icon';
-				$args['compare_text']       = esc_html__( 'Compare', 'shopwell' );
-				$args['compare_text_class'] = 'screen-reader-text';
-				break;
-
-			case 'icon-text':
-				$args['compare_text'] = esc_html__( 'Compare', 'shopwell' );
-
-				if ( $args['compare_icon_position'] == 'icon-top' ) {
-					$args['compare_classes'] .= ' shopwell-button--icon-top';
-				}
-				break;
-		}
-
-		if ( $args['compare_type'] ) {
-			$args['compare_classes'] .= ' shopwell-button--' . $args['compare_type'];
 		}
 
 		return $args;

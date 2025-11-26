@@ -51,7 +51,6 @@
 
 		// Product Notification
 		this.addedToWishlistNotice();
-		this.addedToCompareNotice();
 
 		// Cart
         this.productQuantityNumber();
@@ -64,7 +63,6 @@
 		this.productCardHoverZoom();
 		this.productAttribute();
 		this.productQuickView();
-		this.addCompare();
 
 		// Account
 		this.loginTabs();
@@ -969,39 +967,6 @@
 		}
 	}
 
-	shopwell.addedToCompareNotice = function () {
-		if (typeof shopwellData.added_to_compare_notice === 'undefined' || !$.fn.notify) {
-			return;
-		}
-
-		shopwell.$body.on('added_to_compare', function (e, $el_wrap) {
-			var content = $el_wrap.data('product_title');
-			getaddedToCompareNotice(content);
-			return false;
-		});
-
-		function getaddedToCompareNotice($content) {
-
-			$content += ' ' + shopwellData.added_to_compare_notice.added_to_compare_text;
-
-			$content += '<a href="' + shopwellData.added_to_compare_notice.compare_view_link + '" class="btn-button">' + shopwellData.added_to_compare_notice.compare_view_text + '</a>';
-
-
-			var $checkIcon = '<span class="shopwell-svg-icon message-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>',
-				$closeIcon = '<span class="shopwell-svg-icon svg-active"><svg class="svg-icon" aria-hidden="true" role="img" focusable="false" width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 1L1 14M1 1L14 14" stroke="#A0A0A0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>';
-
-			$.notify.addStyle('shopwell', {
-				html: '<div>' + $checkIcon + $content + $closeIcon + '</div>'
-			});
-			$.notify('&nbsp', {
-				autoHideDelay: shopwellData.added_to_compare_notice.compare_notice_auto_hide,
-				className: 'success',
-				style: 'shopwell',
-				showAnimation: 'fadeIn',
-				hideAnimation: 'fadeOut'
-			});
-		}
-	}
 
 	/**
 	 * Change product quantity
@@ -2174,25 +2139,6 @@
 		});
 	}
 
-	// add class compare when loading
-    shopwell.addCompare = function () {
-        shopwell.$body.on('click', 'a.compare:not(.added)', function (e) {
-            e.preventDefault();
-
-            var $el = $(this);
-            $el.addClass('loading');
-
-            $el.closest('.product-inner').find('.compare:not(.loading)').trigger('click');
-
-            if ($(this).hasClass('added')) {
-				$el.removeClass('loading');
-            } else {
-				setTimeout(function () {
-                    $el.removeClass('loading');
-                }, 2000);
-			}
-        });
-    };
 
 	// Account
 	shopwell.loginTabs = function () {

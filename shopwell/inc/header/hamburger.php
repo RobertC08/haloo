@@ -64,12 +64,6 @@ class Hamburger {
 					}
 					break;
 
-				case 'compare':
-					if ( $compare_html = Helper::compare_link() ) {
-						printf( '<div class="hamburger-panel__item">%s</div>', $compare_html ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					}
-					break;
-
 				case 'track-order':
 					if ( $track_html = Helper::track_order_link() ) {
 						printf( '<div class="hamburger-panel__item">%s</div>', $track_html ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

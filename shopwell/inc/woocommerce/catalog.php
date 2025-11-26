@@ -375,7 +375,10 @@ class Catalog {
 				$shopwell_page_header_background_overlay_opacity = get_term_meta( $term_id, 'shopwell_page_header_background_overlay_opacity', true );
 
 				if ( $image_id ) {
-					$image            = wp_get_attachment_image_src( $image_id, 'full' );
+					// PERFORMANCE FIX: Use optimized image size for page header background
+					// Use large size instead of full for better performance
+					$header_image_size = apply_filters( 'shopwell_page_header_image_size', 'large' );
+					$image            = wp_get_attachment_image_src( $image_id, $header_image_size );
 					$background_image = $image ? $image[0] : $background_image;
 				}
 
