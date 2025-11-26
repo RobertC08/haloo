@@ -1021,11 +1021,23 @@ add_filter('loop_shop_per_page', 'custom_products_per_page', 999);
 
 /**
  * Ensure WooCommerce shop settings respect our custom product count
+ * OPTIMIZARE: Asigură că doar prima pagină (20 produse) se încarcă inițial
  */
 function ensure_shop_products_per_page($query) {
+    // Doar pentru frontend și query-ul principal
     if (!is_admin() && $query->is_main_query()) {
+        // Doar pentru paginile de shop/categorii
         if (is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy()) {
+            // OPTIMIZARE: Limitează strict la 20 produse per pagină
+            // Nu permite modificarea acestui număr pentru performanță optimă
             $query->set('posts_per_page', 20);
+            $query->set('no_found_rows', false); // Permite paginare corectă
+            
+            // OPTIMIZARE: Asigură că se folosește paginarea corectă
+            // Dacă nu există parametru 'paged', înseamnă că e prima pagină
+            if (!isset($_GET['paged']) || empty($_GET['paged'])) {
+                $query->set('paged', 1);
+            }
         }
     }
 }
@@ -2224,9 +2236,10 @@ function shopwell_filter_model_terms_by_category($terms, $taxonomy, $query_type)
     
     // Get products in this category (without model filter to show all models)
     // IMPORTANT: Don't include model filter in this query
+    // OPTIMIZARE: Limitează la 500 produse în loc de -1 pentru performanță mai bună
     $args = array(
         'post_type' => 'product',
-        'posts_per_page' => -1,
+        'posts_per_page' => 500, // Limitează la 500 pentru performanță (înainte: -1)
         'post_status' => 'publish',
         'tax_query' => array(
             array(
@@ -2235,7 +2248,7 @@ function shopwell_filter_model_terms_by_category($terms, $taxonomy, $query_type)
                 'terms' => $category_term->term_id,
             ),
         ),
-        'fields' => 'ids',
+        'fields' => 'ids', // Doar ID-uri pentru performanță optimă
     );
     
     // Add other active filters (except model filter) to get accurate counts

@@ -329,12 +329,12 @@
 				totalProduct = $nav.closest('#main').children().find('.product').length,
 				url = $el.attr( 'href' );
 
-			// Check if request is already in progress
+			// OPTIMIZARE: Verifică dacă request-ul este deja în progres
 			if ( shopwell.activeRequests[url] ) {
 				return;
 			}
 
-			// Check cache first (with 30 second expiry)
+			// OPTIMIZARE: Cache pentru request-uri (30 secunde)
 			var cacheKey = url + '_' + totalProduct;
 			var cachedData = shopwell.requestCache[cacheKey];
 			if ( cachedData && (Date.now() - cachedData.timestamp) < 30000 ) {
@@ -344,9 +344,10 @@
 				return;
 			}
 
-			// Mark request as active
+			// OPTIMIZARE: Marchează request-ul ca activ pentru a preveni duplicate
 			shopwell.activeRequests[url] = true;
 
+			// OPTIMIZARE: Fetch doar următoarea pagină (20 produse) când utilizatorul dă click pe "next page"
 			$.get( url, function( response ) {
 				var $content = $( '#main', response ),
 					$list = $( 'ul.products', $content ),
@@ -355,17 +356,18 @@
 					$found = $('.shopwell-posts-found'),
 					$newNav = $( '.woocommerce-navigation.ajax-navigation', $content );
 
-				// PERFORMANCE FIX: Cache container selector
+				// OPTIMIZARE: Cache container selector pentru performanță
 				var $container = $nav.parent().find( 'ul.products' );
 				var currentCount = $container.find( 'li.product' ).length;
 				
-				// PERFORMANCE FIX: Limit products to prevent memory leak (max 200 products)
+				// OPTIMIZARE: Limitează produsele pentru a preveni memory leaks (max 200 produse)
+				// Aceasta asigură că nu se acumulează prea multe produse în DOM
 				var MAX_PRODUCTS = 200;
 				if ( currentCount + $products.length > MAX_PRODUCTS ) {
-					// Remove oldest products to stay under limit
+					// Elimină cele mai vechi produse pentru a rămâne sub limită
 					var toRemove = currentCount + $products.length - MAX_PRODUCTS;
 					$container.find( 'li.product:lt(' + toRemove + ')' ).remove();
-					// Recalculate count after removal
+					// Recalculează count-ul după eliminare
 					currentCount = $container.find( 'li.product' ).length;
 				}
 
