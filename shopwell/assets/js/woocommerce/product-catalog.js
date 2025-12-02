@@ -446,6 +446,38 @@
 	};
 
 	shopwell.changeCatalogElementsFiltered = function () {
+		
+		// PRIORITY HANDLER: Allow pagination links to work normally - MUST BE FIRST
+		// This handler runs early and stops propagation to prevent other handlers from intercepting pagination
+		shopwell.$body.on('click', '.woocommerce-pagination a, a.page-numbers, a[href*="/page/"]', function(e) {
+			var $link = $(this);
+			var href = $link.attr('href');
+			
+			// Log pagination click attempt
+			if (typeof shopwellLog !== 'undefined') {
+				shopwellLog('[PAGINATION CLICK] Link clicked', {
+					href: href,
+					hasPageNumbersClass: $link.hasClass('page-numbers'),
+					inPaginationContainer: $link.closest('.woocommerce-pagination').length > 0,
+					hasPageInUrl: href && (href.indexOf('/page/') !== -1 || href.match(/\/page\/\d+/)),
+					linkClasses: $link.attr('class'),
+					linkText: $link.text().trim()
+				});
+			}
+			
+			// Verify this is actually a pagination link
+			if ($link.hasClass('page-numbers') || 
+				$link.closest('.woocommerce-pagination').length > 0 ||
+				(href && (href.indexOf('/page/') !== -1 || href.match(/\/page\/\d+/)))) {
+				// Stop immediate propagation to prevent other handlers from intercepting
+				if (typeof shopwellLog !== 'undefined') {
+					shopwellLog('[PAGINATION CLICK] Stopping propagation - allowing default behavior', { href: href });
+				}
+				e.stopImmediatePropagation();
+				// Allow default behavior - browser will handle navigation
+				return true;
+			}
+		});
 			
 		// Function to clean filter parameters before adding new ones
 		function cleanFilterParams(params) {
@@ -785,7 +817,16 @@
 		
 		// Auto-apply filters on interaction - more specific selectors
 		shopwell.$body.on('click', '.woocommerce-widget-layered-nav-list a', function(e) {
-			var href = $(this).attr('href');
+			var $link = $(this);
+			var href = $link.attr('href');
+			
+			// Skip pagination links - allow them to work normally
+			// Check for pagination class, container, or /page/ in URL
+			if ($link.hasClass('page-numbers') || 
+				$link.closest('.woocommerce-pagination').length > 0 ||
+				(href && (href.indexOf('/page/') !== -1 || href.match(/\/page\/\d+/)))) {
+				return true; // Allow default behavior
+			}
 			
 			if (href && href.indexOf('product_cat=') !== -1) {
 				// Navigate to filtered URL immediately
@@ -795,18 +836,56 @@
 		});
 
 		// Also handle direct filter links
-		shopwell.$body.on('click', 'a[href*="filter_"], a[href*="pa_"], a[href*="product_cat="]', function(e) {
-			var href = $(this).attr('href');
+		// EXCLUDE pagination links to allow normal pagination behavior
+		// Use a more specific selector that excludes pagination links
+		shopwell.$body.on('click', 'a[href*="filter_"]:not(.page-numbers):not([href*="/page/"]), a[href*="pa_"]:not(.page-numbers):not([href*="/page/"]), a[href*="product_cat="]:not(.page-numbers):not([href*="/page/"])', function(e) {
+			var $link = $(this);
+			var href = $link.attr('href');
+			
+			// Log filter link click attempt
+			if (typeof shopwellLog !== 'undefined') {
+				shopwellLog('[FILTER LINK CLICK] Filter link clicked', {
+					href: href,
+					hasPageNumbersClass: $link.hasClass('page-numbers'),
+					inPaginationContainer: $link.closest('.woocommerce-pagination').length > 0,
+					hasPageInUrl: href && (href.indexOf('/page/') !== -1 || href.match(/\/page\/\d+/))
+				});
+			}
+			
+			// Double-check: Skip pagination links - allow them to work normally
+			// Check for pagination class, container, or /page/ in URL
+			if ($link.hasClass('page-numbers') || 
+				$link.closest('.woocommerce-pagination').length > 0 ||
+				(href && (href.indexOf('/page/') !== -1 || href.match(/\/page\/\d+/)))) {
+				if (typeof shopwellLog !== 'undefined') {
+					shopwellLog('[FILTER LINK CLICK] Skipping - this is a pagination link', { href: href });
+				}
+				return; // Allow default behavior - don't intercept
+			}
 			
 			if (href) {
+				if (typeof shopwellLog !== 'undefined') {
+					shopwellLog('[FILTER LINK CLICK] Intercepting filter link', { href: href });
+				}
+				e.preventDefault();
 				window.location.href = href;
 				return false;
 			}
 		});
 
 		// General filter click handler - catch all filter interactions
+		// EXCLUDE pagination links to allow normal pagination behavior
 		shopwell.$body.on('click', '.woocommerce-widget-layered-nav-list a, .woocommerce-widget-layered-nav-list__item a', function(e) {
-			var href = $(this).attr('href');
+			var $link = $(this);
+			var href = $link.attr('href');
+			
+			// Skip pagination links - allow them to work normally
+			// Check for pagination class, container, or /page/ in URL
+			if ($link.hasClass('page-numbers') || 
+				$link.closest('.woocommerce-pagination').length > 0 ||
+				(href && (href.indexOf('/page/') !== -1 || href.match(/\/page\/\d+/)))) {
+				return true; // Allow default behavior
+			}
 			
 			if (href && (href.indexOf('filter_') !== -1 || href.indexOf('pa_') !== -1 || href.indexOf('product_cat=') !== -1)) {
 				e.preventDefault();
@@ -824,6 +903,13 @@
 			var dataValue = $this.data('value');
 			var dataSlug = $this.data('slug');
 			var text = $this.text().trim();
+			
+			// Skip pagination links - allow them to work normally
+			if ($this.hasClass('page-numbers') || 
+				$this.closest('.woocommerce-pagination').length > 0 ||
+				(href && (href.indexOf('/page/') !== -1 || href.match(/\/page\/\d+/)))) {
+				return; // Allow default behavior
+			}
 			
 			// Check if this is a color filter by checking data-value
 			// Color filters have color names like: negru, albastru, alb, gri, verde, violet, etc.
@@ -900,6 +986,14 @@
 			var $link = $this.find('a');
 			if ($link.length) {
 				href = $link.attr('href');
+			}
+			
+			// Skip pagination links - allow them to work normally
+			if ($this.hasClass('page-numbers') || 
+				$this.closest('.woocommerce-pagination').length > 0 ||
+				$link.hasClass('page-numbers') ||
+				(href && (href.indexOf('/page/') !== -1 || href.match(/\/page\/\d+/)))) {
+				return; // Allow default behavior
 			}
 			
 			if (href) {
@@ -1020,6 +1114,14 @@
 		// Use a more general selector and check for model widget inside
 		shopwell.$body.on('click', '.products-filter__option', function(e) {
 			var $this = $(this);
+			var href = $this.attr('href');
+			
+			// Skip pagination links - allow them to work normally
+			if ($this.hasClass('page-numbers') || 
+				$this.closest('.woocommerce-pagination').length > 0 ||
+				(href && (href.indexOf('/page/') !== -1 || href.match(/\/page\/\d+/)))) {
+				return; // Allow default behavior
+			}
 			
 			// Check if this element is inside a model filter widget
 			var $modelWidget = $this.closest('.shopwell-model-filter-widget, [class*="model"], [id*="model"]');
@@ -1277,13 +1379,20 @@
 		// Exclude model filters (handled separately above)
 		shopwell.$body.on('click', '.products-filter__option', function(e) {
 			var $this = $(this);
+			var href = $this.attr('href');
+			
+			// Skip pagination links - allow them to work normally
+			if ($this.hasClass('page-numbers') || 
+				$this.closest('.woocommerce-pagination').length > 0 ||
+				(href && (href.indexOf('/page/') !== -1 || href.match(/\/page\/\d+/)))) {
+				return; // Allow default behavior
+			}
 			
 			// Skip if this is a model filter (already handled above)
 			if ($this.closest('.shopwell-model-filter-widget').length > 0) {
 				return;
 			}
 			
-			var href = $this.attr('href');
 			var classes = $this.attr('class');
 			
 			if (href) {
@@ -1392,9 +1501,17 @@
 
 		// Auto-apply color/attribute button filters
 		shopwell.$body.on('click', '.woocommerce-widget-layered-nav-list .woocommerce-widget-layered-nav-list__item a', function(e) {
-			e.preventDefault();
 			var $this = $(this);
 			var href = $this.attr('href');
+			
+			// Skip pagination links - allow them to work normally
+			if ($this.hasClass('page-numbers') || 
+				$this.closest('.woocommerce-pagination').length > 0 ||
+				(href && (href.indexOf('/page/') !== -1 || href.match(/\/page\/\d+/)))) {
+				return; // Allow default behavior
+			}
+			
+			e.preventDefault();
 			
 			if (href) {
 				// Navigate to filtered URL immediately

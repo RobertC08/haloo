@@ -20,10 +20,10 @@ if (!defined('WP_MEMORY_LIMIT')) {
  * Replaces console.log and error_log for better debugging
  */
 function shopwell_log_to_file( $message, $data = null, $type = 'js' ) {
-    // Always log for pagination debugging (can be disabled later by uncommenting the check below)
-    // if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
-    //     return;
-    // }
+    // Only log if WP_DEBUG is enabled
+    if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+        return;
+    }
     
     $upload_dir = wp_upload_dir();
     $log_dir = $upload_dir['basedir'] . '/shopwell-logs';
@@ -523,22 +523,22 @@ function handle_contact_form_submission() {
 
     // Validate required fields
     if (empty($name) || empty($lastname) || empty($email) || empty($subject) || empty($message) || !$privacy) {
-        wp_send_json_error('Toate cĂ˘mpurile obligatorii trebuie completate.');
+        wp_send_json_error('Toate câmpurile obligatorii trebuie completate.');
         return;
     }
     
     // Validate email format
     if (!is_email($email)) {
-        wp_send_json_error('Adresa de email nu este validÄ.');
+        wp_send_json_error('Adresa de email nu este validă.');
         return;
     }
     
     // Prepare email content
     $subject_map = [
-        'general' => 'ĂŽntrebare generalÄ',
-        'product' => 'ĂŽntrebare despre produs',
-        'warranty' => 'GaranČ›ie Č™i service',
-        'delivery' => 'Livrare Č™i retur',
+        'general' => 'Întrebare generală',
+        'product' => 'Întrebare despre produs',
+        'warranty' => 'Garanție și service',
+        'delivery' => 'Livrare și retur',
         'technical' => 'Suport tehnic',
         'partnership' => 'Parteneriat',
         'other' => 'Altele'
@@ -583,16 +583,16 @@ function handle_contact_form_submission() {
         if ($sent) {
                 // Send auto-reply to customer
                 $auto_reply_content = "
-                <h2>MulČ›umim pentru mesajul tÄu!</h2>
-                <p>BunÄ {$name} {$lastname},</p>
-                <p>Am primit mesajul tÄu despre {$subject_text} Č™i Ă®Č›i vom rÄspunde Ă®n cel mai scurt timp posibil.</p>
-                <p><strong>Detaliile mesajului tÄu:</strong></p>
+                <h2>Mulțumim pentru mesajul tău!</h2>
+                <p>Bună {$name} {$lastname},</p>
+                <p>Am primit mesajul tău despre {$subject_text} și îți vom răspunde în cel mai scurt timp posibil.</p>
+                <p><strong>Detaliile mesajului tău:</strong></p>
                 <ul>
                     <li>Subiect: {$subject_text}</li>
                     <li>Interesat de: {$services_text}</li>
                     <li>Data: " . date('d.m.Y H:i') . "</li>
                 </ul>
-                <p>ĂŽn cazul Ă®n care ai o Ă®ntrebare urgentÄ despre telefoanele noastre refurbished, ne poČ›i contacta direct la:</p>
+                <p>În cazul în care ai o întrebare urgentă despre telefoanele noastre refurbished, ne poți contacta direct la:</p>
                 <ul>
                     <li>Telefon: +40 721 234 567</li>
                     <li>WhatsApp: +40 721 234 567</li>
@@ -610,7 +610,7 @@ function handle_contact_form_submission() {
             
             wp_send_json_success('Mesajul a fost trimis cu succes!');
         } else {
-            wp_send_json_error('A apÄrut o problemÄ la trimiterea mesajului. Te rugÄm sÄ Ă®ncerci din nou.');
+            wp_send_json_error('A apărut o problemă la trimiterea mesajului. Te rugăm să încerci din nou.');
         }
     } else {
         // Use Resend API
@@ -632,7 +632,7 @@ function handle_contact_form_submission() {
         ]);
         
         if (is_wp_error($response)) {
-            wp_send_json_error('A apÄrut o problemÄ la trimiterea mesajului. Te rugÄm sÄ Ă®ncerci din nou.');
+            wp_send_json_error('A apărut o problemă la trimiterea mesajului. Te rugăm să încerci din nou.');
             return;
         }
         
@@ -646,16 +646,16 @@ function handle_contact_form_submission() {
                     'to' => [$email],
                     'subject' => 'Confirmare primire mesaj - Haloo',
                     'html' => "
-                    <h2>MulČ›umim pentru mesajul tÄu!</h2>
-                    <p>BunÄ {$name} {$lastname},</p>
-                    <p>Am primit mesajul tÄu despre {$subject_text} Č™i Ă®Č›i vom rÄspunde Ă®n cel mai scurt timp posibil.</p>
-                    <p><strong>Detaliile mesajului tÄu:</strong></p>
+                    <h2>Mulțumim pentru mesajul tău!</h2>
+                    <p>Bună {$name} {$lastname},</p>
+                    <p>Am primit mesajul tău despre {$subject_text} și îți vom răspunde în cel mai scurt timp posibil.</p>
+                    <p><strong>Detaliile mesajului tău:</strong></p>
                     <ul>
                         <li>Subiect: {$subject_text}</li>
                         <li>Interesat de: {$services_text}</li>
                         <li>Data: " . date('d.m.Y H:i') . "</li>
                     </ul>
-                    <p>ĂŽn cazul Ă®n care ai o Ă®ntrebare urgentÄ despre telefoanele noastre refurbished, ne poČ›i contacta direct la:</p>
+                    <p>În cazul în care ai o întrebare urgentă despre telefoanele noastre refurbished, ne poți contacta direct la:</p>
                     <ul>
                         <li>Telefon: +40 721 234 567</li>
                         <li>WhatsApp: +40 721 234 567</li>
@@ -676,7 +676,7 @@ function handle_contact_form_submission() {
             
             wp_send_json_success('Mesajul a fost trimis cu succes!');
         } else {
-            wp_send_json_error('A apÄrut o problemÄ la trimiterea mesajului. Te rugÄm sÄ Ă®ncerci din nou.');
+            wp_send_json_error('A apărut o problemă la trimiterea mesajului. Te rugăm să încerci din nou.');
         }
     }
 }
@@ -702,31 +702,31 @@ add_action('admin_menu', 'add_resend_settings');
 function resend_settings_page() {
     if (isset($_POST['submit'])) {
         update_option('resend_api_key', sanitize_text_field($_POST['resend_api_key']));
-        echo '<div class="notice notice-success"><p>SetÄrile au fost salvate!</p></div>';
+        echo '<div class="notice notice-success"><p>Setările au fost salvate!</p></div>';
     }
     
     $api_key = get_option('resend_api_key', '');
     ?>
     <div class="wrap">
-        <h1>SetÄri Resend Email</h1>
+        <h1>Setări Resend Email</h1>
         <form method="post" action="">
             <table class="form-table">
                 <tr>
                     <th scope="row">Resend API Key</th>
                     <td>
                         <input type="password" name="resend_api_key" value="<?php echo esc_attr($api_key); ?>" class="regular-text" />
-                        <p class="description">IntroduceČ›i cheia API de la Resend. DacÄ nu este setatÄ, se va folosi funcČ›ia de email standard WordPress.</p>
+                        <p class="description">Introduceți cheia API de la Resend. Dacă nu este setată, se va folosi funcția de email standard WordPress.</p>
                     </td>
                 </tr>
             </table>
             <?php submit_button(); ?>
         </form>
-        <p><strong>InstrucČ›iuni:</strong></p>
+        <p><strong>Instrucțiuni:</strong></p>
         <ol>
-            <li>ĂŽnregistraČ›i-vÄ pe <a href="https://resend.com" target="_blank">resend.com</a></li>
-            <li>ObČ›ineČ›i cheia API din dashboard-ul Resend</li>
-            <li>IntroduceČ›i cheia API Ă®n cĂ˘mpul de mai sus</li>
-            <li>SalvaČ›i setÄrile</li>
+            <li>Înregistrați-vă pe <a href="https://resend.com" target="_blank">resend.com</a></li>
+            <li>Obțineți cheia API din dashboard-ul Resend</li>
+            <li>Introduceți cheia API în câmpul de mai sus</li>
+            <li>Salvați setările</li>
         </ol>
     </div>
     <?php
@@ -958,25 +958,25 @@ function add_social_sharing() {
                    target="_blank" 
                    rel="noopener noreferrer"
                    style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: #1877f2; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">
-                    đź“ Facebook
+                    📘 Facebook
                 </a>
                 <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode($post_url); ?>&text=<?php echo urlencode($post_title); ?>" 
                    target="_blank" 
                    rel="noopener noreferrer"
                    style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: #1da1f2; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">
-                    đź¦ Twitter
+                    🐦 Twitter
                 </a>
                 <a href="https://www.linkedin.com/sharing/share-offsite/?url=<?php echo urlencode($post_url); ?>" 
                    target="_blank" 
                    rel="noopener noreferrer"
                    style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: #0077b5; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">
-                    đź’Ľ LinkedIn
+                    💼 LinkedIn
                 </a>
                 <a href="https://wa.me/?text=<?php echo urlencode($post_title . ' - ' . $post_url); ?>" 
                    target="_blank" 
                    rel="noopener noreferrer"
                    style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: #25d366; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">
-                    đź’¬ WhatsApp
+                    💬 WhatsApp
                 </a>
             </div>
         </div>
@@ -1021,7 +1021,7 @@ add_filter('loop_shop_per_page', 'custom_products_per_page', 999);
 
 /**
  * Ensure WooCommerce shop settings respect our custom product count
- * OPTIMIZARE: AsigurÄ cÄ doar prima paginÄ (20 produse) se Ă®ncarcÄ iniČ›ial
+ * OPTIMIZARE: Asigură că doar prima pagină (20 produse) se încarcă inițial
  */
 function ensure_shop_products_per_page($query) {
     // Doar pentru frontend și query-ul principal
@@ -1033,54 +1033,15 @@ function ensure_shop_products_per_page($query) {
             $query->set('posts_per_page', 20);
             $query->set('no_found_rows', false); // Permite paginare corectă
             
-            // FIX: Nu suprascrie paged dacă este deja setat corect din URL
-            // WordPress parsează corect /page/2/ din URL și setează query var-ul 'paged'
-            // Nu trebuie să verificăm $_GET['paged'] pentru că cu permalink-uri frumoase
-            // parametrul este în query vars, nu în $_GET
-            $paged = get_query_var('paged');
-            if (!$paged) {
-                // Doar dacă nu există deloc, setăm la 1
+            // OPTIMIZARE: Asigură că se folosește paginarea corectă
+            // Dacă nu există parametru 'paged', înseamnă că e prima pagină
+            if (!isset($_GET['paged']) || empty($_GET['paged'])) {
                 $query->set('paged', 1);
             }
-            // Altfel, lăsăm WordPress să gestioneze paginarea corect
         }
     }
 }
 add_action('pre_get_posts', 'ensure_shop_products_per_page', 20);
-
-/**
- * Log pagination information for debugging
- */
-function shopwell_log_pagination_info() {
-    if ( ! is_shop() && ! is_product_category() && ! is_product_tag() && ! is_product_taxonomy() ) {
-        return;
-    }
-    
-    global $wp_query, $wp_rewrite;
-    
-    $paged_from_query_var = get_query_var('paged');
-    $paged_from_query = $wp_query->get('paged');
-    $paged_from_get = isset($_GET['paged']) ? $_GET['paged'] : null;
-    
-    $pagination_info = array(
-        'pagination_base' => $wp_rewrite->pagination_base,
-        'current_page_query_var' => $paged_from_query_var ? $paged_from_query_var : 1,
-        'current_page_query' => $paged_from_query ? $paged_from_query : 1,
-        'current_page_get' => $paged_from_get,
-        'wp_query_paged' => $wp_query->get('paged'),
-        'max_pages' => $wp_query->max_num_pages,
-        'found_posts' => $wp_query->found_posts,
-        'post_count' => $wp_query->post_count,
-        'request_uri' => $_SERVER['REQUEST_URI'] ?? '',
-        'query_string' => $_SERVER['QUERY_STRING'] ?? '',
-        'is_shop' => is_shop(),
-        'is_product_category' => is_product_category(),
-        'is_product_tag' => is_product_tag(),
-    );
-    
-    shopwell_log_to_file( 'Pagination Info', $pagination_info, 'pagination' );
-}
-add_action('wp', 'shopwell_log_pagination_info');
 
 // Handle product_cat query parameter for shop page filtering
 function handle_shop_category_filtering($query) {
@@ -2275,10 +2236,10 @@ function shopwell_filter_model_terms_by_category($terms, $taxonomy, $query_type)
     
     // Get products in this category (without model filter to show all models)
     // IMPORTANT: Don't include model filter in this query
-    // OPTIMIZARE: LimiteazÄ la 500 produse Ă®n loc de -1 pentru performanČ›Ä mai bunÄ
+    // OPTIMIZARE: Limitează la 500 produse în loc de -1 pentru performanță mai bună
     $args = array(
         'post_type' => 'product',
-        'posts_per_page' => 500, // LimiteazÄ la 500 pentru performanČ›Ä (Ă®nainte: -1)
+        'posts_per_page' => 500, // Limitează la 500 pentru performanță (înainte: -1)
         'post_status' => 'publish',
         'tax_query' => array(
             array(
@@ -2287,7 +2248,7 @@ function shopwell_filter_model_terms_by_category($terms, $taxonomy, $query_type)
                 'terms' => $category_term->term_id,
             ),
         ),
-        'fields' => 'ids', // Doar ID-uri pentru performanČ›Ä optimÄ
+        'fields' => 'ids', // Doar ID-uri pentru performanță optimă
     );
     
     // Add other active filters (except model filter) to get accurate counts
@@ -3503,16 +3464,16 @@ add_action( 'wp', 'shopwell_reduce_ajax_requests_single_product' );
 /**
  * Disable Compare Feature Completely
  * 
- * Acest cod dezactiveazÄ complet funcČ›ionalitatea de compare Ă®n toatÄ tema
- * Va rÄmĂ˘ne la update-uri deoarece este Ă®n functions.php
+ * Acest cod dezactivează complet funcționalitatea de compare în toată tema
+ * Va rămâne la update-uri deoarece este în functions.php
  */
 function shopwell_disable_compare_feature() {
-	// Previne iniČ›ializarea clasei Compare prin eliminarea condiČ›iei
-	// Hook Ă®nainte de add_actions pentru a preveni iniČ›ializarea
+	// Previne inițializarea clasei Compare prin eliminarea condiției
+	// Hook înainte de add_actions pentru a preveni inițializarea
 	add_action( 'wp', function() {
-		// EliminÄ iniČ›ializarea clasei Compare din WooCommerce
+		// Elimină inițializarea clasei Compare din WooCommerce
 		if ( class_exists( '\Shopwell\WooCommerce\Compare' ) ) {
-			// EliminÄ toate acČ›iunile Č™i filtrele din clasa Compare
+			// Elimină toate acțiunile și filtrele din clasa Compare
 			remove_all_actions( 'wcboost_products_compare_button_template_args' );
 			remove_all_actions( 'wcboost_products_compare_add_to_compare_fragments' );
 			remove_all_actions( 'wcboost_products_compare_single_add_to_compare_link' );
@@ -3525,10 +3486,10 @@ function shopwell_disable_compare_feature() {
 		}
 	}, 1 );
 	
-	// DezactiveazÄ clasa Compare din tema
+	// Dezactivează clasa Compare din tema
 	add_filter( 'shopwell_change_compare_button_settings', '__return_false', 999 );
 	
-	// EliminÄ compare din header items
+	// Elimină compare din header items
 	add_filter( 'shopwell_get_header_items', function( $items ) {
 		if ( isset( $items['compare'] ) ) {
 			unset( $items['compare'] );
@@ -3536,7 +3497,7 @@ function shopwell_disable_compare_feature() {
 		return $items;
 	}, 999 );
 	
-	// EliminÄ compare din mobile navigation bar items
+	// Elimină compare din mobile navigation bar items
 	add_filter( 'shopwell_get_mobile_navigation_bar_items', function( $items ) {
 		if ( isset( $items['compare'] ) ) {
 			unset( $items['compare'] );
@@ -3544,13 +3505,13 @@ function shopwell_disable_compare_feature() {
 		return $items;
 	}, 999 );
 	
-	// DezactiveazÄ butonul compare pe paginile single product
+	// Dezactivează butonul compare pe paginile single product
 	add_filter( 'shopwell_enable_compare_button', '__return_false', 999 );
 	
-	// DezactiveazÄ butonul compare pe product cards
+	// Dezactivează butonul compare pe product cards
 	add_filter( 'shopwell_product_card_compare', '__return_false', 999 );
 	
-	// EliminÄ compare din hamburger menu
+	// Elimină compare din hamburger menu
 	add_filter( 'shopwell_get_hamburger_items', function( $items ) {
 		if ( isset( $items['compare'] ) ) {
 			unset( $items['compare'] );
@@ -3558,7 +3519,7 @@ function shopwell_disable_compare_feature() {
 		return $items;
 	}, 999 );
 	
-	// EliminÄ compare din account panel
+	// Elimină compare din account panel
 	add_filter( 'shopwell_get_account_panel_items', function( $items ) {
 		if ( isset( $items['compare'] ) ) {
 			unset( $items['compare'] );
@@ -3566,15 +3527,15 @@ function shopwell_disable_compare_feature() {
 		return $items;
 	}, 999 );
 	
-	// EliminÄ wishlist-ul din galerie (pÄstrÄm doar cel din summary)
-	// Astfel wishlist-ul va apÄrea o singurÄ datÄ pe paginÄ
+	// Elimină wishlist-ul din galerie (păstrăm doar cel din summary)
+	// Astfel wishlist-ul va apărea o singură dată pe pagină
 	remove_action( 'woocommerce_before_single_product_summary', array( '\Shopwell\WooCommerce\Single_Product', 'product_featured_buttons' ), 20 );
 	
-	// Ascunde template-urile compare prin CSS (pentru siguranČ›Ä)
+	// Ascunde template-urile compare prin CSS (pentru siguranță)
 	add_action( 'wp_head', function() {
 		?>
 		<style>
-		/* Ascunde butoanele Č™i linkurile de compare */
+		/* Ascunde butoanele și linkurile de compare */
 		.header-compare,
 		.shopwell-mobile-navigation-bar__icon.compare-icon,
 		.product-featured-icons .wcboost-products-compare-button,
@@ -3590,11 +3551,11 @@ function shopwell_disable_compare_feature() {
 }
 add_action( 'init', 'shopwell_disable_compare_feature', 1 );
 
-// DezactiveazÄ funcČ›ionalitatea JavaScript pentru compare
+// Dezactivează funcționalitatea JavaScript pentru compare
 function shopwell_disable_compare_js() {
 	?>
 	<script>
-	// DezactiveazÄ funcČ›ionalitatea compare
+	// Dezactivează funcționalitatea compare
 	if (typeof shopwell !== 'undefined') {
 		if (typeof shopwell.addCompare === 'function') {
 			shopwell.addCompare = function() {};
@@ -3603,7 +3564,7 @@ function shopwell_disable_compare_js() {
 			shopwell.addedToCompareNotice = function() {};
 		}
 	}
-	// EliminÄ event listeners pentru compare
+	// Elimină event listeners pentru compare
 	jQuery(document).ready(function($) {
 		$('body').off('click', 'a.compare, .compare-button, [class*="compare"]');
 		$('body').off('added_to_compare');
@@ -3615,5 +3576,290 @@ add_action( 'wp_footer', 'shopwell_disable_compare_js', 999 );
 
 
 
+// ==========================================
+// RATE LIMITING & SECURITY
+// ==========================================
 
+// Rate limiting pentru login attempts
+add_action('wp_login_failed', 'haloo_login_failed');
+add_filter('authenticate', 'haloo_check_attempted_login', 30, 3);
 
+function haloo_login_failed($username) {
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $attempts = get_transient('login_attempts_' . $ip) ?: 0;
+    $attempts++;
+    
+    if ($attempts >= 5) {
+        // Block for 1 hour
+        set_transient('login_blocked_' . $ip, true, 3600);
+    }
+    
+    set_transient('login_attempts_' . $ip, $attempts, 900); // 15 minutes
+}
+
+function haloo_check_attempted_login($user, $username, $password) {
+    $ip = $_SERVER['REMOTE_ADDR'];
+    
+    if (get_transient('login_blocked_' . $ip)) {
+        return new WP_Error('login_blocked', 'Too many failed login attempts. Try again later.');
+    }
+    
+    return $user;
+}
+
+// Block xmlrpc.php
+add_filter('xmlrpc_enabled', '__return_false');
+
+// Remove WordPress version
+remove_action('wp_head', 'wp_generator');
+
+// Disable file editing
+if (!defined('DISALLOW_FILE_EDIT')) {
+    define('DISALLOW_FILE_EDIT', true);
+}
+
+// Rate limiting pentru AJAX requests
+add_action('wp_ajax_nopriv_', 'haloo_rate_limit_ajax', 1);
+add_action('wp_ajax_', 'haloo_rate_limit_ajax', 1);
+
+function haloo_rate_limit_ajax() {
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $requests = get_transient('ajax_requests_' . $ip) ?: 0;
+    
+    if ($requests > 60) { // Max 60 requests per minute
+        wp_die('Rate limit exceeded', 429);
+    }
+    
+    set_transient('ajax_requests_' . $ip, $requests + 1, 60);
+}
+
+// Block suspicious user agents
+add_action('init', 'haloo_block_bad_bots');
+function haloo_block_bad_bots() {
+    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    $bad_bots = ['nikto', 'sqlmap', 'fimap', 'nessus', 'whatweb', 'openvas', 'masscan', 'nmap'];
+    
+    foreach ($bad_bots as $bot) {
+        if (stripos($user_agent, $bot) !== false) {
+            status_header(403);
+            exit('Access Denied');
+        }
+    }
+}
+
+// ==========================================
+// QUIZ HANDLER
+// ==========================================
+
+add_action('wp_ajax_quiz_get_products', 'haloo_quiz_get_products');
+add_action('wp_ajax_nopriv_quiz_get_products', 'haloo_quiz_get_products');
+
+function haloo_quiz_get_products() {
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'quiz_nonce')) {
+        wp_send_json_error(array(
+            'message' => 'Invalid security token',
+            'debug' => array('nonce_check' => 'failed')
+        ));
+        return;
+    }
+    
+    // Get quiz parameters
+    $budget = isset($_POST['budget']) ? sanitize_text_field($_POST['budget']) : '';
+    $screen_size = isset($_POST['screen_size']) ? sanitize_text_field($_POST['screen_size']) : '';
+    $usage = isset($_POST['usage']) ? sanitize_text_field($_POST['usage']) : '';
+    $camera = isset($_POST['camera']) ? sanitize_text_field($_POST['camera']) : '';
+    $brand = isset($_POST['brand']) ? sanitize_text_field($_POST['brand']) : '';
+    $usage_time = isset($_POST['usage_time']) ? sanitize_text_field($_POST['usage_time']) : '';
+    
+    // Check if WooCommerce is active
+    if (!class_exists('WooCommerce')) {
+        wp_send_json_error(array(
+            'message' => 'WooCommerce is not active',
+            'debug' => array('woocommerce_check' => 'failed')
+        ));
+        return;
+    }
+    
+    // Build query arguments
+    $args = array(
+        'status' => 'publish',
+        'limit' => 20,
+        'stock_status' => 'instock',
+        'orderby' => 'popularity',
+        'order' => 'DESC'
+    );
+    
+    // Price range based on budget
+    $meta_query = array();
+    if ($budget === 'budget') {
+        $meta_query[] = array(
+            'key' => '_price',
+            'value' => 800,
+            'compare' => '<=',
+            'type' => 'NUMERIC'
+        );
+    } elseif ($budget === 'mid') {
+        $meta_query[] = array(
+            'key' => '_price',
+            'value' => array(800, 1500),
+            'compare' => 'BETWEEN',
+            'type' => 'NUMERIC'
+        );
+    } elseif ($budget === 'premium') {
+        $meta_query[] = array(
+            'key' => '_price',
+            'value' => array(1500, 2500),
+            'compare' => 'BETWEEN',
+            'type' => 'NUMERIC'
+        );
+    } elseif ($budget === 'flagship') {
+        $meta_query[] = array(
+            'key' => '_price',
+            'value' => 2500,
+            'compare' => '>=',
+            'type' => 'NUMERIC'
+        );
+    }
+    
+    // Brand filter - try both taxonomy and attribute
+    if ($brand && $brand !== 'any') {
+        $tax_query = array('relation' => 'OR');
+        
+        // Try product category
+        $tax_query[] = array(
+            'taxonomy' => 'product_cat',
+            'field' => 'slug',
+            'terms' => $brand,
+            'operator' => 'IN'
+        );
+        
+        // Try product attribute pa_brand
+        $tax_query[] = array(
+            'taxonomy' => 'pa_brand',
+            'field' => 'slug',
+            'terms' => $brand,
+            'operator' => 'IN'
+        );
+        
+        $args['tax_query'] = $tax_query;
+    }
+    
+    if (!empty($meta_query)) {
+        $args['meta_query'] = $meta_query;
+    }
+    
+    // Get products
+    $products = wc_get_products($args);
+    
+    if (empty($products)) {
+        // Fallback: get any available products
+        $fallback_args = array(
+            'status' => 'publish',
+            'limit' => 10,
+            'stock_status' => 'instock',
+            'orderby' => 'popularity',
+            'order' => 'DESC'
+        );
+        $products = wc_get_products($fallback_args);
+    }
+    
+    if (empty($products)) {
+        wp_send_json_error(array(
+            'message' => 'No products found',
+            'debug' => array(
+                'query_args' => $args,
+                'products_count' => 0
+            )
+        ));
+        return;
+    }
+    
+    // Format products for response
+    $formatted_products = array();
+    foreach ($products as $product) {
+        $formatted_products[] = array(
+            'id' => $product->get_id(),
+            'name' => $product->get_name(),
+            'price' => $product->get_price_html(),
+            'price_raw' => $product->get_price(),
+            'url' => $product->get_permalink(),
+            'stock_status' => $product->is_in_stock() ? 'În stoc' : 'Stoc limitat',
+            'image' => $product->get_image('medium'),
+            'features' => haloo_get_product_features($product, $screen_size, $usage, $camera, $usage_time)
+        );
+    }
+    
+    // Select recommended product (first one)
+    $recommended = $formatted_products[0];
+    
+    // Get alternatives (next 3)
+    $alternatives = array_slice($formatted_products, 1, 3);
+    
+    wp_send_json_success(array(
+        'recommended' => $recommended,
+        'alternatives' => $alternatives,
+        'debug' => array(
+            'total_products' => count($formatted_products),
+            'quiz_params' => array(
+                'budget' => $budget,
+                'screen_size' => $screen_size,
+                'usage' => $usage,
+                'camera' => $camera,
+                'brand' => $brand,
+                'usage_time' => $usage_time
+            )
+        )
+    ));
+}
+
+function haloo_get_product_features($product, $screen_size, $usage, $camera, $usage_time) {
+    $features = array();
+    
+    // Add features based on quiz answers
+    if ($screen_size) {
+        $features[] = 'Ecran optimizat pentru dimensiunea preferată';
+    }
+    
+    if ($usage === 'gaming') {
+        $features[] = 'Performanță excelentă pentru gaming';
+    } elseif ($usage === 'social') {
+        $features[] = 'Perfect pentru social media și fotografie';
+    } elseif ($usage === 'business') {
+        $features[] = 'Ideal pentru productivitate și securitate';
+    }
+    
+    if ($camera === 'high' || $camera === 'professional') {
+        $features[] = 'Camera foto de înaltă calitate';
+    }
+    
+    if ($usage_time === 'heavy' || $usage_time === 'extreme') {
+        $features[] = 'Baterie cu autonomie extinsă';
+    }
+    
+    // Default features if none found
+    if (empty($features)) {
+        $features[] = 'Telefon refurbished de calitate';
+        $features[] = 'Garanție și suport complet';
+    }
+    
+    return $features;
+}
+
+// Save quiz preferences with email
+add_action('wp_ajax_quiz_save_preferences', 'haloo_quiz_save_preferences');
+add_action('wp_ajax_nopriv_quiz_save_preferences', 'haloo_quiz_save_preferences');
+
+function haloo_quiz_save_preferences() {
+    $email = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
+    $preferences = isset($_POST['preferences']) ? json_decode(stripslashes($_POST['preferences']), true) : array();
+    
+    if (!$email || !is_email($email)) {
+        wp_send_json_error(array('message' => 'Invalid email address'));
+        return;
+    }
+    
+    // Save to database or send email (implement as needed)
+    // For now, just return success
+    wp_send_json_success(array('message' => 'Preferences saved successfully'));
+}

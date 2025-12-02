@@ -560,3 +560,115 @@
         animation: none;
     }
 }
+
+/* ===========================================
+   RESULTS SECTION - IMPROVED MOBILE LAYOUT
+   =========================================== */
+
+/* Mobile fix for recommended badge */
+@media (max-width: 768px) {
+    .recommended-phone {
+        padding-top: 70px !important; /* Space for badge */
+    }
+    
+    .recommended-phone::before {
+        top: 15px;
+        right: 50%;
+        transform: translateX(50%);
+        left: auto;
+        font-size: 0.8rem;
+        padding: 6px 14px;
+        white-space: nowrap;
+    }
+    
+    .phone-name {
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .recommended-phone {
+        padding-top: 65px !important;
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+    
+    .recommended-phone::before {
+        top: 12px;
+        font-size: 0.75rem;
+        padding: 5px 12px;
+    }
+    
+    .phone-name {
+        font-size: 1.2rem !important;
+        line-height: 1.3;
+    }
+    
+    .phone-description {
+        font-size: 1.1rem !important;
+    }
+    
+    .phone-features {
+        text-align: left;
+        padding: 0 10px;
+    }
+    
+    .phone-features li {
+        font-size: 0.9rem;
+        padding: 6px 0;
+    }
+    
+    .btn-shop {
+        width: 100%;
+        padding: 14px 20px !important;
+        font-size: 1rem !important;
+    }
+    
+    /* Alternative phones grid */
+    .alternative-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+    
+    .alternative-phone {
+        padding: 20px !important;
+    }
+    
+    .alternative-phone h4 {
+        font-size: 1rem !important;
+        margin-bottom: 8px;
+    }
+    
+    .alternative-phone ul {
+        text-align: left;
+        padding-left: 0;
+        list-style: none;
+    }
+    
+    .alternative-phone ul li {
+        font-size: 0.85rem;
+        padding: 3px 0;
+    }
+    
+    .alternative-phone .btn-shop {
+        width: 100%;
+        margin-top: 12px;
+    }
+}
+
+/* Improved results title */
+.results-title {
+    font-size: 1.6rem !important;
+    margin-bottom: 25px;
+}
+
+@media (max-width: 480px) {
+    .results-title {
+        font-size: 1.3rem !important;
+    }
+    
+    .alternative-title {
+        font-size: 1.1rem !important;
+        margin: 25px 0 15px;
+    }
+}

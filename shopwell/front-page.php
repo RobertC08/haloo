@@ -569,9 +569,90 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="container" style="max-width: 1440px; margin: 0 auto 24px; padding: 0 24px; box-sizing: border-box;">
                     <h2 class="section-title">Telefoane Recomandate</h2>
                     <ul id="quiz-recommended-products" class="products columns-4">
-                        <li class="loading-products" style="text-align: center; padding: 40px; grid-column: 1 / -1;">
-                            <p>Se încarcă produsele recomandate...</p>
-                        </li>
+                        <?php
+                        // Get top recommended products directly from database
+                        global $wpdb;
+                        $table_name = $wpdb->prefix . 'quiz_recommendations';
+                        $limit = 8;
+                        
+                        // Query to get top recommendations with product validation
+                        $recommendations = $wpdb->get_results($wpdb->prepare(
+                            "SELECT 
+                                r.*,
+                                p.post_title as product_name,
+                                p.post_status
+                            FROM {$table_name} r
+                            INNER JOIN {$wpdb->posts} p ON r.product_id = p.ID
+                            WHERE p.post_status = 'publish' 
+                                AND p.post_type = 'product'
+                            ORDER BY r.recommendation_count DESC, r.last_recommended DESC
+                            LIMIT %d",
+                            $limit
+                        ));
+                        
+                        if ($recommendations && !empty($recommendations)) {
+                            foreach ($recommendations as $rec) {
+                                $product = wc_get_product($rec->product_id);
+                                if (!$product || !$product->is_visible()) {
+                                    continue; // Skip deleted or hidden products
+                                }
+                                
+                                $variation = $rec->variation_id ? wc_get_product($rec->variation_id) : null;
+                                
+                                // Get product details
+                                $product_name = $product->get_name();
+                                $product_url = $variation ? $variation->get_permalink() : get_permalink($rec->product_id);
+                                $product_price = $variation ? $variation->get_price_html() : $product->get_price_html();
+                                $product_image_id = $variation ? $variation->get_image_id() : $product->get_image_id();
+                                $product_image = $product_image_id 
+                                    ? wp_get_attachment_image_url($product_image_id, 'woocommerce_thumbnail') 
+                                    : wc_placeholder_img_src();
+                                
+                                // Recommendation badge text
+                                $recommendation_text = $rec->recommendation_count === 1 
+                                    ? 'O recomandare' 
+                                    : $rec->recommendation_count . ' recomandări';
+                                ?>
+                                <li class="product type-product">
+                                    <div class="product-inner">
+                                        <!-- Product image -->
+                                        <div class="product-thumbnail">
+                                            <a href="<?php echo esc_url($product_url); ?>" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">
+                                                <img src="<?php echo esc_url($product_image); ?>" alt="<?php echo esc_attr($product_name); ?>" class="attachment-woocommerce_thumbnail size-woocommerce_thumbnail wp-post-image" />
+                                            </a>
+                                        </div>
+                                        
+                                        <!-- Product summary -->
+                                        <div class="product-summary">
+                                            <!-- Product title -->
+                                            <h2 class="woocommerce-loop-product__title">
+                                                <a href="<?php echo esc_url($product_url); ?>"><?php echo esc_html($product_name); ?></a>
+                                            </h2>
+                                            
+                                            <!-- Recommendation badge -->
+                                            <div class="recommendation-badge">
+                                                <?php echo esc_html($recommendation_text); ?>
+                                            </div>
+                                            
+                                            <!-- Product price -->
+                                            <span class="price"><?php echo $product_price; ?></span>
+                                            
+                                            <!-- View product button -->
+                                            <a href="<?php echo esc_url($product_url); ?>" class="button product_type_simple">Vezi detalii</a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <?php
+                            }
+                        } else {
+                            // No recommendations found
+                            ?>
+                            <li class="no-recommendations" style="text-align: center; padding: 40px; grid-column: 1 / -1;">
+                                <p>Nu există recomandări încă.</p>
+                            </li>
+                            <?php
+                        }
+                        ?>
                     </ul>
                 </div>
             </section>
@@ -806,82 +887,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             </style>
-            
-            <script>
-            jQuery(document).ready(function($) {
-                // Load top recommended products from quiz using the AJAX endpoint
-                function loadTopRecommendations() {
-                    $.ajax({
-                        url: '<?php echo admin_url('admin-ajax.php'); ?>',
-                        type: 'POST',
-                        data: {
-                            action: 'quiz_get_top_recommendations'
-                        },
-                        timeout: 10000,
-                        success: function(response) {
-                            if (response.success && response.data && response.data.recommendations && response.data.recommendations.length > 0) {
-                                renderRecommendations(response.data.recommendations);
-                            } else {
-                                $('#quiz-recommended-products').html('<p style="text-align: center; padding: 40px;">Nu există recomandări încă.</p>');
-                            }
-                        },
-                        error: function() {
-                            $('#quiz-recommended-products').html('<p style="text-align: center; padding: 40px;">Eroare la încărcarea recomandărilor.</p>');
-                        }
-                    });
-                }
-                
-                function renderRecommendations(recommendations) {
-                    var html = '';
-                    
-                    recommendations.forEach(function(product) {
-                        html += '<li class="product type-product">';
-                        html += '<div class="product-inner">';
-                        
-                        // Product image
-                        html += '<div class="product-thumbnail">';
-                        html += '<a href="' + product.url + '" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">';
-                        html += '<img src="' + product.image + '" alt="' + product.name + '" class="attachment-woocommerce_thumbnail size-woocommerce_thumbnail wp-post-image" />';
-                        html += '</a>';
-                        html += '</div>';
-                        
-                        // Product summary
-                        html += '<div class="product-summary">';
-                        
-                        // Product title
-                        html += '<h2 class="woocommerce-loop-product__title">';
-                        html += '<a href="' + product.url + '">' + product.name + '</a>';
-                        html += '</h2>';
-                        
-                        // Recommendation badge (between title and price)
-                        if (product.recommendation_count > 0) {
-                            var recommendationText = product.recommendation_count === 1 
-                                ? 'O recomandare' 
-                                : product.recommendation_count + ' recomandări';
-                            
-                            html += '<div class="recommendation-badge" style="background: #66fa95; color: #2A322F; padding: 5px 10px; border-radius: 15px; display: inline-block; margin: 10px 0; font-size: 12px; font-weight: 500;">';
-                            html += recommendationText;
-                            html += '</div>';
-                        }
-                        
-                        // Product price
-                        html += '<span class="price">' + product.price + '</span>';
-                        
-                        // View product button (not add to cart)
-                        html += '<a href="' + product.url + '" class="button product_type_simple">Vezi detalii</a>';
-                        
-                        html += '</div>'; // .product-summary
-                        html += '</div>'; // .product-inner
-                        html += '</li>';
-                    });
-                    
-                    $('#quiz-recommended-products').html(html);
-                }
-                
-                // Load on page load
-                loadTopRecommendations();
-            });
-            </script>
 
             <!-- Testimonials Section -->
             <section class="testimonials-section">

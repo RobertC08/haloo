@@ -1,6 +1,59 @@
 (function ($) {
     'use strict';
 
+    /**
+     * Polyfill for imagesLoaded plugin
+     * Fixes error: $productGallery.imagesLoaded is not a function
+     * This ensures images load properly even when the imagesLoaded library is not available
+     */
+    if (typeof $.fn.imagesLoaded === 'undefined') {
+        $.fn.imagesLoaded = function(callback) {
+            var $images = this.find('img').add(this.filter('img')),
+                len = $images.length,
+                blank = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+                loaded = 0,
+                $deferred = $.Deferred();
+
+            function countLoaded() {
+                loaded++;
+                if (loaded === len) {
+                    $deferred.resolve($images);
+                    if (callback) {
+                        callback.call($images, $images);
+                    }
+                }
+            }
+
+            if (!len) {
+                $deferred.resolve($images);
+                if (callback) {
+                    callback.call($images, $images);
+                }
+                return $deferred.promise();
+            }
+
+            $images.each(function() {
+                var $img = $(this),
+                    src = $img.attr('src') || $img.attr('data-src') || blank;
+
+                // If image is already loaded or has no src
+                if ($img[0].complete && $img[0].naturalWidth !== 0) {
+                    countLoaded();
+                } else if ($img[0].readyState === 4) {
+                    countLoaded();
+                } else {
+                    // Use native Image object to check if loaded
+                    var img = new Image();
+                    img.onload = countLoaded;
+                    img.onerror = countLoaded; // Count errors as loaded to prevent hanging
+                    img.src = src;
+                }
+            });
+
+            return $deferred.promise();
+        };
+    }
+
     var shopwell = shopwell || {};
     shopwell.init = function () {
         shopwell.$body = $(document.body),
@@ -43,6 +96,9 @@
 
         this.reviewProduct();
 
+        // Ensure product gallery images are visible
+        this.ensureProductGalleryImagesVisible();
+
         // Apply color swatches
         setTimeout(function() {
             if (typeof shopwell !== 'undefined' && typeof shopwell.applyColorSwatches === 'function') {
@@ -52,12 +108,63 @@
     };
 
     /**
+     * Ensure product gallery images are visible
+     * Fixes issue where images disappear due to plugin errors
+     */
+    shopwell.ensureProductGalleryImagesVisible = function() {
+        var $gallery = $('.woocommerce-product-gallery');
+        
+        if (!$gallery.length) {
+            return;
+        }
+
+        // Ensure all images in gallery are visible
+        var ensureImagesVisible = function() {
+            $gallery.find('img').each(function() {
+                var $img = $(this);
+                // Remove any inline styles that might hide the image
+                if ($img.css('opacity') === '0' && $img.attr('aria-hidden') === 'true') {
+                    // This is likely the zoom image, keep it hidden but ensure main image is visible
+                    return;
+                }
+                // Ensure main images are visible
+                if ($img.closest('.woocommerce-product-gallery__image').length) {
+                    $img.css({
+                        'opacity': '',
+                        'visibility': '',
+                        'display': ''
+                    });
+                }
+            });
+
+            // Ensure gallery wrapper is visible
+            $gallery.find('.woocommerce-product-gallery__wrapper').css({
+                'opacity': '',
+                'visibility': '',
+                'display': ''
+            });
+        };
+
+        // Run immediately
+        ensureImagesVisible();
+
+        // Also run after a short delay to catch any late-loading issues
+        setTimeout(ensureImagesVisible, 100);
+        setTimeout(ensureImagesVisible, 500);
+        setTimeout(ensureImagesVisible, 1000);
+
+        // Listen for image load events
+        $gallery.find('img').on('load error', function() {
+            ensureImagesVisible();
+        });
+    };
+
+    /**
      * Product Thumbnails
      */
     shopwell.productThumbnails = function ( vertical ) {
         var $gallery = $('.woocommerce-product-gallery');
 
-        // Check if imagesLoaded is available
         var processThumbnails = function() {
             var columns = $gallery.data('columns'),
             $thumbnail = $gallery.find('.flex-control-thumbs');
@@ -117,13 +224,8 @@
             $('li', $thumbnail).append('<span/>');
         };
         
-        // Check if imagesLoaded is available and use it, otherwise execute immediately
-        if (typeof $gallery.imagesLoaded === 'function') {
-            $gallery.imagesLoaded(processThumbnails);
-        } else {
-            // Fallback: execute immediately if imagesLoaded is not available
-            setTimeout(processThumbnails, 100);
-        }
+        // Execute after a short delay to ensure DOM is ready
+        setTimeout(processThumbnails, 100);
 
     };
 
@@ -768,7 +870,6 @@
             $('.mobile-fixed-product-gallery.admin-bar div.product .woocommerce-product-gallery').css({top: noticeHeight + 10})
         }
 
-        // Check if imagesLoaded is available
         var processGallerySpacing = function() {
             var imageHeight = $('.woocommerce-product-gallery .woocommerce-product-gallery__image > a').height(),
                 imageWidth = $('.woocommerce-product-gallery .woocommerce-product-gallery__image > a').width(),
@@ -778,12 +879,8 @@
             }
         };
         
-        if (typeof $productGallery.imagesLoaded === 'function') {
-            $productGallery.imagesLoaded(processGallerySpacing);
-        } else {
-            // Fallback: execute immediately if imagesLoaded is not available
-            setTimeout(processGallerySpacing, 500);
-        }
+        // Execute after a delay to ensure images are loaded
+        setTimeout(processGallerySpacing, 500);
 
         shopwell.$window.on('scroll', function () {
             if( ! $productGallery.hasClass('has-scroll')) {
