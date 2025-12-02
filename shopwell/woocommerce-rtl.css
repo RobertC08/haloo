@@ -652,7 +652,7 @@ button.mobile-catalog-toolbar__sort-button .name {
 .catalog-toolbar--top {
   display: flex;
   justify-content: space-between;
-  padding: 24px;
+  padding: 0px 24px 0px 0px;
   background-color: rgba(185, 185, 185, 0);
   border-radius: 2px;
   --shopwell-input__border-width: 0;
