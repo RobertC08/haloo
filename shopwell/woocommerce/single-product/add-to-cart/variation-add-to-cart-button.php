@@ -28,7 +28,7 @@ global $product;
 	do_action( 'woocommerce_after_add_to_cart_quantity' );
 	?>
 
-	<button type="submit" class="single_add_to_cart_button button alt<?php echo esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ); ?>">
+	<button type="submit" class="single_add_to_cart_button button alt<?php echo esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" data-product-id="<?php echo esc_attr( $product->get_id() ); ?>">
 		<?php echo \Shopwell\Icon::get_svg( 'cart-trolley', '', array( 'class' => 'single_add_to_cart_button--icon' ) ); ?>
 		<?php echo '<span class="single_add_to_cart_button--text">' . esc_html( $product->single_add_to_cart_text() ) . '</span>'; ?>
 	</button>

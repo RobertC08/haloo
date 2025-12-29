@@ -96,7 +96,7 @@
                 <p>Copyright © 2025 Haloo, Toate drepturile rezervate.</p>
                 <div class="copyright-links">
                     <a href="/baza-cunostinte">Baza de Cunoștințe</a>
-                    <a href="/urmarire-comanda">Urmărește Comanda</a>
+                    <a href="/urmareste-comanda">Urmărește Comanda</a>
                 </div>
             </div>
         </div>

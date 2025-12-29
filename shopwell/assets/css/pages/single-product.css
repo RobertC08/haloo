@@ -13,7 +13,7 @@
 
 .single-product .price,
 .single-product .woocommerce-Price-amount {
-    margin-bottom: 20px !important;
+    margin-bottom: 4px !important;
 }
 
 .single-product .woocommerce-product-details__short-description,

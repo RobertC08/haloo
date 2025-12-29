@@ -7505,6 +7505,7 @@ table.shop_table dl.variation:after {
   align-items: center;
   text-align: center;
   justify-content: center;
+  margin-bottom: 40px;
 }
 .woocommerce-cart .return-to-shop {
   margin: 0 24px 0 0;
@@ -13479,6 +13480,7 @@ ul.products li.product.product-category .woocommerce-loop-category__title .count
   }
   .woocommerce-cart .empty-cart-button-group {
     flex-direction: column;
+    margin-bottom: 40px;
   }
   .woocommerce-cart .empty-cart-button-group .return-to-shop {
     margin: 0 0 24px 0;

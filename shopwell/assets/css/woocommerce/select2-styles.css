@@ -27,6 +27,7 @@ body.post-type-archive-product .select2-container .select2-selection--single {
 }
 
 /* Style select2 dropdown options with proper contrast */
+/* Make dropdown wider than the button */
 .woocommerce-shop .select2-dropdown,
 .tax-product_cat .select2-dropdown,
 .tax-product_tag .select2-dropdown,
@@ -35,6 +36,52 @@ body.post-type-archive-product .select2-container .select2-selection--single {
     border: 1px solid #e0e0e0 !important;
     border-radius: 6px !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    min-width: 220px !important;
+    max-width: calc(100vw - 40px) !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+}
+
+/* Remove scrollbar from dropdown - not needed */
+.woocommerce-shop .select2-dropdown .select2-results__options,
+.tax-product_cat .select2-dropdown .select2-results__options,
+.tax-product_tag .select2-dropdown .select2-results__options,
+.post-type-archive-product .select2-dropdown .select2-results__options {
+    overflow: visible !important;
+    max-height: none !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+/* Hide scrollbar for webkit browsers */
+.woocommerce-shop .select2-dropdown .select2-results__options::-webkit-scrollbar,
+.tax-product_cat .select2-dropdown .select2-results__options::-webkit-scrollbar,
+.tax-product_tag .select2-dropdown .select2-results__options::-webkit-scrollbar,
+.post-type-archive-product .select2-dropdown .select2-results__options::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Prevent overflow and align dropdown to right margin */
+/* Position dropdown to align with right edge of container */
+body.woocommerce-shop .woocommerce-ordering .select2-container--open .select2-dropdown,
+body.tax-product_cat .woocommerce-ordering .select2-container--open .select2-dropdown,
+body.tax-product_tag .woocommerce-ordering .select2-container--open .select2-dropdown,
+body.post-type-archive-product .woocommerce-ordering .select2-container--open .select2-dropdown {
+    left: auto !important;
+    right: 0 !important;
+    transform: none !important;
+    width: auto !important;
+}
+
+/* For catalog-toolbar--top, align to right margin (24px padding) */
+body.woocommerce-shop .catalog-toolbar--top .woocommerce-ordering .select2-container--open .select2-dropdown,
+body.tax-product_cat .catalog-toolbar--top .woocommerce-ordering .select2-container--open .select2-dropdown,
+body.tax-product_tag .catalog-toolbar--top .woocommerce-ordering .select2-container--open .select2-dropdown,
+body.post-type-archive-product .catalog-toolbar--top .woocommerce-ordering .select2-container--open .select2-dropdown {
+    right: -120px !important;
+    left: auto !important;
 }
 
 /* Style select2 option items */
@@ -49,7 +96,7 @@ body.post-type-archive-product .select2-container .select2-selection--single {
     transition: all 0.2s ease !important;
 }
 
-/* Hover state with proper contrast */
+/* Hover state with proper contrast - fixed coloring bug */
 .woocommerce-shop .select2-results__option--highlighted,
 .tax-product_cat .select2-results__option--highlighted,
 .tax-product_tag .select2-results__option--highlighted,
@@ -58,8 +105,8 @@ body.post-type-archive-product .select2-container .select2-selection--single {
 .tax-product_cat .select2-results__option:hover,
 .tax-product_tag .select2-results__option:hover,
 .post-type-archive-product .select2-results__option:hover {
-    background: #2a322f  !important;
-    color: #ffffff !important;
+    background: #f5f5f5 !important;
+    color: #333333 !important;
 }
 
 /* Selected option styling */
@@ -70,4 +117,80 @@ body.post-type-archive-product .select2-container .select2-selection--single {
     background: #f8f9fa !important;
     color: #333333 !important;
     font-weight: 500 !important;
+}
+
+/* Desktop-specific fixes for sorting dropdown */
+@media (min-width: 992px) {
+    /* Override woocommerce.css hover styles with proper colors */
+    body.woocommerce-shop .select2-dropdown li.select2-results__option:hover,
+    body.tax-product_cat .select2-dropdown li.select2-results__option:hover,
+    body.tax-product_tag .select2-dropdown li.select2-results__option:hover,
+    body.post-type-archive-product .select2-dropdown li.select2-results__option:hover,
+    body.woocommerce-shop .select2-dropdown li.select2-results__option.select2-results__option--highlighted,
+    body.tax-product_cat .select2-dropdown li.select2-results__option.select2-results__option--highlighted,
+    body.tax-product_tag .select2-dropdown li.select2-results__option.select2-results__option--highlighted,
+    body.post-type-archive-product .select2-dropdown li.select2-results__option.select2-results__option--highlighted {
+        background-color: #f5f5f5 !important;
+        color: #333333 !important;
+    }
+    
+    /* Ensure dropdown is wider on desktop and respects right margin */
+    body.woocommerce-shop .select2-dropdown,
+    body.tax-product_cat .select2-dropdown,
+    body.tax-product_tag .select2-dropdown,
+    body.post-type-archive-product .select2-dropdown {
+        min-width: 220px !important;
+        max-width: calc(100vw - 40px) !important;
+        overflow: visible !important;
+    }
+    
+    /* Remove scrollbar on desktop - not needed */
+    body.woocommerce-shop .select2-dropdown .select2-results__options,
+    body.tax-product_cat .select2-dropdown .select2-results__options,
+    body.tax-product_tag .select2-dropdown .select2-results__options,
+    body.post-type-archive-product .select2-dropdown .select2-results__options {
+        overflow: visible !important;
+        max-height: none !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    
+    /* Hide scrollbar for webkit browsers on desktop */
+    body.woocommerce-shop .select2-dropdown .select2-results__options::-webkit-scrollbar,
+    body.tax-product_cat .select2-dropdown .select2-results__options::-webkit-scrollbar,
+    body.tax-product_tag .select2-dropdown .select2-results__options::-webkit-scrollbar,
+    body.post-type-archive-product .select2-dropdown .select2-results__options::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    
+    /* Align dropdown to right edge on desktop - respect container padding */
+    body.woocommerce-shop .woocommerce-ordering .select2-container--open .select2-dropdown,
+    body.tax-product_cat .woocommerce-ordering .select2-container--open .select2-dropdown,
+    body.tax-product_tag .woocommerce-ordering .select2-container--open .select2-dropdown,
+    body.post-type-archive-product .woocommerce-ordering .select2-container--open .select2-dropdown {
+        right: 0 !important;
+        left: auto !important;
+        width: auto !important;
+        transform: none !important;
+    }
+    
+    /* Align to catalog-toolbar--top right margin (24px padding) */
+    body.woocommerce-shop .catalog-toolbar--top .woocommerce-ordering .select2-container--open .select2-dropdown,
+    body.tax-product_cat .catalog-toolbar--top .woocommerce-ordering .select2-container--open .select2-dropdown,
+    body.tax-product_tag .catalog-toolbar--top .woocommerce-ordering .select2-container--open .select2-dropdown,
+    body.post-type-archive-product .catalog-toolbar--top .woocommerce-ordering .select2-container--open .select2-dropdown {
+        left: auto !important;
+        max-width: calc(100vw - 48px) !important;
+    }
+    
+    /* Ensure the container doesn't cause overflow */
+    body.woocommerce-shop .woocommerce-ordering .select2-container,
+    body.tax-product_cat .woocommerce-ordering .select2-container,
+    body.tax-product_tag .woocommerce-ordering .select2-container,
+    body.post-type-archive-product .woocommerce-ordering .select2-container {
+        max-width: 100% !important;
+        overflow: visible !important;
+    }
 }

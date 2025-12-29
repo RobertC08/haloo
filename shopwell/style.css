@@ -5626,6 +5626,9 @@ li.menu-taxonomy-grid-widget__item--all-cats a span:before {
   margin: 14px auto 0;
   min-width: 180px;
 }
+.widget_shopping_cart_content .woocommerce-mini-cart__empty--dropdown .shopwell-button:last-child {
+  margin-bottom: 24px;
+}
 .widget_shopping_cart_content .woocommerce-mini-cart__empty--dropdown .shopwell-button:focus, .widget_shopping_cart_content .woocommerce-mini-cart__empty--dropdown .shopwell-button:hover {
   background-color: #1d2128;
 }

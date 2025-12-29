@@ -325,11 +325,17 @@ class Single_Product {
 
 				add_action( 'woocommerce_single_product_summary', array( $this, 'stock' ), 18 );
 
-				add_action( 'woocommerce_single_product_summary', array( $this, 'short_description' ), 20 );
+			add_action( 'woocommerce_single_product_summary', array( $this, 'short_description' ), 20 );
 
+			// Desktop: keep original position, Mobile: move to after summary
+			if ( wp_is_mobile() ) {
+				remove_action( 'woocommerce_single_product_summary', array( $this, 'product_extra_content' ), 60 );
+				add_action( 'woocommerce_after_single_product_summary', array( $this, 'product_extra_content' ), 5 );
+			} else {
 				add_action( 'woocommerce_single_product_summary', array( $this, 'product_extra_content' ), 60 );
+			}
 
-				break;
+			break;
 
 			// Layout 2
 			case '2':
@@ -353,17 +359,24 @@ class Single_Product {
 
 				add_action( 'woocommerce_single_product_summary', array( $this, 'stock' ), 18 );
 
-				add_action( 'woocommerce_single_product_summary', array( $this, 'short_description' ), 20 );
+			add_action( 'woocommerce_single_product_summary', array( $this, 'short_description' ), 20 );
 
+			// Desktop: keep original position, Mobile: move to after summary
+			if ( wp_is_mobile() ) {
+				remove_action( 'woocommerce_single_product_summary', array( $this, 'product_extra_content' ), 60 );
+				add_action( 'woocommerce_after_single_product_summary', array( $this, 'product_extra_content' ), 5 );
+			} else {
 				add_action( 'woocommerce_single_product_summary', array( $this, 'product_extra_content' ), 60 );
+			}
 
-				add_action( 'shopwell_after_sticky_add_to_cart__product_tabs', array( $this, 'shopwell_sticky_add_to_cart__review_tab' ), 10 );
+			add_action( 'shopwell_after_sticky_add_to_cart__product_tabs', array( $this, 'shopwell_sticky_add_to_cart__review_tab' ), 10 );
 
 				add_filter( 'woocommerce_product_tabs', array( $this, 'unset_review_tab' ), 98 );
 				add_action( 'woocommerce_after_single_product_summary', array( $this, 'show_reviews' ), 14 );
 
 				remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
-				add_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 2 );
+				remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 2 );
+				add_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 999 );
 
 				remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_upsell_display', 15 );
 				add_action( 'woocommerce_after_single_product_summary', 'woocommerce_upsell_display', 20 );
@@ -382,11 +395,17 @@ class Single_Product {
 
 				add_action( 'woocommerce_single_product_summary', array( $this, 'badges' ), 1 );
 
-				add_action( 'woocommerce_single_product_summary', array( $this, 'short_description' ), 20 );
+			add_action( 'woocommerce_single_product_summary', array( $this, 'short_description' ), 20 );
 
+			// Desktop: keep original position, Mobile: move to after summary
+			if ( wp_is_mobile() ) {
+				remove_action( 'woocommerce_single_product_summary', array( $this, 'product_extra_content' ), 60 );
+				add_action( 'woocommerce_after_single_product_summary', array( $this, 'product_extra_content' ), 5 );
+			} else {
 				add_action( 'woocommerce_single_product_summary', array( $this, 'product_extra_content' ), 60 );
+			}
 
-				add_action( 'woocommerce_before_single_product_summary', array( $this, 'open_summary_wrapper' ), 5 );
+			add_action( 'woocommerce_before_single_product_summary', array( $this, 'open_summary_wrapper' ), 5 );
 				add_action( 'woocommerce_before_single_product_summary', array( $this, 'close_summary_wrapper' ), 21 );
 
 				remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_title', 5 );
@@ -437,12 +456,18 @@ class Single_Product {
 				add_action( 'woocommerce_before_single_product_summary', array( $this, 'open_breadcrumb_social_wrapper' ), 3 );
 				add_action( 'woocommerce_before_single_product_summary', array( $this, 'close_breadcrumb_social_wrapper' ), 6 );
 
-				// Change Breadcrumb
-				add_action( 'woocommerce_before_single_product_summary', array( \Shopwell\Theme::instance()->get( 'breadcrumb' ), 'breadcrumb' ), 4, 0 );
+			// Change Breadcrumb
+			add_action( 'woocommerce_before_single_product_summary', array( \Shopwell\Theme::instance()->get( 'breadcrumb' ), 'breadcrumb' ), 4, 0 );
 
+			// Desktop: keep original position, Mobile: move to after summary
+			if ( wp_is_mobile() ) {
+				remove_action( 'woocommerce_before_single_product_summary', array( $this, 'product_extra_content' ), 21 );
+				add_action( 'woocommerce_after_single_product_summary', array( $this, 'product_extra_content' ), 5 );
+			} else {
 				add_action( 'woocommerce_before_single_product_summary', array( $this, 'product_extra_content' ), 21 );
+			}
 
-				add_action( 'woocommerce_single_product_summary', array( $this, 'badges' ), 1 );
+			add_action( 'woocommerce_single_product_summary', array( $this, 'badges' ), 1 );
 
 				// Social
 				add_action( 'woocommerce_before_single_product_summary', array( $this, 'product_quick_links' ), 5 );
@@ -476,7 +501,8 @@ class Single_Product {
 				add_action( 'woocommerce_before_main_content', array( $this, 'product_quick_links' ), 25 );
 
 				remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
-				add_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 2 );
+				remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 2 );
+				add_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 999 );
 
 				add_action( 'woocommerce_before_single_product_summary', array( $this, 'open_summary_wrapper' ), 21 );
 				add_action( 'woocommerce_before_single_product_summary', array( $this, 'close_summary_wrapper' ), 99 );
@@ -493,11 +519,17 @@ class Single_Product {
 				add_action( 'woocommerce_before_single_product_summary', array( $this, 'product_taxonomy' ), 29 );
 				add_action( 'woocommerce_before_single_product_summary', array( $this, 'product_sku' ), 29 );
 
-				remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_rating', 10 );
-				add_action( 'woocommerce_before_single_product_summary', array( $this, 'ratings_button_reviews' ), 31 );
+			remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_rating', 10 );
+			add_action( 'woocommerce_before_single_product_summary', array( $this, 'ratings_button_reviews' ), 31 );
 
+			// Desktop: keep original position, Mobile: move to after summary
+			if ( wp_is_mobile() ) {
+				remove_action( 'woocommerce_before_single_product_summary', array( $this, 'product_extra_content' ), 32 );
+				add_action( 'woocommerce_after_single_product_summary', array( $this, 'product_extra_content' ), 5 );
+			} else {
 				add_action( 'woocommerce_before_single_product_summary', array( $this, 'product_extra_content' ), 32 );
-				add_action( 'woocommerce_before_single_product_summary', array( $this, 'short_description' ), 33 );
+			}
+			add_action( 'woocommerce_before_single_product_summary', array( $this, 'short_description' ), 33 );
 
 				// Add Quantity Wrapper
 				add_action( 'woocommerce_before_add_to_cart_quantity', array( $this, 'quantity_label' ) );
@@ -528,11 +560,16 @@ class Single_Product {
 				add_action( 'shopwell_before_sticky_add_to_cart_product_tabs', array( $this, 'shopwell_sticky_add_to_cart__description_tab' ), 10 );
 				add_action( 'shopwell_after_sticky_add_to_cart__product_tabs', array( $this, 'shopwell_sticky_add_to_cart__review_tab' ), 10 );
 
-				add_action( 'woocommerce_before_single_product_summary', array( $this, 'open_summary_wrapper' ), 21 );
-				add_action( 'woocommerce_after_single_product_summary', array( $this, 'close_summary_wrapper' ), 3 );
+			add_action( 'woocommerce_before_single_product_summary', array( $this, 'open_summary_wrapper' ), 21 );
+			add_action( 'woocommerce_after_single_product_summary', array( $this, 'close_summary_wrapper' ), 3 );
 
-				// Add side product
+			// Desktop: keep original position (0), Mobile: move lower (after tabs)
+			if ( wp_is_mobile() ) {
+				remove_action( 'woocommerce_after_single_product_summary', array( $this, 'product_extra_content' ), 0 );
+				add_action( 'woocommerce_after_single_product_summary', array( $this, 'product_extra_content' ), 5 );
+			} else {
 				add_action( 'woocommerce_after_single_product_summary', array( $this, 'product_extra_content' ), 0 );
+			}
 
 				if ( ! empty( Helper::get_option( 'product_side_products_enable' ) ) ) {
 					add_action( 'woocommerce_after_single_product_summary', array( $this, 'side_products' ), 1 );
@@ -551,6 +588,13 @@ class Single_Product {
 			default:
 				break;
 		}
+
+		// Move related products to the very bottom for all layouts
+		// Remove any existing related products hooks
+		remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
+		remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 2 );
+		// Add related products at the very bottom with highest priority
+		add_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 999 );
 	}
 
 	/**

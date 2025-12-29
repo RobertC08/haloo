@@ -143,13 +143,35 @@
 
 		// Products ordering.
 		if ( $.fn.select2 ) {
-			$tools.find( '.woocommerce-ordering select' ).select2( {
+			var $select = $tools.find( '.woocommerce-ordering select' );
+			var $orderingContainer = $tools.find( '.woocommerce-ordering' );
+			
+			$select.select2( {
 				width                  : 'auto',
 				minimumResultsForSearch: -1,
 				selectionCssClass      : 'shopwell-input--default',
 				dropdownCssClass	   : 'product-order',
-				dropdownParent         : $tools.find( '.woocommerce-ordering' )
+				dropdownParent         : $orderingContainer
 			} );
+			
+			// Position dropdown to align with right edge of container
+			$select.on('select2:open', function() {
+				setTimeout(function() {
+					var $dropdown = $('.select2-dropdown.product-order');
+					if ($dropdown.length && $orderingContainer.length) {
+						// Check if we're in catalog-toolbar--top (has 24px right padding)
+						var rightOffset = $tools.hasClass('catalog-toolbar--top') ? 24 : 0;
+						
+						// Position dropdown to align with right edge of woocommerce-ordering container
+						$dropdown.css({
+							'left': 'auto',
+							'right': rightOffset + 'px',
+							'transform': 'none',
+							'position': 'absolute'
+						});
+					}
+				}, 10);
+			});
 		}
 	}
 

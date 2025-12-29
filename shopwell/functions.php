@@ -3613,6 +3613,145 @@ function shopwell_disable_compare_js() {
 }
 add_action( 'wp_footer', 'shopwell_disable_compare_js', 999 );
 
+/**
+ * Change "Buy Now" button text to "Cumpără Acum"
+ */
+function shopwell_change_buy_now_text() {
+	?>
+	<script>
+	jQuery(document).ready(function($) {
+		// Function to replace Buy Now text
+		function replaceBuyNowText() {
+			// Find all elements containing "Buy Now" text
+			$('.shopwell-buy-now-button, button[class*="buy-now"], a[class*="buy-now"]').each(function() {
+				var $button = $(this);
+				// Check if button or any child element contains "Buy Now"
+				if ($button.text().indexOf('Buy Now') !== -1) {
+					// Replace text in button itself
+					$button.html($button.html().replace(/Buy Now/gi, 'Cumpără Acum'));
+					// Also replace in any child elements
+					$button.find('*').each(function() {
+						if ($(this).text().indexOf('Buy Now') !== -1) {
+							$(this).text($(this).text().replace(/Buy Now/gi, 'Cumpără Acum'));
+						}
+					});
+				}
+			});
+			
+			// Also check for buttons by text content
+			$('button, a.button').each(function() {
+				var $btn = $(this);
+				var text = $btn.text().trim();
+				if (text === 'Buy Now' || text.indexOf('Buy Now') !== -1) {
+					$btn.html($btn.html().replace(/Buy Now/gi, 'Cumpără Acum'));
+				}
+			});
+		}
+		
+		// Run immediately
+		replaceBuyNowText();
+		
+		// Run after a short delay to catch dynamically loaded content
+		setTimeout(replaceBuyNowText, 500);
+		setTimeout(replaceBuyNowText, 1000);
+		setTimeout(replaceBuyNowText, 2000);
+		
+		// Also run when AJAX content is loaded (for variations, etc.)
+		$(document.body).on('updated_wc_div wc_fragments_refreshed', function() {
+			setTimeout(replaceBuyNowText, 100);
+		});
+		
+		// Use MutationObserver to catch dynamically added buttons
+		if (typeof MutationObserver !== 'undefined') {
+			var observer = new MutationObserver(function(mutations) {
+				setTimeout(replaceBuyNowText, 100);
+			});
+			
+			var $product = $('.single-product, .product');
+			if ($product.length) {
+				$product.each(function() {
+					observer.observe(this, {
+						childList: true,
+						subtree: true
+					});
+				});
+			}
+		}
+	});
+	</script>
+	<?php
+}
+add_action( 'wp_footer', 'shopwell_change_buy_now_text', 20 );
+
+/**
+ * Remove halooToastContainer
+ */
+function shopwell_remove_haloo_toast_container() {
+	?>
+	<script>
+	jQuery(document).ready(function($) {
+		// Function to remove halooToastContainer
+		function removeHalooToastContainer() {
+			// Remove by ID
+			$('#halooToastContainer').remove();
+			// Remove by class
+			$('.halooToastContainer').remove();
+			// Also check for any element with halooToast in the name
+			$('[id*="halooToast"], [class*="halooToast"]').remove();
+		}
+		
+		// Run immediately
+		removeHalooToastContainer();
+		
+		// Run after a short delay to catch dynamically created elements
+		setTimeout(removeHalooToastContainer, 100);
+		setTimeout(removeHalooToastContainer, 500);
+		setTimeout(removeHalooToastContainer, 1000);
+		
+		// Use MutationObserver to catch dynamically added containers
+		if (typeof MutationObserver !== 'undefined') {
+			var observer = new MutationObserver(function(mutations) {
+				removeHalooToastContainer();
+			});
+			
+			observer.observe(document.body, {
+				childList: true,
+				subtree: true
+			});
+		}
+		
+		// Also prevent creation by intercepting appendChild if possible
+		var originalAppendChild = Element.prototype.appendChild;
+		Element.prototype.appendChild = function(child) {
+			if (child && (child.id === 'halooToastContainer' || 
+				(child.className && child.className.indexOf('halooToast') !== -1) ||
+				(child.id && child.id.indexOf('halooToast') !== -1))) {
+				return child; // Don't append, just return
+			}
+			return originalAppendChild.call(this, child);
+		};
+	});
+	</script>
+	<style>
+		/* Hide halooToastContainer via CSS as backup */
+		#halooToastContainer,
+		.halooToastContainer,
+		[id*="halooToast"],
+		[class*="halooToast"] {
+			display: none !important;
+			visibility: hidden !important;
+			opacity: 0 !important;
+			height: 0 !important;
+			width: 0 !important;
+			overflow: hidden !important;
+			position: absolute !important;
+			left: -9999px !important;
+		}
+	</style>
+	<?php
+}
+add_action( 'wp_footer', 'shopwell_remove_haloo_toast_container', 10 );
+
 
 
 

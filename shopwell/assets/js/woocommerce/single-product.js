@@ -488,6 +488,17 @@
             if( $date_onsale_to && $variation_id !== '0' ) {
                 $container.find( '.woocommerce-badge--text' ).html( $date_onsale_to_new );
             }
+
+            // Verifică stocul disponibil când se schimbă variația
+            if ( $variation_id && $variation_id !== '0' && variation.max_qty !== undefined ) {
+                var productId = $(this).find('input[name="product_id"]').val() || $(this).find('input[name="add-to-cart"]').val();
+                if (productId) {
+                    var stockQuantity = variation.max_qty || variation.stock_quantity;
+                    if (stockQuantity !== null && stockQuantity !== undefined) {
+                        shopwell.getCartQuantityAndUpdate(productId, $variation_id, stockQuantity);
+                    }
+                }
+            }
         });
 
         $('.single-product div.product .product-gallery-summary .variations_form').on( 'hide_variation', function () {
@@ -819,8 +830,202 @@
                 $('.single-product div.product').find('.shopwell-free-shipping-bar').replaceWith($(response['div.widget_shopping_cart_content']).find('.shopwell-free-shipping-bar'));
             }
 
+            // Verifică stocul disponibil după adăugarea în coș
+            shopwell.checkAvailableStock();
         } );
+
+        // Verifică stocul disponibil când se actualizează fragmentele
+        $( document.body ).on( 'wc_fragments_refreshed', function() {
+            shopwell.checkAvailableStock();
+        } );
+
+        // Verifică stocul disponibil când se schimbă cantitatea
+        $( document ).on( 'change', '.single-product input[name="quantity"]', function() {
+            setTimeout(function() {
+                shopwell.checkAvailableStock();
+            }, 100);
+        } );
+
+        // Verifică stocul disponibil la încărcarea paginii
+        setTimeout(function() {
+            shopwell.checkAvailableStock();
+        }, 500);
     }
+
+    /**
+     * Verifică stocul disponibil și actualizează butonul de adăugare în coș
+     */
+    shopwell.checkAvailableStock = function() {
+        var $form = $('.single-product form.cart, .single-product .variations_button');
+        if (!$form.length) {
+            return;
+        }
+
+        // Pentru produse simple
+        var $button = $form.find('.single_add_to_cart_button');
+        if ($button.length) {
+            var productId = $button.data('product-id');
+            var availableStock = $button.data('available-stock');
+
+            // Dacă nu avem informații despre stoc, nu facem nimic
+            if (availableStock !== '' && availableStock !== undefined) {
+                shopwell.getCartQuantityAndUpdate(productId, 0, availableStock);
+            }
+        }
+
+        // Pentru produse cu variații - verificăm când se schimbă variația
+        var $variationForm = $('.single-product .variations_form');
+        if ($variationForm.length) {
+            var variationId = $variationForm.find('.variation_id').val();
+            if (variationId && variationId !== '0') {
+                // Obținem product_id din form
+                var productId = $variationForm.find('input[name="product_id"]').val() || 
+                               $variationForm.find('input[name="add-to-cart"]').val();
+                
+                if (productId) {
+                    // Obținem stocul disponibil din datele variației
+                    var variationData = $variationForm.data('product_variations');
+                    if (variationData) {
+                        for (var i = 0; i < variationData.length; i++) {
+                            if (variationData[i].variation_id == variationId) {
+                                var stockQuantity = variationData[i].max_qty || variationData[i].stock_quantity;
+                                if (stockQuantity !== null && stockQuantity !== undefined) {
+                                    shopwell.getCartQuantityAndUpdate(productId, variationId, stockQuantity);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    /**
+     * Obține cantitatea din coș și actualizează butonul
+     */
+    shopwell.getCartQuantityAndUpdate = function(productId, variationId, stockQuantity) {
+        variationId = variationId || 0;
+        
+        if (typeof wc_add_to_cart_params !== 'undefined' && wc_add_to_cart_params.wc_ajax_url) {
+            // Folosim AJAX pentru a obține cantitatea din coș
+            $.ajax({
+                url: wc_add_to_cart_params.wc_ajax_url.toString().replace('%%endpoint%%', 'get_cart_item_quantity'),
+                method: 'POST',
+                data: {
+                    product_id: productId,
+                    variation_id: variationId
+                },
+                success: function(response) {
+                    if (response && response.success && response.data) {
+                        var cartQuantity = parseInt(response.data.quantity) || 0;
+                        shopwell.updateAddToCartButton(productId, variationId, stockQuantity, cartQuantity);
+                    }
+                },
+                error: function() {
+                    // Dacă AJAX eșuează, încercăm să obținem din fragment
+                    shopwell.updateAddToCartButtonFromFragment(productId, variationId, stockQuantity);
+                }
+            });
+        } else {
+            // Dacă nu avem AJAX, folosim fragment
+            shopwell.updateAddToCartButtonFromFragment(productId, variationId, stockQuantity);
+        }
+    };
+
+    /**
+     * Actualizează butonul de adăugare în coș pe baza stocului disponibil
+     */
+    shopwell.updateAddToCartButton = function(productId, variationId, stockQuantity, cartQuantity) {
+        variationId = variationId || 0;
+        
+        var $form = $('.single-product form.cart, .single-product .variations_button');
+        var $button = $form.find('.single_add_to_cart_button');
+        var $quantityInput = $form.find('input[name="quantity"]');
+        var $messageContainer = $form.find('.shopwell-stock-limit-message');
+
+        if (!$button.length) {
+            return;
+        }
+
+        var availableStock = stockQuantity - cartQuantity;
+        var message = 'Nu mai poți adăuga produse în coș. Ai atins limita disponibilă în stoc.';
+
+        // Actualizăm max_value pentru input-ul de cantitate
+        if ($quantityInput.length && availableStock >= 0 && stockQuantity !== null) {
+            var currentMax = parseInt($quantityInput.attr('max')) || '';
+            if (currentMax === '' || currentMax > availableStock) {
+                $quantityInput.attr('max', availableStock);
+            }
+        }
+
+        if (availableStock <= 0 && stockQuantity !== null) {
+            // Dezactivăm butonul
+            $button.prop('disabled', true).addClass('disabled');
+            
+            // Afișăm mesajul
+            if (!$messageContainer.length) {
+                var $insertAfter = $form.find('.woocommerce_before_add_to_cart_button').length ? 
+                                  $form.find('.woocommerce_before_add_to_cart_button') : 
+                                  $form.find('.woocommerce-variation-add-to-cart').length ?
+                                  $form.find('.woocommerce-variation-add-to-cart') :
+                                  $quantityInput.closest('.quantity');
+                
+                if ($insertAfter.length) {
+                    $insertAfter.after(
+                        '<div class="shopwell-stock-limit-message" style="margin-bottom: 15px; padding: 12px; background-color: #fff3cd; border-left: 4px solid #ffc107; color: #856404; border-radius: 4px;">' + message + '</div>'
+                    );
+                } else {
+                    $form.prepend(
+                        '<div class="shopwell-stock-limit-message" style="margin-bottom: 15px; padding: 12px; background-color: #fff3cd; border-left: 4px solid #ffc107; color: #856404; border-radius: 4px;">' + message + '</div>'
+                    );
+                }
+            } else {
+                $messageContainer.show();
+            }
+        } else {
+            // Activăm butonul
+            $button.prop('disabled', false).removeClass('disabled');
+            
+            // Ascundem mesajul
+            $messageContainer.hide();
+        }
+    };
+
+    /**
+     * Actualizează butonul folosind datele din fragment
+     */
+    shopwell.updateAddToCartButtonFromFragment = function(productId, variationId, stockQuantity) {
+        variationId = variationId || 0;
+        
+        // Încercăm să obținem cantitatea din coș din fragment sau din DOM
+        var cartQuantity = 0;
+        
+        // Verificăm dacă există informații despre coș în DOM
+        $('.woocommerce-mini-cart-item, .cart-item').each(function() {
+            var $item = $(this);
+            var itemProductId = $item.find('[data-product_id]').data('product_id') || 
+                               $item.find('input[name*="product_id"]').val();
+            var itemVariationId = $item.find('[data-variation_id]').data('variation_id') || 0;
+            
+            if (itemProductId == productId) {
+                // Pentru produse simple
+                if (variationId == 0 && itemVariationId == 0) {
+                    var qty = parseInt($item.find('input[name*="quantity"], .quantity').val()) || 
+                             parseInt($item.find('.quantity').text()) || 0;
+                    cartQuantity += qty;
+                }
+                // Pentru produse cu variații
+                else if (variationId > 0 && itemVariationId == variationId) {
+                    var qty = parseInt($item.find('input[name*="quantity"], .quantity').val()) || 
+                             parseInt($item.find('.quantity').text()) || 0;
+                    cartQuantity += qty;
+                }
+            }
+        });
+
+        shopwell.updateAddToCartButton(productId, variationId, stockQuantity, cartQuantity);
+    };
 
     shopwell.stickyHeaderCompact = function() {
         if (!shopwell.$body.hasClass('mobile-header-compact')) {

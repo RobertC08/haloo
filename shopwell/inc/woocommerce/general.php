@@ -65,8 +65,16 @@ class General {
 			add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'button_view_cart' ), 20 );
 		}
 
+		// Change proceed to checkout button text globally
+		add_filter( 'gettext', array( $this, 'change_proceed_to_checkout_text' ), 20, 3 );
+
 		// Ajax update mini cart.
 		add_action( 'wc_ajax_update_cart_item', array( $this, 'update_cart_item' ) );
+
+		// Ajax get cart item quantity.
+		add_action( 'wc_ajax_get_cart_item_quantity', array( $this, 'get_cart_item_quantity' ) );
+		add_action( 'wp_ajax_get_cart_item_quantity', array( $this, 'get_cart_item_quantity' ) );
+		add_action( 'wp_ajax_nopriv_get_cart_item_quantity', array( $this, 'get_cart_item_quantity' ) );
 
 		// Change the quantity format of the cart widget.
 		add_filter( 'woocommerce_widget_cart_item_quantity', array( $this, 'cart_item_quantity' ), 10, 3 );
@@ -240,6 +248,51 @@ class General {
 	}
 
 	/**
+	 * Get cart item quantity for a product.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return void
+	 */
+	public function get_cart_item_quantity() {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Cart not available.', 'shopwell' ) ) );
+			return;
+		}
+
+		$product_id   = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
+		$variation_id = isset( $_POST['variation_id'] ) ? absint( $_POST['variation_id'] ) : 0;
+
+		if ( ! $product_id ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Product ID is required.', 'shopwell' ) ) );
+			return;
+		}
+
+		$cart_quantity = 0;
+
+		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+			if ( $cart_item['product_id'] == $product_id ) {
+				// Pentru produse simple, verificăm doar product_id
+				if ( $variation_id == 0 && ( ! isset( $cart_item['variation_id'] ) || $cart_item['variation_id'] == 0 ) ) {
+					$cart_quantity += $cart_item['quantity'];
+				}
+				// Pentru produse cu variații, verificăm și variation_id
+				elseif ( $variation_id > 0 && isset( $cart_item['variation_id'] ) && $cart_item['variation_id'] == $variation_id ) {
+					$cart_quantity += $cart_item['quantity'];
+				}
+			}
+		}
+
+		wp_send_json_success(
+			array(
+				'product_id'   => $product_id,
+				'variation_id' => $variation_id,
+				'quantity'     => $cart_quantity,
+			)
+		);
+	}
+
+	/**
 	 * Change the quantity HTML of widget cart.
 	 *
 	 * @since 1.0.0
@@ -327,7 +380,24 @@ class General {
 	 * @return void
 	 */
 	public function button_proceed_to_checkout() {
-		echo '<a href="' . esc_url( wc_get_checkout_url() ) . '" class="shopwell-button checkout wc-forward shopwell-button--large">' . esc_html__( 'Checkout', 'shopwell' ) . '</a>';
+		echo '<a href="' . esc_url( wc_get_checkout_url() ) . '" class="shopwell-button checkout wc-forward shopwell-button--large">' . esc_html__( 'Finalizeaza comanda', 'shopwell' ) . '</a>';
+	}
+
+	/**
+	 * Change proceed to checkout button text globally
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $translated_text The translated text.
+	 * @param string $text The original text.
+	 * @param string $domain The text domain.
+	 * @return string
+	 */
+	public function change_proceed_to_checkout_text( $translated_text, $text, $domain ) {
+		if ( 'woocommerce' === $domain && 'Proceed to checkout' === $text ) {
+			return 'Finalizeaza comanda';
+		}
+		return $translated_text;
 	}
 
 	/**
