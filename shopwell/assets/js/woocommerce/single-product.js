@@ -1210,7 +1210,7 @@
 						'height': '16px',
 						'border-radius': '50%',
 						'background-color': fullOpacityColor,
-						'margin-right': '8px',
+						'margin-top': '10px',
 						'vertical-align': 'middle',
 						'flex-shrink': '0',
 						'border': '1px solid rgba(0, 0, 0, 0.1)'

@@ -204,12 +204,6 @@ class Frontend {
 		 * Register and enqueue scripts
 		 */
 		$debug = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-		wp_enqueue_script( 'html5shiv', get_template_directory_uri() . '/assets/js/plugins/html5shiv.min.js', array(), '3.7.2' );
-		wp_script_add_data( 'html5shiv', 'conditional', 'lt IE 9' );
-
-		wp_enqueue_script( 'respond', get_template_directory_uri() . '/assets/js/plugins/respond.min.js', array(), '1.4.2' );
-		wp_script_add_data( 'respond', 'conditional', 'lt IE 9' );
-
 		wp_register_script( 'headroom', get_template_directory_uri() . '/assets/js/plugins/headroom.min.js', array(), '0.9.3', true );
 
 		if ( 'none' != \Shopwell\Helper::get_option( 'header_sticky' ) && 'up' == \Shopwell\Helper::get_option( 'header_sticky_on' ) ) {
