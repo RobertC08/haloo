@@ -91,6 +91,8 @@
         let isCheckingAvailability = false;
         let checkoutSubmitBlocked = false;
         let validationPassed = false; // Flag to indicate our validation passed
+        let stockCheckCompleted = false; // Flag to track if stock check was completed successfully
+        let stockCheckTimestamp = 0; // Timestamp of last successful stock check
 
         /**
          * Get all SKUs from cart items
@@ -250,11 +252,19 @@
                             price: availability.price
                         });
 
-                        // Validate quantity response
-                        const availableQty = parseInt(availability.quantity) || 0;
+                        // Validate quantity response - STRICT CHECK for stock availability
+                        // Ensure we have a valid quantity value
+                        let availableQty = 0;
+                        if (availability.quantity !== null && availability.quantity !== undefined) {
+                            availableQty = parseInt(availability.quantity);
+                            // If parsing fails or results in NaN, treat as 0 (out of stock)
+                            if (isNaN(availableQty) || availableQty < 0) {
+                                availableQty = 0;
+                            }
+                        }
                         const requestedQty = parseInt(item.quantity) || 1;
                         
-                        // Check if quantity is sufficient
+                        // STRICT VALIDATION: Block order if product is out of stock (quantity = 0)
                         if (availableQty === 0) {
                             errors.push({
                                 sku: item.sku,
@@ -262,6 +272,11 @@
                                 requested: requestedQty,
                                 available: 0,
                                 type: 'unavailable'
+                            });
+                            shopwellLog('Product out of stock - blocking order:', {
+                                sku: item.sku,
+                                productName: item.productName,
+                                requested: requestedQty
                             });
                         } else if (availableQty < requestedQty) {
                             errors.push({
@@ -309,8 +324,15 @@
          * Display WooCommerce error notices
          */
         function displayAvailabilityErrors(errors) {
-            // Filter out configuration errors and generic "not found" errors as a safety measure
+            // NEVER filter out stock errors (unavailable/insufficient) - these must always be shown
+            // Only filter out configuration errors and generic "not found" errors for non-stock errors
             errors = errors.filter(function(error) {
+                // Always show stock-related errors
+                if (error.type === 'unavailable' || error.type === 'insufficient') {
+                    return true;
+                }
+                
+                // For other errors, filter out configuration errors
                 const errorMessage = error.error || error.message || '';
                 if (errorMessage.includes('Market API configuration missing') || 
                     errorMessage.includes('configuration missing') ||
@@ -590,6 +612,19 @@
                 return false;
             }
             
+            // SAFETY CHECK: If checkout is blocked due to stock errors, prevent submission
+            if (checkoutSubmitBlocked) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+                // Unblock the button
+                const $submitButton = $('button[name="woocommerce_checkout_place_order"]', checkoutForm);
+                $submitButton.removeClass('processing').prop('disabled', false);
+                validationPassed = false;
+                shopwellLog('Order submission blocked due to stock validation');
+                return false;
+            }
+            
             // ALWAYS validate required fields and terms - this is the PRIMARY check
             // Don't trust the validationPassed flag here - validate again to be sure
             const validation = validateCheckoutForm();
@@ -632,11 +667,23 @@
 
         // Intercept form submit - this is a fallback for non-AJAX submissions
         const submitHandler = async function(e) {
-            // If validation already passed and we're submitting, allow it through
-            if (validationPassed) {
+            // CRITICAL FIX: Only allow bypass if stock was checked successfully very recently (within 2 seconds)
+            // This prevents the bypass while still allowing WooCommerce's triggered submission to proceed
+            const now = Date.now();
+            const recentStockCheck = stockCheckCompleted && (now - stockCheckTimestamp) < 2000;
+            
+            if (validationPassed && recentStockCheck && !isCheckingAvailability && !checkoutSubmitBlocked) {
+                // Stock was checked successfully very recently, allow submission
                 validationPassed = false; // Reset flag
+                stockCheckCompleted = false; // Reset stock check flag
                 // Don't prevent default - let WooCommerce handle it
                 return true;
+            }
+            
+            // If validation passed but stock check is old or missing, force re-check
+            if (validationPassed && !recentStockCheck) {
+                validationPassed = false;
+                stockCheckCompleted = false;
             }
 
             // If we're already checking, block submission
@@ -745,17 +792,43 @@
 
                 isCheckingAvailability = false;
 
-                // If there are errors, display them and block submission
-                if (checkResult.errors.length > 0) {
-                    displayAvailabilityErrors(checkResult.errors);
-                    checkoutSubmitBlocked = true;
+                // STRICT VALIDATION: If there are ANY stock errors, BLOCK order placement
+                if (checkResult.errors && checkResult.errors.length > 0) {
+                    // Filter to only show actual stock errors (unavailable or insufficient)
+                    const stockErrors = checkResult.errors.filter(function(error) {
+                        return error.type === 'unavailable' || error.type === 'insufficient';
+                    });
                     
-                    // Re-enable submit after a short delay
-                    setTimeout(function() {
-                        checkoutSubmitBlocked = false;
-                    }, 1000);
+                    // If there are stock-related errors, block the order
+                    if (stockErrors.length > 0) {
+                        shopwellLog('Order blocked due to stock issues:', stockErrors);
+                        displayAvailabilityErrors(stockErrors);
+                        checkoutSubmitBlocked = true;
+                        validationPassed = false; // Ensure validation flag is reset
+                        stockCheckCompleted = false; // Reset stock check flag
+                        
+                        // Re-enable submit button after a short delay
+                        setTimeout(function() {
+                            checkoutSubmitBlocked = false;
+                        }, 1000);
+                        
+                        // Prevent any further submission attempts
+                        return false;
+                    }
                     
-                    return false;
+                    // If there are other errors (not stock-related), still block but log them
+                    if (checkResult.errors.length > stockErrors.length) {
+                        displayAvailabilityErrors(checkResult.errors);
+                        checkoutSubmitBlocked = true;
+                        validationPassed = false;
+                        stockCheckCompleted = false; // Reset stock check flag
+                        
+                        setTimeout(function() {
+                            checkoutSubmitBlocked = false;
+                        }, 1000);
+                        
+                        return false;
+                    }
                 }
 
                 // All checks passed, allow submission
@@ -788,8 +861,10 @@
                     return false;
                 }
                 
-                // Set flag to indicate validation passed
+                // Set flags to indicate validation and stock check passed
                 validationPassed = true;
+                stockCheckCompleted = true;
+                stockCheckTimestamp = Date.now();
                 
                 // Remove our handler temporarily to avoid loop
                 checkoutForm.off('submit', submitHandler);
