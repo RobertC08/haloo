@@ -6767,9 +6767,6 @@ form.checkout table.shop_table tbody td.product-name .checkout-review-product-na
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-form.checkout table.shop_table tbody td.product-name dl.variation {
-  margin-top: 0;
-}
 form.checkout table.shop_table tbody td.product-total {
   width: 20%;
   text-align: end;

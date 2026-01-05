@@ -51,9 +51,46 @@
             return;
         }
 
+        // Ensure all required fields have HTML5 required attribute for browser validation
+        // WooCommerce uses aria-required="true" for accessibility, we need to add HTML5 required too
+        function addRequiredAttribute() {
+            // Check fields with aria-required="true" (WooCommerce standard)
+            checkoutForm.find('input[aria-required="true"], select[aria-required="true"], textarea[aria-required="true"]').each(function() {
+                const $field = $(this);
+                if (!$field.attr('required')) {
+                    $field.attr('required', 'required');
+                }
+            });
+            
+            // Check fields with validate-required class
+            checkoutForm.find('.validate-required input, .validate-required select, .validate-required textarea').each(function() {
+                const $field = $(this);
+                if (!$field.attr('required')) {
+                    $field.attr('required', 'required');
+                }
+            });
+            
+            // Check fields in required form-rows
+            checkoutForm.find('.form-row.validate-required input, .form-row.validate-required select, .form-row.validate-required textarea').each(function() {
+                const $field = $(this);
+                if (!$field.attr('required')) {
+                    $field.attr('required', 'required');
+                }
+            });
+        }
+        
+        // Add required attributes on page load
+        addRequiredAttribute();
+        
+        // Also add required attributes when checkout updates (AJAX updates)
+        $(document.body).on('updated_checkout', function() {
+            addRequiredAttribute();
+        });
+
         // Store original submit handler
         let isCheckingAvailability = false;
         let checkoutSubmitBlocked = false;
+        let validationPassed = false; // Flag to indicate our validation passed
 
         /**
          * Get all SKUs from cart items
@@ -326,28 +363,308 @@
 
 
         /**
-         * Intercept checkout form submission
+         * Validate checkout form - required fields and terms
          */
-        checkoutForm.on('checkout_place_order', function(e) {
-            // This event is triggered by WooCommerce before submission
+        function validateCheckoutForm() {
+            let isValid = true;
+            const errors = [];
+            const checkedFields = {}; // Track which fields we've already checked
+            
+            // First, try to use WooCommerce's validation if available
+            if (typeof $ !== 'undefined' && $.fn.validate && checkoutForm.validate) {
+                try {
+                    const wcValid = checkoutForm.valid();
+                    if (!wcValid) {
+                        // WooCommerce validation failed, but we'll do our own check too
+                        isValid = false;
+                    }
+                } catch (e) {
+                    // WooCommerce validation not available, continue with our validation
+                }
+            }
+
+            // Helper function to check a single field
+            function checkField($field) {
+                const fieldId = $field.attr('id') || $field.attr('name');
+                if (checkedFields[fieldId]) {
+                    return true; // Already checked
+                }
+                checkedFields[fieldId] = true;
+
+                const fieldType = $field.attr('type');
+                const fieldName = $field.attr('name');
+                let fieldValue = '';
+
+                // Skip hidden fields (but not terms checkbox which might be hidden)
+                if ($field.is(':hidden') && !$field.is('#terms, input[name="terms"], input#terms-field, input[name="terms-field"]')) {
+                    return true;
+                }
+
+                // Get field value based on type
+                if (fieldType === 'checkbox' || fieldType === 'radio') {
+                    // For checkboxes/radios, check if any in the group is checked
+                    const name = $field.attr('name');
+                    if (name) {
+                        const isChecked = checkoutForm.find('input[name="' + name.replace(/[\[\]]/g, '\\$&') + '"]:checked').length > 0;
+                        if (!isChecked) {
+                            isValid = false;
+                            const label = $field.closest('.form-row').find('label').first().text().trim();
+                            const labelText = label || $field.closest('label').text().trim() || 'Acest câmp';
+                            // Store field reference for error display
+                            errors.push({
+                                field: name,
+                                fieldElement: $field,
+                                message: labelText + ' este obligatoriu.'
+                            });
+                        }
+                    }
+                } else {
+                    fieldValue = $field.val();
+                    if (!fieldValue || (typeof fieldValue === 'string' && fieldValue.trim() === '')) {
+                        isValid = false;
+                        const label = $field.closest('.form-row').find('label').first().text().trim() || 
+                                     $field.closest('label').text().trim() || 
+                                     $field.attr('placeholder') || 
+                                     'Acest câmp';
+                        // Store field reference for error display
+                        errors.push({
+                            field: fieldName || $field.attr('id') || $field.attr('name'),
+                            fieldElement: $field,
+                            message: label + ' este obligatoriu.'
+                        });
+                    }
+                }
+                return true;
+            }
+
+            // Check required fields (HTML5 required attribute)
+            checkoutForm.find('input[required], select[required], textarea[required]').each(function() {
+                checkField($(this));
+            });
+
+            // Check fields with aria-required="true" (WooCommerce uses this for accessibility)
+            checkoutForm.find('input[aria-required="true"], select[aria-required="true"], textarea[aria-required="true"]').each(function() {
+                checkField($(this));
+            });
+
+            // Check for fields with validate-required class (WooCommerce standard)
+            checkoutForm.find('.validate-required input, .validate-required select, .validate-required textarea').each(function() {
+                checkField($(this));
+            });
+
+            // Also check fields marked as required by WooCommerce data attributes
+            checkoutForm.find('[data-required="1"], [data-required="true"]').each(function() {
+                checkField($(this));
+            });
+            
+            // Check WooCommerce billing and shipping required fields
+            // WooCommerce marks required fields with validate-required class on the form-row
+            checkoutForm.find('.form-row.validate-required').each(function() {
+                const $row = $(this);
+                const $field = $row.find('input, select, textarea').first();
+                if ($field.length) {
+                    checkField($field);
+                }
+            });
+            
+            // Also check for any input/select/textarea in a required form-row that might be missed
+            checkoutForm.find('.form-row.required input, .form-row.required select, .form-row.required textarea').each(function() {
+                checkField($(this));
+            });
+
+            // Check terms and conditions checkbox
+            // WooCommerce uses different selectors for terms checkbox
+            const termsCheckbox = checkoutForm.find('#terms, input[name="terms"], input#terms-field, input[name="terms-field"]');
+            if (termsCheckbox.length > 0) {
+                // Check if any terms checkbox is checked
+                const isTermsChecked = termsCheckbox.filter(':checked').length > 0;
+                if (!isTermsChecked) {
+                    isValid = false;
+                    errors.push({
+                        field: 'terms',
+                        fieldElement: termsCheckbox,
+                        message: 'Trebuie să acceptați termenii și condițiile pentru a continua.'
+                    });
+                }
+            }
+
+            return { isValid: isValid, errors: errors };
+        }
+
+        /**
+         * Display validation errors under each field
+         */
+        function displayValidationErrors(errors) {
+            // Remove existing error messages from fields
+            checkoutForm.find('.woocommerce-invalid-required-field').removeClass('woocommerce-invalid woocommerce-invalid-required-field');
+            checkoutForm.find('.woocommerce-invalid-field').removeClass('woocommerce-invalid woocommerce-invalid-field');
+            checkoutForm.find('.woocommerce-error-message').remove();
+            
+            // Remove general error notices
+            $('.woocommerce-error, .woocommerce-info').remove();
+
+            let firstErrorField = null;
+
+            // Add error messages under each field
+            errors.forEach(function(error) {
+                if (error.field === 'terms' || (error.fieldElement && error.fieldElement.is('#terms, input[name="terms"], input#terms-field, input[name="terms-field"]'))) {
+                    // Handle terms checkbox error
+                    const $termsWrapper = checkoutForm.find('.woocommerce-terms-and-conditions-wrapper, .form-row.woocommerce-terms-and-conditions');
+                    if ($termsWrapper.length) {
+                        // Remove existing error
+                        $termsWrapper.find('.woocommerce-error-message').remove();
+                        // Add error message
+                        const $errorMsg = $('<div class="woocommerce-error-message" role="alert" style="color: #e2401c; font-size: 0.875em; margin-top: 0.5em;">' + error.message + '</div>');
+                        $termsWrapper.append($errorMsg);
+                        if (!firstErrorField) {
+                            firstErrorField = $termsWrapper;
+                        }
+                    }
+                } else {
+                    // Use stored field element if available, otherwise find by field name/ID
+                    let $field = error.fieldElement;
+                    
+                    if (!$field || !$field.length) {
+                        // Try to find by name attribute
+                        $field = checkoutForm.find('[name="' + error.field.replace(/[\[\]]/g, '\\$&') + '"]');
+                        
+                        // If not found, try by ID
+                        if (!$field.length) {
+                            $field = checkoutForm.find('#' + error.field);
+                        }
+                        
+                        // If still not found, try partial name match
+                        if (!$field.length && error.field) {
+                            const fieldName = error.field.replace(/\[.*$/, '');
+                            $field = checkoutForm.find('[name^="' + fieldName + '"]').first();
+                        }
+                    }
+                    
+                    if ($field && $field.length) {
+                        const $formRow = $field.closest('.form-row');
+                        if ($formRow.length) {
+                            // Remove existing error classes and messages
+                            $formRow.removeClass('woocommerce-invalid woocommerce-invalid-required-field');
+                            $formRow.find('.woocommerce-error-message').remove();
+                            
+                            // Add error class to field and form row
+                            $field.addClass('woocommerce-invalid woocommerce-invalid-required-field');
+                            $formRow.addClass('woocommerce-invalid woocommerce-invalid-required-field');
+                            
+                            // Add error message below the field
+                            const $errorMsg = $('<div class="woocommerce-error-message" role="alert" style="color: #e2401c; font-size: 0.875em; margin-top: 0.5em;">' + error.message + '</div>');
+                            $formRow.append($errorMsg);
+                            
+                            if (!firstErrorField) {
+                                firstErrorField = $formRow;
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Scroll to first error field
+            if (firstErrorField && firstErrorField.length) {
+                try {
+                    const errorTop = firstErrorField.offset().top;
+                    if (errorTop) {
+                        $('html, body').animate({
+                            scrollTop: errorTop - 100
+                        }, 500);
+                    }
+                } catch (scrollError) {
+                    // Ignore scroll errors
+                }
+            }
+        }
+
+        /**
+         * Intercept checkout form submission - PRIMARY VALIDATION POINT
+         * This runs BEFORE WooCommerce's AJAX submission
+         */
+        $(document.body).on('checkout_place_order', checkoutForm, function(e, $form) {
+            // This event is triggered by WooCommerce BEFORE AJAX submission
+            // If we're checking availability, block it
             if (isCheckingAvailability) {
                 e.preventDefault();
                 return false;
             }
+            
+            // ALWAYS validate required fields and terms - this is the PRIMARY check
+            // Don't trust the validationPassed flag here - validate again to be sure
+            const validation = validateCheckoutForm();
+            if (!validation.isValid) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+                displayValidationErrors(validation.errors);
+                // Unblock the button
+                const $submitButton = $('button[name="woocommerce_checkout_place_order"]', checkoutForm);
+                $submitButton.removeClass('processing').prop('disabled', false);
+                // Reset validation flag
+                validationPassed = false;
+                return false;
+            }
+            
+            // If we get here, validation passed - set the flag
+            validationPassed = true;
+        });
+        
+        // Intercept button click - validate BEFORE WooCommerce processes it
+        $(document.body).on('click', 'button[name="woocommerce_checkout_place_order"]', function(e) {
+            const $button = $(this);
+            const $form = $button.closest('form.checkout');
+            
+            // Only validate if button is in checkout form and we haven't already validated
+            if ($form.length && !validationPassed && !isCheckingAvailability && !checkoutSubmitBlocked) {
+                const validation = validateCheckoutForm();
+                if (!validation.isValid) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    e.stopPropagation();
+                    // Prevent WooCommerce from processing
+                    $button.removeClass('processing').prop('disabled', false);
+                    displayValidationErrors(validation.errors);
+                    return false;
+                }
+            }
         });
 
-        // Intercept form submit
+        // Intercept form submit - this is a fallback for non-AJAX submissions
         const submitHandler = async function(e) {
+            // If validation already passed and we're submitting, allow it through
+            if (validationPassed) {
+                validationPassed = false; // Reset flag
+                // Don't prevent default - let WooCommerce handle it
+                return true;
+            }
+
             // If we're already checking, block submission
             if (isCheckingAvailability || checkoutSubmitBlocked) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
+                e.stopPropagation();
                 return false;
             }
 
-            // Prevent default submission
+            // Validate required fields and terms - this is a fallback check
+            // Primary validation happens in checkout_place_order event
+            const validation = validateCheckoutForm();
+            if (!validation.isValid) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+                // Also disable submit button to prevent any other submission attempts
+                const $submitButton = $('button[name="woocommerce_checkout_place_order"], button[type="submit"]', checkoutForm);
+                $submitButton.removeClass('processing').prop('disabled', false);
+                displayValidationErrors(validation.errors);
+                return false;
+            }
+
+            // Prevent default submission so we can do SKU check first
             e.preventDefault();
             e.stopImmediatePropagation();
+            e.stopPropagation();
 
             isCheckingAvailability = true;
 
@@ -364,12 +681,28 @@
                         // As a fallback, we'll allow submission if we can't get SKUs
                         shopwellLog('Could not retrieve cart SKUs, allowing submission');
                         isCheckingAvailability = false;
+                        
+                        // Re-validate before allowing submission
+                        const finalValidation = validateCheckoutForm();
+                        if (!finalValidation.isValid) {
+                            displayValidationErrors(finalValidation.errors);
+                            const $submitButton = $('button[name="woocommerce_checkout_place_order"]', checkoutForm);
+                            $submitButton.removeClass('processing').prop('disabled', false);
+                            return false;
+                        }
+                        
+                        validationPassed = true;
+                        // Remove our handler temporarily
                         checkoutForm.off('submit', submitHandler);
-                        const formElement = checkoutForm[0];
-                        if (formElement && typeof formElement.submit === 'function') {
-                            formElement.submit();
+                        // Trigger WooCommerce's checkout
+                        $(document.body).trigger('checkout_place_order', [checkoutForm]);
+                        const $submitButton = $('button[name="woocommerce_checkout_place_order"]', checkoutForm);
+                        if ($submitButton.length) {
+                            setTimeout(function() {
+                                $submitButton.trigger('click');
+                            }, 10);
                         } else {
-                            checkoutForm.submit();
+                            checkoutForm[0].submit();
                         }
                         return false;
                     }
@@ -381,12 +714,28 @@
                 if (cartSkus.length === 0) {
                     shopwellLog('No valid SKUs found, allowing submission');
                     isCheckingAvailability = false;
-                    checkoutForm.off('submit', arguments.callee);
-                    const formElement = checkoutForm[0];
-                    if (formElement && typeof formElement.submit === 'function') {
-                        formElement.submit();
+                    
+                    // Re-validate before allowing submission
+                    const finalValidation = validateCheckoutForm();
+                    if (!finalValidation.isValid) {
+                        displayValidationErrors(finalValidation.errors);
+                        const $submitButton = $('button[name="woocommerce_checkout_place_order"]', checkoutForm);
+                        $submitButton.removeClass('processing').prop('disabled', false);
+                        return false;
+                    }
+                    
+                    validationPassed = true;
+                    // Remove our handler temporarily
+                    checkoutForm.off('submit', submitHandler);
+                    // Trigger WooCommerce's checkout
+                    $(document.body).trigger('checkout_place_order', [checkoutForm]);
+                    const $submitButton = $('button[name="woocommerce_checkout_place_order"]', checkoutForm);
+                    if ($submitButton.length) {
+                        setTimeout(function() {
+                            $submitButton.trigger('click');
+                        }, 10);
                     } else {
-                        checkoutForm.submit();
+                        checkoutForm[0].submit();
                     }
                     return false;
                 }
@@ -429,16 +778,35 @@
                     }
                 });
                 
-                // Allow normal form submission by removing our handler temporarily
-                // and triggering the native submit
-                checkoutForm.off('submit', arguments.callee);
+                // IMPORTANT: Re-validate one more time before allowing submission
+                // This ensures fields are still valid after SKU check
+                const finalValidation = validateCheckoutForm();
+                if (!finalValidation.isValid) {
+                    displayValidationErrors(finalValidation.errors);
+                    const $submitButton = $('button[name="woocommerce_checkout_place_order"]', checkoutForm);
+                    $submitButton.removeClass('processing').prop('disabled', false);
+                    return false;
+                }
                 
-                // Use native form submission to ensure WooCommerce processes it correctly
-                const formElement = checkoutForm[0];
-                if (formElement && typeof formElement.submit === 'function') {
-                    formElement.submit();
+                // Set flag to indicate validation passed
+                validationPassed = true;
+                
+                // Remove our handler temporarily to avoid loop
+                checkoutForm.off('submit', submitHandler);
+                
+                // Trigger WooCommerce's checkout by triggering checkout_place_order event
+                // This is the proper way to trigger WooCommerce's AJAX checkout
+                $(document.body).trigger('checkout_place_order', [checkoutForm]);
+                
+                // Also click the button as fallback (WooCommerce listens to button click)
+                const $submitButton = $('button[name="woocommerce_checkout_place_order"]', checkoutForm);
+                if ($submitButton.length) {
+                    setTimeout(function() {
+                        $submitButton.trigger('click');
+                    }, 10);
                 } else {
-                    checkoutForm.submit();
+                    // Last resort: submit the form directly
+                    checkoutForm[0].submit();
                 }
                 return false;
 
@@ -447,17 +815,27 @@
                 isCheckingAvailability = false;
                 checkoutSubmitBlocked = false;
                 
-                // On error, allow submission (fail open)
-                // Or you can uncomment to block:
-                // displayAvailabilityErrors([{ type: 'error', error: 'Eroare la verificare disponibilitate. Te rugăm să încerci din nou.' }]);
-                // return false;
+                // On error, validate before allowing submission
+                const finalValidation = validateCheckoutForm();
+                if (!finalValidation.isValid) {
+                    displayValidationErrors(finalValidation.errors);
+                    const $submitButton = $('button[name="woocommerce_checkout_place_order"]', checkoutForm);
+                    $submitButton.removeClass('processing').prop('disabled', false);
+                    return false;
+                }
                 
-                checkoutForm.off('submit', arguments.callee);
-                const formElement = checkoutForm[0];
-                if (formElement && typeof formElement.submit === 'function') {
-                    formElement.submit();
+                validationPassed = true;
+                // Remove our handler temporarily
+                checkoutForm.off('submit', submitHandler);
+                // Trigger WooCommerce's checkout
+                $(document.body).trigger('checkout_place_order', [checkoutForm]);
+                const $submitButton = $('button[name="woocommerce_checkout_place_order"]', checkoutForm);
+                if ($submitButton.length) {
+                    setTimeout(function() {
+                        $submitButton.trigger('click');
+                    }, 10);
                 } else {
-                    checkoutForm.submit();
+                    checkoutForm[0].submit();
                 }
                 return false;
             }

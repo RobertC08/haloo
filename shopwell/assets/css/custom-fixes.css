@@ -923,3 +923,36 @@ body .footer-widget {
 .site-main {
 	margin-bottom: 0 !important;
 }
+
+/**
+ * Add spacing between product variation details in order confirmation
+ */
+table.shop_table dl.variation dt {
+	margin-bottom: 0px !important;
+}
+
+table.shop_table .product-name .wc-item-meta li {
+	margin-bottom: 8px !important;
+}
+
+table.shop_table .product-name .wc-item-meta li:last-child {
+	margin-bottom: 0 !important;
+}
+
+table.order_details .product-name .wc-item-meta li {
+	margin-bottom: 8px !important;
+}
+
+table.order_details .product-name .wc-item-meta li:last-child {
+	margin-bottom: 0 !important;
+}
+
+table.order_details .product-name .wc-item-meta li > p {
+	margin-bottom: 0 !important;
+	line-height: 1.6 !important;
+}
+
+/* Alternative: if variations are displayed as plain text with line breaks */
+table.order_details .product-name {
+	line-height: 1.8 !important;
+}

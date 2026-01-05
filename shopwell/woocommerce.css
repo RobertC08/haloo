@@ -6825,9 +6825,7 @@ form.checkout table.shop_table tbody td.product-name .checkout-review-product-na
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-form.checkout table.shop_table tbody td.product-name dl.variation {
-  margin-top: 0;
-}
+
 form.checkout table.shop_table tbody td.product-total {
   width: 20%;
   text-align: end;
@@ -7057,9 +7055,6 @@ table.shop_table dl.variation:after {
 .woocommerce table.order_details th {
   font-size: 18px;
   font-size: 1.125rem;
-}
-.woocommerce table.order_details td:first-child {
-  padding-left: 20px;
 }
 .woocommerce table.order_details .order-actions-button:not(:first-child) {
   margin-left: 20px;
