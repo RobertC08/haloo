@@ -551,10 +551,6 @@ h1.page-header__title {
     }
 }
 
-.site-content {
-    background-color: #f8f9fa !important;
-}
-
 /* No posts message */
 .no-posts {
     text-align: center;

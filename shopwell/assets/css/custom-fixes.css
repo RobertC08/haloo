@@ -731,3 +731,195 @@ div#page-header {
 		text-align: center !important;
 	}
 }
+
+/**
+ * Remove border/line between taxonomy header and no products found message
+ */
+.woocommerce.archive .woocommerce-shop-loop-header,
+.woocommerce-page.archive .woocommerce-shop-loop-header,
+.tax-product_cat .woocommerce-shop-loop-header,
+.woocommerce-shop .woocommerce-shop-loop-header,
+.post-type-archive-product .woocommerce-shop-loop-header,
+.woocommerce.archive .woocommerce-product-taxonomy-archive-header,
+.woocommerce-page.archive .woocommerce-product-taxonomy-archive-header,
+.tax-product_cat .woocommerce-product-taxonomy-archive-header,
+.woocommerce-shop .woocommerce-product-taxonomy-archive-header,
+.post-type-archive-product .woocommerce-product-taxonomy-archive-header,
+.woocommerce.archive h1.woocommerce-products-header__title,
+.woocommerce-page.archive h1.woocommerce-products-header__title,
+.tax-product_cat h1.woocommerce-products-header__title,
+.woocommerce-shop h1.woocommerce-products-header__title,
+.post-type-archive-product h1.woocommerce-products-header__title,
+.woocommerce.archive .woocommerce-products-header,
+.woocommerce-page.archive .woocommerce-products-header,
+.tax-product_cat .woocommerce-products-header,
+.woocommerce-shop .woocommerce-products-header,
+.post-type-archive-product .woocommerce-products-header {
+	border-bottom: none !important;
+	margin-bottom: 0 !important;
+	padding-bottom: 0 !important;
+}
+
+/* Remove any border/line before woocommerce-info message */
+.woocommerce.archive .woocommerce-info,
+.woocommerce-page.archive .woocommerce-info,
+.tax-product_cat .woocommerce-info,
+.woocommerce-shop .woocommerce-info,
+.post-type-archive-product .woocommerce-info {
+	border-top: none !important;
+}
+
+/**
+ * Improved "No Products Found" message styling
+ * Better visual presentation for empty search/filter results
+ * Targets WooCommerce info messages on archive/shop pages
+ */
+.woocommerce.archive .woocommerce-info,
+.woocommerce-page.archive .woocommerce-info,
+.tax-product_cat .woocommerce-info,
+.woocommerce-shop .woocommerce-info,
+.post-type-archive-product .woocommerce-info,
+.woocommerce .woocommerce-info:not(.woocommerce-message):not(.woocommerce-error) {
+	background: #ffffff !important;
+	border: 2px solid #64b5f6 !important;
+	border-radius: 12px !important;
+	padding: 40px 30px !important;
+	margin: 40px auto !important;
+	max-width: 600px !important;
+	text-align: center !important;
+	font-size: 18px !important;
+	font-weight: 500 !important;
+	color: #1565c0 !important;
+	box-shadow: 0 4px 12px rgba(21, 101, 192, 0.15) !important;
+	position: relative !important;
+}
+
+/* Add search icon before the message on archive pages */
+.woocommerce.archive .woocommerce-info::before,
+.woocommerce-page.archive .woocommerce-info::before,
+.tax-product_cat .woocommerce-info::before,
+.woocommerce-shop .woocommerce-info::before,
+.post-type-archive-product .woocommerce-info::before {
+	content: "🔍" !important;
+	font-size: 48px !important;
+	display: block !important;
+	margin-bottom: 16px !important;
+	opacity: 0.8 !important;
+}
+
+/* Style paragraphs inside the message */
+.woocommerce.archive .woocommerce-info p,
+.woocommerce-page.archive .woocommerce-info p,
+.tax-product_cat .woocommerce-info p,
+.woocommerce-shop .woocommerce-info p,
+.post-type-archive-product .woocommerce-info p {
+	margin: 0 !important;
+	font-size: 18px !important;
+	line-height: 1.6 !important;
+	color: inherit !important;
+}
+
+/* Style list items if message is in a list */
+.woocommerce.archive .woocommerce-info li,
+.woocommerce-page.archive .woocommerce-info li,
+.tax-product_cat .woocommerce-info li,
+.woocommerce-shop .woocommerce-info li,
+.post-type-archive-product .woocommerce-info li {
+	font-size: 18px !important;
+	line-height: 1.6 !important;
+	color: inherit !important;
+}
+
+@media (max-width: 768px) {
+	/* Ensure parent containers allow margins */
+	.woocommerce.archive .woocommerce-notices-wrapper,
+	.woocommerce-page.archive .woocommerce-notices-wrapper,
+	.tax-product_cat .woocommerce-notices-wrapper,
+	.woocommerce-shop .woocommerce-notices-wrapper,
+	.post-type-archive-product .woocommerce-notices-wrapper {
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+		margin-left: 0 !important;
+		margin-right: 0 !important;
+	}
+	
+	.woocommerce.archive .woocommerce-info,
+	.woocommerce-page.archive .woocommerce-info,
+	.tax-product_cat .woocommerce-info,
+	.woocommerce-shop .woocommerce-info,
+	.post-type-archive-product .woocommerce-info,
+	.woocommerce .woocommerce-info:not(.woocommerce-message):not(.woocommerce-error) {
+		padding: 30px 20px !important;
+		font-size: 16px !important;
+		margin-top: 30px !important;
+		margin-bottom: 30px !important;
+		margin-left: 20px !important;
+		margin-right: 20px !important;
+		max-width: calc(100% - 40px) !important;
+		width: calc(100% - 40px) !important;
+		box-sizing: border-box !important;
+	}
+	
+	.woocommerce.archive .woocommerce-info::before,
+	.woocommerce-page.archive .woocommerce-info::before,
+	.tax-product_cat .woocommerce-info::before,
+	.woocommerce-shop .woocommerce-info::before,
+	.post-type-archive-product .woocommerce-info::before {
+		font-size: 36px !important;
+		margin-bottom: 12px !important;
+	}
+	
+	.woocommerce.archive .woocommerce-info p,
+	.woocommerce-page.archive .woocommerce-info p,
+	.tax-product_cat .woocommerce-info p,
+	.woocommerce-shop .woocommerce-info p,
+	.post-type-archive-product .woocommerce-info p {
+		font-size: 16px !important;
+	}
+}
+
+/**
+ * Footer sticky to bottom fix
+ * Ensure footer always sticks to the bottom of the page without extra space
+ */
+html {
+	height: 100% !important;
+}
+
+body {
+	min-height: 100vh !important;
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+#page.site {
+	min-height: 100vh !important;
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+#site-content {
+	flex: 1 0 auto !important;
+	min-height: 0 !important;
+}
+
+/* Ensure footer sticks to bottom */
+.footer-widget,
+footer,
+#colophon {
+	flex-shrink: 0 !important;
+	margin-top: auto !important;
+}
+
+/* Remove any bottom spacing that might create gaps */
+body .footer-widget {
+	margin-bottom: 0 !important;
+	padding-bottom: 0 !important;
+}
+
+/* Ensure content area doesn't create extra space */
+.site-content,
+.content-area,
+.site-main {
+	margin-bottom: 0 !important;
+}

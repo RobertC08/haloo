@@ -96,8 +96,6 @@ h1.page-header__title { display: none !important; }
   .sidebar-widget { padding: 0rem 1rem; }
 }
 
-.site-content { background-color: #f8f9fa !important; }
-
 /* No posts message */
 .no-posts { text-align: center; padding: 4rem 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0; }
 .no-posts h3 { font-size: 1.5rem; color: #111827; margin-bottom: 1rem; }
