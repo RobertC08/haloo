@@ -26,20 +26,62 @@ do_action( 'woocommerce_before_add_to_cart_form' ); ?>
 		<?php else : ?>
 			<table class="variations" cellspacing="0">
 				<tbody>
-				<?php foreach ( $attributes as $attribute_name => $options ) : ?>
+				<?php 
+				// Process URL parameters for pre-selection
+				$url_selections = array();
+				$simplified_map = array(
+					'culoare' => array('attribute_pa_culoare', 'attribute_culoare'),
+					'stare' => array('attribute_pa_stare', 'attribute_stare'),
+					'memorie' => array('attribute_pa_memorie', 'attribute_memorie', 'attribute_pa_stocare', 'attribute_stocare'),
+				);
+				
+				foreach ($simplified_map as $param => $attrs) {
+					if (isset($_GET[$param]) && !empty($_GET[$param])) {
+						foreach ($attrs as $attr) {
+							if (isset($attributes[$attr])) {
+								$url_selections[$attr] = sanitize_text_field($_GET[$param]);
+								break;
+							}
+						}
+					}
+				}
+				
+				foreach ( $attributes as $attribute_name => $options ) : 
+					$selected_value = isset($url_selections[$attribute_name]) ? $url_selections[$attribute_name] : '';
+					$label_text = wc_attribute_label( $attribute_name );
+					
+					// Add selected value to label if exists
+					if ($selected_value) {
+						// Get display name
+						$display_name = $selected_value;
+						$taxonomy = str_replace('attribute_', '', $attribute_name);
+						if (taxonomy_exists($taxonomy)) {
+							$term = get_term_by('slug', $selected_value, $taxonomy);
+							if ($term && !is_wp_error($term)) {
+								$display_name = $term->name;
+							}
+						}
+						$label_text .= ': ' . esc_html($display_name);
+					}
+				?>
 					<tr>
 						<td class="label"><label
-									for="<?php echo esc_attr( sanitize_title( $attribute_name ) ); ?>"><?php echo wc_attribute_label( $attribute_name ); // WPCS: XSS ok. ?></label>
+									for="<?php echo esc_attr( sanitize_title( $attribute_name ) ); ?>"><?php echo $label_text; // WPCS: XSS ok. ?></label>
 						</td>
 						<td class="value">
 							<?php
-							wc_dropdown_variation_attribute_options(
-								array(
-									'options'   => $options,
-									'attribute' => $attribute_name,
-									'product'   => $product,
-								)
+							$dropdown_args = array(
+								'options'   => $options,
+								'attribute' => $attribute_name,
+								'product'   => $product,
 							);
+							
+							// Pre-select value from URL
+							if ($selected_value) {
+								$dropdown_args['selected'] = $selected_value;
+							}
+							
+							wc_dropdown_variation_attribute_options($dropdown_args);
 							?>
 						</td>
 					</tr>

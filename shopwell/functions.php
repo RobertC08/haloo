@@ -107,6 +107,219 @@ add_action('wp_ajax_nopriv_send_contact_email', function() {
     }
 }, 1);
 
+/**
+ * Very early hook to bypass rate limiting and fix COOP for Google Site Kit
+ * Runs before most plugins load to catch security headers early
+ */
+function shopwell_very_early_googlesitekit_fix() {
+    // Check if this is a Google Site Kit authentication request
+    $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+    $is_googlesitekit = (
+        strpos($request_uri, 'googlesitekit_auth') !== false ||
+        (isset($_GET['action']) && $_GET['action'] === 'googlesitekit_auth') ||
+        (isset($_REQUEST['action']) && $_REQUEST['action'] === 'googlesitekit_auth')
+    );
+    
+    if ($is_googlesitekit) {
+        // Prevent 429 errors by setting status early
+        if (!headers_sent()) {
+            http_response_code(200);
+        }
+        
+        // Remove restrictive security headers that block OAuth
+        add_filter('wp_headers', function($headers) {
+            // Remove restrictive COOP
+            if (isset($headers['Cross-Origin-Opener-Policy'])) {
+                unset($headers['Cross-Origin-Opener-Policy']);
+            }
+            if (isset($headers['cross-origin-opener-policy'])) {
+                unset($headers['cross-origin-opener-policy']);
+            }
+            
+            // Set permissive COOP for Google Site Kit OAuth popup
+            $headers['Cross-Origin-Opener-Policy'] = 'same-origin-allow-popups';
+            
+            return $headers;
+        }, 999, 1);
+        
+        // Bypass rate limiting filters early
+        add_filter('pre_http_request', function($preempt, $args, $url) {
+            // Don't block Google Site Kit requests
+            if (strpos($url, 'googlesitekit') !== false || strpos($url, 'google-site-kit') !== false) {
+                return false; // Allow the request
+            }
+            return $preempt;
+        }, 999, 3);
+    }
+}
+add_action('muplugins_loaded', 'shopwell_very_early_googlesitekit_fix', 1);
+add_action('plugins_loaded', 'shopwell_very_early_googlesitekit_fix', 1);
+
+/**
+ * Whitelist Google Site Kit authentication to bypass rate limiting
+ * Fixes 429 (Too Many Requests) error when authenticating with Google Site Kit
+ * Also fixes Cross-Origin-Opener-Policy blocking postMessage
+ */
+function shopwell_whitelist_googlesitekit_auth() {
+    // Check if this is a Google Site Kit authentication request
+    $is_googlesitekit = (
+        (isset($_GET['action']) && $_GET['action'] === 'googlesitekit_auth') ||
+        (isset($_REQUEST['action']) && $_REQUEST['action'] === 'googlesitekit_auth') ||
+        (strpos($_SERVER['REQUEST_URI'] ?? '', 'googlesitekit_auth') !== false) ||
+        (strpos($_SERVER['REQUEST_URI'] ?? '', 'wp-login.php') !== false && isset($_GET['action']) && $_GET['action'] === 'googlesitekit_auth')
+    );
+    
+    if ($is_googlesitekit) {
+        // Set HTTP status to 200 early to prevent 429 errors
+        if (!headers_sent()) {
+            http_response_code(200);
+        }
+        
+        // Whitelist for Wordfence
+        if (class_exists('wordfence')) {
+            // Remove IP from Wordfence blocking
+            add_filter('wordfence_isWhitelisted', '__return_true', 999);
+            add_filter('wordfence_ls_is_json_request', '__return_true', 999);
+            add_filter('wordfence_rateLimit', '__return_false', 999);
+        }
+        
+        // Whitelist for iThemes Security
+        if (class_exists('ITSEC_Core')) {
+            add_filter('itsec_lockout_modules', function($modules) {
+                return array();
+            }, 999, 1);
+            add_filter('itsec_is_ip_whitelisted', '__return_true', 999);
+            add_filter('itsec_brute_force_is_whitelisted', '__return_true', 999);
+        }
+        
+        // Whitelist for All In One WP Security
+        if (class_exists('AIO_WP_Security')) {
+            add_filter('aiowps_is_locked', '__return_false', 999);
+            add_filter('aiowps_is_ip_whitelisted', '__return_true', 999);
+        }
+        
+        // Whitelist for Limit Login Attempts Reloaded
+        if (class_exists('Limit_Login_Attempts_Reloaded')) {
+            add_filter('llar_should_block_request', '__return_false', 999);
+            add_filter('llar_is_ip_whitelisted', '__return_true', 999);
+        }
+        
+        // Whitelist for WP Limit Login Attempts
+        if (function_exists('wp_limit_login_attempts_check')) {
+            add_filter('wp_limit_login_attempts_check', '__return_false', 999);
+        }
+        
+        // Whitelist for Cerber Security
+        if (defined('CERBER_VER')) {
+            add_filter('cerber_is_ip_allowed', '__return_true', 999);
+            add_filter('cerber_block', '__return_false', 999);
+        }
+        
+        // Increase timeout for Google Site Kit requests
+        add_filter('http_request_timeout', function($timeout) {
+            return 60; // 60 seconds
+        }, 999, 1);
+        
+        // Remove security headers that block OAuth popup communication
+        add_action('send_headers', function() {
+            if (!headers_sent()) {
+                header_remove('Cross-Origin-Opener-Policy');
+                header('Cross-Origin-Opener-Policy: same-origin-allow-popups');
+            }
+        }, 999);
+        
+        // Log for debugging (can be removed in production)
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Google Site Kit auth request detected - bypassing rate limits and COOP restrictions');
+        }
+    }
+}
+add_action('init', 'shopwell_whitelist_googlesitekit_auth', 1);
+
+/**
+ * Early hook to catch Google Site Kit requests before plugins load
+ * Also fixes Cross-Origin-Opener-Policy (COOP) blocking postMessage
+ */
+function shopwell_early_googlesitekit_whitelist() {
+    $is_googlesitekit = (
+        strpos($_SERVER['REQUEST_URI'] ?? '', 'googlesitekit_auth') !== false ||
+        (isset($_GET['action']) && $_GET['action'] === 'googlesitekit_auth') ||
+        (isset($_REQUEST['action']) && $_REQUEST['action'] === 'googlesitekit_auth')
+    );
+    
+    if ($is_googlesitekit) {
+        // Set headers to prevent rate limiting
+        if (!headers_sent()) {
+            header('X-Google-Site-Kit-Auth: 1');
+            
+            // Remove or relax Cross-Origin-Opener-Policy to allow postMessage
+            // Google Site Kit needs this for OAuth popup communication
+            header_remove('Cross-Origin-Opener-Policy');
+            header('Cross-Origin-Opener-Policy: same-origin-allow-popups');
+            
+            // Also set CORS headers if needed
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+            header('Access-Control-Allow-Headers: Content-Type, Authorization');
+        }
+        
+        // Remove rate limiting early
+        remove_all_actions('wp_login_failed');
+        remove_all_actions('authenticate');
+    }
+}
+add_action('plugins_loaded', 'shopwell_early_googlesitekit_whitelist', 1);
+
+/**
+ * Remove security headers that block Google Site Kit OAuth flow
+ * Fixes Cross-Origin-Opener-Policy blocking postMessage
+ */
+function shopwell_remove_blocking_headers_for_googlesitekit() {
+    $is_googlesitekit = (
+        strpos($_SERVER['REQUEST_URI'] ?? '', 'googlesitekit_auth') !== false ||
+        (isset($_GET['action']) && $_GET['action'] === 'googlesitekit_auth') ||
+        (isset($_REQUEST['action']) && $_REQUEST['action'] === 'googlesitekit_auth')
+    );
+    
+    if ($is_googlesitekit && !headers_sent()) {
+        // Remove restrictive COOP headers set by security plugins
+        header_remove('Cross-Origin-Opener-Policy');
+        header_remove('Cross-Origin-Embedder-Policy');
+        
+        // Set permissive COOP for Google Site Kit OAuth
+        header('Cross-Origin-Opener-Policy: same-origin-allow-popups');
+        
+        // Allow CORS for OAuth callback
+        if (isset($_SERVER['HTTP_ORIGIN'])) {
+            header('Access-Control-Allow-Origin: ' . esc_url_raw($_SERVER['HTTP_ORIGIN']));
+            header('Access-Control-Allow-Credentials: true');
+        }
+    }
+}
+add_action('send_headers', 'shopwell_remove_blocking_headers_for_googlesitekit', 999);
+add_action('wp_headers', 'shopwell_remove_blocking_headers_for_googlesitekit', 999);
+
+/**
+ * Bypass rate limiting for Google Site Kit REST API endpoints
+ */
+function shopwell_bypass_rate_limit_googlesitekit($result, $server, $request) {
+    $route = $request->get_route();
+    
+    // Check if this is a Google Site Kit route
+    if (strpos($route, '/google-site-kit/') !== false || 
+        strpos($route, '/googlesitekit/') !== false) {
+        
+        // Remove rate limiting for Google Site Kit API calls
+        remove_all_filters('rest_authentication_errors');
+        remove_all_filters('rest_pre_serve_request');
+        
+        return $result;
+    }
+    
+    return $result;
+}
+add_filter('rest_pre_dispatch', 'shopwell_bypass_rate_limit_googlesitekit', 10, 3);
+
 // Check if theme file exists before requiring it
 if (function_exists('get_template_directory')) {
     $theme_file = get_template_directory() . '/inc/theme.php';
@@ -1237,12 +1450,110 @@ require_once get_template_directory() . '/assets/css/load-refactored-styles.php'
  * Auto-select first variation on single product and filter-selected variations on catalog
  */
 function shopwell_auto_select_variations() {
+    // Add cache-busting version
+    $version = '2.0.' . time();
     ?>
-    <script type="text/javascript">
+    <style type="text/css">
+    /* Show disabled swatches instead of hiding them */
+    .wcboost-variation-swatches__item.shopwell-disabled,
+    .product-variation-item.shopwell-disabled {
+        opacity: 0.4 !important;
+        pointer-events: auto !important;
+        cursor: not-allowed !important;
+        display: inline-flex !important;
+        visibility: visible !important;
+        position: relative !important;
+    }
+    .wcboost-variation-swatches__item.shopwell-disabled::after,
+    .product-variation-item.shopwell-disabled::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: rgba(0,0,0,0.5);
+        transform: rotate(-45deg);
+    }
+    /* Ensure swatches are never hidden */
+    .wcboost-variation-swatches__item,
+    .product-variation-item {
+        display: inline-flex !important;
+        visibility: visible !important;
+    }
+    /* Override any hiding of unavailable options */
+    .wcboost-variation-swatches__item[style*="display: none"],
+    .product-variation-item[style*="display: none"] {
+        display: inline-flex !important;
+    }
+    /* Style for "indisponibil" text to maintain height */
+    .sv-pill-price-unavailable {
+        display: block !important;
+        color: #999 !important;
+        font-size: 0.9em !important;
+        font-weight: normal !important;
+        line-height: 1.2 !important;
+        margin-top: 4px !important;
+        min-height: 1.2em !important;
+    }
+    /* Ensure price container maintains height even when empty */
+    .sv-pill-price {
+        min-height: 1.2em !important;
+        display: block !important;
+    }
+    .wcboost-variation-swatches__name,
+    .product-variation-item__name {
+        min-height: auto !important;
+    }
+    </style>
+    <script type="text/javascript" data-version="<?php echo esc_attr($version); ?>">
+    /* Shopwell Variations Script v<?php echo esc_html($version); ?> */
+    
     // Firefox fix: Ensure JavaScript runs after browser back/forward navigation
     // This fixes an issue where Firefox doesn't properly restore JavaScript state
     // when using pushState and navigating back in history
     window.onunload = function(){};
+    
+    // Flag to track if handlers have been initialized
+    window.shopwellVariationHandlersInitialized = false;
+    
+    // Handle page restore from bfcache (back/forward navigation)
+    window.addEventListener('pageshow', function(event) {
+        // If page was restored from bfcache, reinitialize handlers
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.shopwellVariationHandlersInitialized = false;
+            // Trigger reinitialization
+            if (typeof jQuery !== 'undefined') {
+                jQuery(document).trigger('shopwell_reinitialize');
+            }
+        }
+    });
+    
+    // Handle tab focus - reinitialize when user returns to tab
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden && typeof jQuery !== 'undefined') {
+            // Small delay to ensure page is fully active
+            setTimeout(function() {
+                if (jQuery('body').hasClass('single-product')) {
+                    // Re-register click handler
+                    window.shopwellVariationHandlersInitialized = false;
+                    jQuery(document).trigger('shopwell_reinitialize');
+                }
+            }, 100);
+        }
+    });
+    
+    // Handle window focus
+    window.addEventListener('focus', function() {
+        if (typeof jQuery !== 'undefined' && jQuery('body').hasClass('single-product')) {
+            setTimeout(function() {
+                // Just sync visual state, don't reinitialize
+                if (typeof window.shopwellSyncSwatchVisualState === 'function') {
+                    window.shopwellSyncSwatchVisualState();
+                }
+            }, 100);
+        }
+    });
     
     // Logging function that writes to file instead of console
     // Make it globally available
@@ -1520,6 +1831,8 @@ function shopwell_auto_select_variations() {
                     setTimeout(function() {
                         $variationForm.trigger('check_variations');
                         $variationForm.trigger('woocommerce_variation_select_change');
+                        // Sync visual state of swatches
+                        syncSwatchVisualState();
                     }, 100);
                 }
                 
@@ -1732,14 +2045,19 @@ function shopwell_auto_select_variations() {
                                         hasChanges = true;
                                     }
                                 }
-                            } else {
-                                // Try clicking on swatch buttons
-                                var $swatch = $variationForm.find('.wcboost-variation-swatches__item[data-value="' + value + '"], .product-variation-item[data-value="' + value + '"]');
-                                if ($swatch.length && !$swatch.hasClass('selected')) {
-                                    $swatch.trigger('click');
-                                    hasChanges = true;
+                                } else {
+                                    // Try clicking on swatch buttons
+                                    var $swatch = $variationForm.find('.wcboost-variation-swatches__item[data-value="' + value + '"], .product-variation-item[data-value="' + value + '"]');
+                                    if ($swatch.length && !$swatch.hasClass('selected')) {
+                                        $swatch.trigger('click');
+                                        hasChanges = true;
+                                    }
                                 }
-                            }
+                                
+                                // Sync visual state after setting value
+                                setTimeout(function() {
+                                    syncSwatchVisualState();
+                                }, 50);
                         }
                     }
                 });
@@ -1766,8 +2084,11 @@ function shopwell_auto_select_variations() {
             
             // Function to update URL with current variation selections
             function updateUrl() {
+                console.log('[SHOPWELL DEBUG] updateUrl called');
+                
                 // Don't update URL if we're restoring from browser navigation
                 if (isRestoringFromUrl) {
+                    console.log('[SHOPWELL DEBUG] updateUrl: skipping, restoring from URL');
                     return;
                 }
                 
@@ -1787,10 +2108,13 @@ function shopwell_auto_select_variations() {
                 });
                 
                 // Get selected attributes from the form (only culoare, memorie, stare)
+                var fieldsFound = [];
                 $variationForm.find('select[name^="attribute_"], input[name^="attribute_"][type="hidden"], input[name^="attribute_"][type="radio"]:checked').each(function() {
                     var $field = $(this);
                     var fieldName = $field.attr('name');
                     var fieldValue = $field.val();
+                    
+                    fieldsFound.push({name: fieldName, value: fieldValue});
                     
                     // Get simplified name
                     var simpleName = simplifyAttributeName(fieldName);
@@ -1813,6 +2137,9 @@ function shopwell_auto_select_variations() {
                     }
                 });
                 
+                console.log('[SHOPWELL DEBUG] updateUrl: fields found:', fieldsFound);
+                console.log('[SHOPWELL DEBUG] updateUrl: hasChanges:', hasChanges);
+                
                 // Update URL if there are changes
                 if (hasChanges) {
                     var newUrl = window.location.pathname;
@@ -1821,76 +2148,156 @@ function shopwell_auto_select_variations() {
                         newUrl += '?' + queryString;
                     }
                     
+                    console.log('[SHOPWELL DEBUG] updateUrl: new URL:', newUrl);
+                    
                     // Use replaceState instead of pushState to avoid creating history entries
                     // This allows the back button to work properly
                     if (window.history && window.history.replaceState) {
                         window.history.replaceState({}, '', newUrl);
+                        console.log('[SHOPWELL DEBUG] updateUrl: URL updated successfully');
                     }
+                } else {
+                    console.log('[SHOPWELL DEBUG] updateUrl: no changes, URL not updated');
                 }
             }
             
-            // Handle browser back/forward buttons
-            var isRestoringFromUrl = false;
-            $(window).on('popstate', function(e) {
-                if (!$('body').hasClass('single-product')) {
-                    return;
+            // Expose updateUrl globally
+            window.shopwellUpdateUrl = updateUrl;
+            
+            // Initial URL update
+            setTimeout(updateUrl, 500);
+                                $swatch.css('border', '2px solid #1d2128');
+                                return false;
+                            }
+                        });
+                    }
                 }
                 
-                // Prevent infinite loop by flagging that we're restoring
-                isRestoringFromUrl = true;
-                
-                // Restore form state from URL
-                restoreFormFromUrl();
-                
-                // Reset flag after a short delay
+                // Also run full sync
+                syncSwatchVisualState(true); // Force sync
                 setTimeout(function() {
-                    isRestoringFromUrl = false;
-                }, 500);
+                    syncSwatchVisualState(true);
+                    updateUrl();
+                }, 50);
+                setTimeout(function() {
+                    syncSwatchVisualState(true);
+                    updateUrl();
+                }, 150);
             });
             
-            // Listen to variation form changes (dropdowns and inputs)
-            $variationForm.on('change', 'select[name^="attribute_"], input[name^="attribute_"]', function() {
-                // Small delay to ensure WooCommerce has processed the change
-                setTimeout(updateUrl, 100);
-            });
-            
-            // Listen to clicks on variation swatches (color buttons, etc.)
-            $variationForm.on('click', '.wcboost-variation-swatches__item, .product-variation-item', function() {
-                // Delay to allow WooCommerce to update the form fields
-                setTimeout(updateUrl, 200);
-            });
+            // Listen to clicks on variation swatches (color buttons, etc.) - this is a backup
+            // The main handler is in enableVariationSelectDeselect
+            // NOTE: This backup is disabled to prevent race condition with manual click handling
+            // The enableVariationSelectDeselect function handles all visual updates
             
             // Also listen to WooCommerce variation events
             $variationForm.on('found_variation', function(event, variation) {
                 // Update URL when a valid variation is found
-                setTimeout(updateUrl, 100);
+                // Skip if manual click is in progress
+                if (skipSyncAfterClick) return;
+                setTimeout(function() {
+                    if (skipSyncAfterClick) return;
+                    syncSwatchVisualState();
+                    updateUrl();
+                }, 100);
             });
             
             // Listen to show_variation event (when variation is displayed)
             $variationForm.on('show_variation', function(event, variation) {
-                setTimeout(updateUrl, 100);
+                // Skip if manual click is in progress
+                if (skipSyncAfterClick) return;
+                setTimeout(function() {
+                    if (skipSyncAfterClick) return;
+                    syncSwatchVisualState();
+                    updateUrl();
+                }, 100);
             });
             
             // Listen to WooCommerce variation form updates
             $(document.body).on('wc_variation_form', function() {
-                setTimeout(updateUrl, 200);
+                // Skip if manual click is in progress
+                if (skipSyncAfterClick) return;
+                setTimeout(function() {
+                    if (skipSyncAfterClick) return;
+                    syncSwatchVisualState();
+                    updateUrl();
+                }, 200);
+            });
+            
+            // Listen to variation select change events
+            $variationForm.on('woocommerce_variation_select_change', function() {
+                // Skip if manual click is in progress
+                if (skipSyncAfterClick) return;
+                setTimeout(function() {
+                    if (skipSyncAfterClick) return;
+                    syncSwatchVisualState();
+                    updateUrl();
+                }, 50);
+            });
+            
+            // Listen to check_variations event
+            $variationForm.on('check_variations', function() {
+                // Skip if manual click is in progress
+                if (skipSyncAfterClick) return;
+                setTimeout(function() {
+                    if (skipSyncAfterClick) return;
+                    syncSwatchVisualState();
+                }, 100);
             });
             
             // Use MutationObserver to detect when hidden inputs are updated by swatch plugins
             if (typeof MutationObserver !== 'undefined') {
                 var observer = new MutationObserver(function(mutations) {
-                    var shouldUpdate = false;
+                    // Skip if manual click is in progress - our click handler manages visual state
+                    if (skipSyncAfterClick) {
+                        return;
+                    }
+                    
                     mutations.forEach(function(mutation) {
                         if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                            // Double check the flag in case it was set during iteration
+                            if (skipSyncAfterClick) return;
+                            
                             var $target = $(mutation.target);
                             if ($target.is('input[name^="attribute_"]') || $target.is('select[name^="attribute_"]')) {
-                                shouldUpdate = true;
+                                // Update visual state IMMEDIATELY when value changes
+                                var fieldValue = $target.val();
+                                var $valueContainer = $target.closest('.value');
+                                if (!$valueContainer.length) {
+                                    var $row = $target.closest('tr');
+                                    if ($row.length) {
+                                        $valueContainer = $row.find('.value');
+                                    }
+                                }
+                                
+                                if ($valueContainer.length) {
+                                    var $allSwatches = $valueContainer.find('.wcboost-variation-swatches__item, .product-variation-item');
+                                    $allSwatches.removeClass('selected active is-selected');
+                                    $allSwatches.attr('aria-pressed', 'false');
+                                    $allSwatches.css('border', '');
+                                    
+                                    if (fieldValue && fieldValue !== '') {
+                                        $allSwatches.each(function() {
+                                            var $swatch = $(this);
+                                            var swatchValue = $swatch.attr('data-value') || $swatch.data('value');
+                                            if (swatchValue && (swatchValue === fieldValue || swatchValue.toLowerCase() === fieldValue.toLowerCase())) {
+                                                $swatch.addClass('selected active is-selected');
+                                                $swatch.attr('aria-pressed', 'true');
+                                                $swatch.css('border', '2px solid #1d2128');
+                                                return false;
+                                            }
+                                        });
+                                    }
+                                }
+                                
+                                // Also run full sync (only if not skipping)
+                                if (!skipSyncAfterClick) {
+                                    syncSwatchVisualState();
+                                    updateUrl();
+                                }
                             }
                         }
                     });
-                    if (shouldUpdate) {
-                        setTimeout(updateUrl, 100);
-                    }
                 });
                 
                 // Observe the variation form for attribute changes
@@ -1905,22 +2312,498 @@ function shopwell_auto_select_variations() {
             }
             
             // Initial URL update if there are already selected attributes
-            setTimeout(updateUrl, 500);
+            setTimeout(function() {
+                updateUrl();
+                syncSwatchVisualState();
+            }, 500);
+            
+            // Also sync after a longer delay to catch late-loading swatches
+            setTimeout(syncSwatchVisualState, 1000);
+            setTimeout(syncSwatchVisualState, 2000);
         }
         
+        // Function to sync visual state of swatches with form field values
+        function syncSwatchVisualState(force) {
+            // Skip sync if we just manually updated visual state (unless forced)
+            if (!force && skipSyncAfterClick) {
+                return;
+            }
+            
+            if (!$('body').hasClass('single-product')) {
+                return;
+            }
+            
+            var $variationForm = $('form.variations_form');
+            if (!$variationForm.length) {
+                return;
+            }
+            
+            // Update visual state for each attribute
+            $variationForm.find('select[name^="attribute_"], input[name^="attribute_"][type="hidden"]').each(function() {
+                var $field = $(this);
+                var fieldName = $field.attr('name');
+                var fieldValue = $field.val();
+                
+                // Find the value container for this field
+                var $valueContainer = $field.closest('.value');
+                if (!$valueContainer.length) {
+                    // Try to find by looking for the label
+                    var $row = $field.closest('tr');
+                    if ($row.length) {
+                        $valueContainer = $row.find('.value');
+                    }
+                }
+                
+                // Also try finding by attribute name matching
+                if (!$valueContainer.length) {
+                    // Find all value containers and match by attribute name
+                    $variationForm.find('.value').each(function() {
+                        var $vc = $(this);
+                        var $vcSelect = $vc.find('select[name^="attribute_"]');
+                        if ($vcSelect.length && $vcSelect.attr('name') === fieldName) {
+                            $valueContainer = $vc;
+                            return false;
+                        }
+                    });
+                }
+                
+                if (!$valueContainer.length) {
+                    return;
+                }
+                
+                // Find all swatches/items in this attribute group
+                var $allSwatches = $valueContainer.find('.wcboost-variation-swatches__item, .product-variation-item');
+                
+                if (!$allSwatches.length) {
+                    return;
+                }
+                
+                // Remove selected state from all items in this group first
+                $allSwatches.removeClass('selected active is-selected');
+                $allSwatches.attr('aria-pressed', 'false');
+                $allSwatches.removeAttr('aria-pressed');
+                
+                // If a value is selected, mark the corresponding swatch as selected
+                if (fieldValue && fieldValue !== '') {
+                    var $selectedSwatch = null;
+                    
+                    // Method 1: Try exact match with data-value
+                    $allSwatches.each(function() {
+                        var $swatch = $(this);
+                        var swatchValue = $swatch.attr('data-value') || $swatch.data('value');
+                        
+                        if (swatchValue) {
+                            // Exact match
+                            if (swatchValue === fieldValue) {
+                                $selectedSwatch = $swatch;
+                                return false;
+                            }
+                            // Case-insensitive match
+                            if (swatchValue.toLowerCase() === fieldValue.toLowerCase()) {
+                                $selectedSwatch = $swatch;
+                                return false;
+                            }
+                        }
+                    });
+                    
+                    // Method 2: Try normalized matching (remove special chars)
+                    if (!$selectedSwatch || !$selectedSwatch.length) {
+                        var normalizedFieldValue = fieldValue.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        $allSwatches.each(function() {
+                            var $swatch = $(this);
+                            var swatchValue = $swatch.attr('data-value') || $swatch.data('value');
+                            if (swatchValue) {
+                                var normalizedSwatchValue = swatchValue.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                if (normalizedSwatchValue === normalizedFieldValue && normalizedFieldValue.length > 0) {
+                                    $selectedSwatch = $swatch;
+                                    return false;
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Method 3: Try matching by text content (for product-variation-item)
+                    if (!$selectedSwatch || !$selectedSwatch.length) {
+                        var normalizedFieldValue = fieldValue.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        $allSwatches.each(function() {
+                            var $swatch = $(this);
+                            var swatchText = $swatch.attr('data-text') || $swatch.data('text') || $swatch.text().trim();
+                            if (swatchText) {
+                                var normalizedText = swatchText.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                if (normalizedText === normalizedFieldValue && normalizedFieldValue.length > 0) {
+                                    $selectedSwatch = $swatch;
+                                    return false;
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Update visual state of selected swatch - use !important via inline style if needed
+                    if ($selectedSwatch && $selectedSwatch.length) {
+                        $selectedSwatch.addClass('selected active is-selected');
+                        $selectedSwatch.attr('aria-pressed', 'true');
+                        // Force the border style if needed
+                        $selectedSwatch.css('border', '2px solid #1d2128');
+                    }
+                } else {
+                    // No value selected - ensure no swatches have border
+                    $allSwatches.css('border', '');
+                }
+            });
+        }
+        
+        // Expose sync function globally for external access
+        window.shopwellSyncSwatchVisualState = syncSwatchVisualState;
+        
+        // Direct watcher for select field changes - runs immediately
+        function watchSelectFields() {
+            if (!$('body').hasClass('single-product')) {
+                return;
+            }
+            
+            var $variationForm = $('form.variations_form');
+            if (!$variationForm.length) {
+                return;
+            }
+            
+            // Watch for changes on select fields - use both change event and value property changes
+            $variationForm.find('select[name^="attribute_"]').each(function() {
+                var $select = $(this);
+                var lastValue = $select.val();
+                
+                // Also watch the value property directly with polling
+                var checkValue = function() {
+                    // Skip if we just manually updated
+                    if (skipSyncAfterClick) {
+                        return;
+                    }
+                    
+                    var currentValue = $select.val();
+                    if (currentValue !== lastValue) {
+                        lastValue = currentValue;
+                        // Immediately update visual state
+                        var $valueContainer = $select.closest('.value');
+                        if (!$valueContainer.length) {
+                            var $row = $select.closest('tr');
+                            if ($row.length) {
+                                $valueContainer = $row.find('.value');
+                            }
+                        }
+                        
+                        if ($valueContainer.length) {
+                            var $allSwatches = $valueContainer.find('.wcboost-variation-swatches__item, .product-variation-item');
+                            $allSwatches.removeClass('selected active is-selected');
+                            $allSwatches.attr('aria-pressed', 'false');
+                            $allSwatches.css('border', '');
+                            
+                            if (currentValue && currentValue !== '') {
+                                $allSwatches.each(function() {
+                                    var $swatch = $(this);
+                                    var swatchValue = $swatch.attr('data-value') || $swatch.data('value');
+                                    if (swatchValue && (swatchValue === currentValue || swatchValue.toLowerCase() === currentValue.toLowerCase())) {
+                                        $swatch.addClass('selected active is-selected');
+                                        $swatch.attr('aria-pressed', 'true');
+                                        $swatch.css('border', '2px solid #1d2128');
+                                        return false;
+                                    }
+                                });
+                            }
+                        }
+                        
+                        syncSwatchVisualState(true); // Force sync when value actually changes
+                    }
+                };
+                
+                // Check frequently to catch changes immediately
+                setInterval(checkValue, 50);
+            });
+            
+            // Also watch hidden inputs
+            $variationForm.find('input[name^="attribute_"][type="hidden"]').each(function() {
+                var $input = $(this);
+                var lastValue = $input.val();
+                
+                // Watch for value changes
+                var checkValue = function() {
+                    // Skip if we just manually updated
+                    if (skipSyncAfterClick) {
+                        return;
+                    }
+                    
+                    var currentValue = $input.val();
+                    if (currentValue !== lastValue) {
+                        lastValue = currentValue;
+                        if (!skipSyncAfterClick) {
+                            syncSwatchVisualState();
+                        }
+                    }
+                };
+                
+                // Check frequently
+                setInterval(checkValue, 50);
+            });
+        }
+        
+        // Flag to prevent sync from running immediately after manual click
+        var skipSyncAfterClick = false;
+        var skipSyncTimeout = null;
+        
+        // SIMPLE click handler for variation swatches
+        function enableVariationSelectDeselect() {
+            if (!$('body').hasClass('single-product')) return;
+            
+            var $form = $('form.variations_form');
+            if (!$form.length) return;
+            
+            console.log('[SHOPWELL] Setting up simple click handler');
+            
+            // Remove old handler if exists
+            if (window.shopwellClickHandler) {
+                document.removeEventListener('click', window.shopwellClickHandler, true);
+            }
+            
+            window.shopwellClickHandler = function(e) {
+                var $target = $(e.target);
+                var $swatch = $target.closest('.wcboost-variation-swatches__item, .product-variation-item');
+                
+                if (!$swatch.length) return;
+                
+                // Stop all other handlers
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                
+                // Set flag to prevent other sync functions from interfering
+                skipSyncAfterClick = true;
+                if (skipSyncTimeout) {
+                    clearTimeout(skipSyncTimeout);
+                }
+                skipSyncTimeout = setTimeout(function() {
+                    skipSyncAfterClick = false;
+                }, 500);
+                
+                // Check if swatch is disabled - don't allow selection
+                if ($swatch.hasClass('disabled') || $swatch.hasClass('shopwell-disabled')) {
+                    console.log('[SHOPWELL] Swatch is disabled, ignoring click');
+                    skipSyncAfterClick = false;
+                    return;
+                }
+                
+                // Get swatch value
+                var swatchValue = $swatch.data('value') || $swatch.attr('data-value');
+                console.log('[SHOPWELL] Clicked swatch value:', swatchValue);
+                
+                if (!swatchValue) {
+                    console.log('[SHOPWELL] No swatch value found');
+                    return;
+                }
+                
+                // Find the select field in the same row/container
+                var $select = $swatch.closest('.value').find('select[name^="attribute_"]');
+                
+                // If not found, try parent row
+                if (!$select.length) {
+                    $select = $swatch.closest('tr').find('select[name^="attribute_"]');
+                }
+                
+                console.log('[SHOPWELL] Select found:', $select.length > 0, $select.attr('name'));
+                
+                if (!$select.length) {
+                    console.log('[SHOPWELL] ERROR: No select field found');
+                    return;
+                }
+                
+                // Get current value
+                var currentValue = $select.val() || '';
+                console.log('[SHOPWELL] Current value:', currentValue, 'Swatch value:', swatchValue);
+                
+                // Check if swatch is visually selected
+                var isVisuallySelected = $swatch.hasClass('selected') || 
+                                        $swatch.hasClass('active') || 
+                                        $swatch.hasClass('is-selected');
+                
+                // Decide: select or deselect
+                // If value matches OR swatch is visually selected, then deselect
+                var isSameValue = currentValue && currentValue.toLowerCase() === swatchValue.toLowerCase();
+                var shouldDeselect = isSameValue || isVisuallySelected;
+                
+                console.log('[SHOPWELL] isSameValue:', isSameValue, 'isVisuallySelected:', isVisuallySelected, 'shouldDeselect:', shouldDeselect);
+                
+                if (shouldDeselect) {
+                    // DESELECT - clear the field
+                    console.log('[SHOPWELL] DESELECTING');
+                    
+                    // Clear select immediately - multiple times to ensure it sticks
+                    $select.val('');
+                    $select.prop('selectedIndex', 0);
+                    $select.trigger('change');
+                    
+                    // Clear visual state immediately
+                    $swatch.removeClass('selected active is-selected');
+                    $swatch.css('border', '');
+                    
+                    // Also clear from all swatches in this container
+                    var $container = $swatch.closest('.value');
+                    if (!$container.length) {
+                        $container = $swatch.closest('tr').find('.value');
+                    }
+                    if ($container.length) {
+                        $container.find('.wcboost-variation-swatches__item, .product-variation-item')
+                            .removeClass('selected active is-selected')
+                            .css('border', '');
+                    }
+                    
+                    // Force clear multiple times to prevent other scripts from re-setting
+                    setTimeout(function() {
+                        $select.val('');
+                        $select.prop('selectedIndex', 0);
+                        $swatch.removeClass('selected active is-selected').css('border', '');
+                    }, 50);
+                    
+                    setTimeout(function() {
+                        $select.val('');
+                        $swatch.removeClass('selected active is-selected').css('border', '');
+                    }, 150);
+                    
+                    setTimeout(function() {
+                        $select.val('');
+                        $swatch.removeClass('selected active is-selected').css('border', '');
+                    }, 300);
+                    
+                } else {
+                    // SELECT - set the new value
+                    console.log('[SHOPWELL] SELECTING:', swatchValue);
+                    
+                    // Set select value
+                    $select.val(swatchValue).trigger('change');
+                    
+                    // Update visual - remove from others, add to this one
+                    var $container = $swatch.closest('.value');
+                    if (!$container.length) {
+                        $container = $swatch.closest('tr').find('.value');
+                    }
+                    if ($container.length) {
+                        $container.find('.wcboost-variation-swatches__item, .product-variation-item')
+                            .removeClass('selected active is-selected')
+                            .css('border', '');
+                    }
+                    $swatch.addClass('selected active is-selected').css('border', '2px solid #1d2128');
+                    
+                    // Force set after a small delay to ensure it sticks
+                    setTimeout(function() {
+                        $select.val(swatchValue);
+                        $swatch.addClass('selected active is-selected').css('border', '2px solid #1d2128');
+                    }, 50);
+                }
+                
+                // Update URL
+                setTimeout(function() {
+                    if (typeof window.shopwellUpdateUrl === 'function') {
+                        console.log('[SHOPWELL] Updating URL');
+                        window.shopwellUpdateUrl();
+                    }
+                }, 100);
+                
+                // Update disabled states after selection change
+                setTimeout(updateDisabledSwatches, 150);
+                
+                console.log('[SHOPWELL] Done. New select value:', $select.val());
+            };
+            
+            document.addEventListener('click', window.shopwellClickHandler, true);
+            console.log('[SHOPWELL] Click handler registered');
+        }
+        
+        // Function to update disabled state of swatches based on available variations
+        function updateDisabledSwatches() {
+            var $form = $('form.variations_form');
+            if (!$form.length) return;
+            
+            // Get all select fields
+            $form.find('select[name^="attribute_"]').each(function() {
+                var $select = $(this);
+                var $container = $select.closest('.value');
+                
+                if (!$container.length) {
+                    $container = $select.closest('tr').find('.value');
+                }
+                
+                if (!$container.length) return;
+                
+                var $swatches = $container.find('.wcboost-variation-swatches__item, .product-variation-item');
+                
+                // Check each swatch against available options in select
+                $swatches.each(function() {
+                    var $swatch = $(this);
+                    var swatchValue = $swatch.data('value') || $swatch.attr('data-value');
+                    
+                    if (!swatchValue) return;
+                    
+                    // Check if this value exists in the select options
+                    var $option = $select.find('option[value="' + swatchValue + '"]');
+                    var optionExists = $option.length > 0;
+                    
+                    // Also check case-insensitive
+                    if (!optionExists) {
+                        $select.find('option').each(function() {
+                            if ($(this).val().toLowerCase() === swatchValue.toLowerCase()) {
+                                optionExists = true;
+                                return false;
+                            }
+                        });
+                    }
+                    
+                    if (optionExists) {
+                        // Enable swatch
+                        $swatch.removeClass('disabled shopwell-disabled');
+                    } else {
+                        // Disable swatch
+                        $swatch.addClass('shopwell-disabled');
+                        $swatch.removeClass('selected active is-selected');
+                    }
+                });
+            });
+        }
+        
+        // ============================================
+        // SIMPLIFIED INITIALIZATION - No complex syncing
+        // ============================================
+        
         // Run on page load
+        console.log('[SHOPWELL] Starting simple initialization');
         autoSelectFirstVariation();
         handleFilterVariations();
         updateUrlWithVariations();
+        enableVariationSelectDeselect();
         
-        // Re-run after AJAX updates (for filtered/sorted products)
-        $(document).on('shopwell_ajax_update_complete', function() {
-            handleFilterVariations();
+        // Update disabled states initially and after a delay
+        setTimeout(updateDisabledSwatches, 200);
+        setTimeout(updateDisabledSwatches, 500);
+        
+        console.log('[SHOPWELL] Initialization complete');
+        
+        // Also run click handler setup on window load (after smart-variations loads)
+        $(window).on('load', function() {
+            setTimeout(function() {
+                enableVariationSelectDeselect();
+                updateDisabledSwatches();
+                console.log('[SHOPWELL] Re-registered click handler after window load');
+            }, 100);
         });
         
-        // Re-run when WooCommerce updates the product list
-        $(document.body).on('updated_wc_div', function() {
-            handleFilterVariations();
+        // Re-enable when WooCommerce variation form is initialized
+        $(document.body).on('wc_variation_form', function() {
+            setTimeout(enableVariationSelectDeselect, 200);
+            setTimeout(updateDisabledSwatches, 300);
+        });
+        
+        // Listen to WooCommerce variation events to update disabled states
+        $('form.variations_form').on('woocommerce_variation_select_change check_variations', function() {
+            setTimeout(updateDisabledSwatches, 50);
+        });
+        
+        // Also listen for any change on select fields
+        $('form.variations_form').on('change', 'select[name^="attribute_"]', function() {
+            setTimeout(updateDisabledSwatches, 50);
         });
     });
     </script>
@@ -3613,7 +4496,669 @@ function shopwell_disable_compare_js() {
 }
 add_action( 'wp_footer', 'shopwell_disable_compare_js', 999 );
 
+/**
+ * Change "Buy Now" button text to "Cumpără Acum"
+ */
+function shopwell_change_buy_now_text() {
+	?>
+	<script>
+	jQuery(document).ready(function($) {
+		// Function to replace Buy Now text
+		function replaceBuyNowText() {
+			// Find all elements containing "Buy Now" text
+			$('.shopwell-buy-now-button, button[class*="buy-now"], a[class*="buy-now"]').each(function() {
+				var $button = $(this);
+				// Check if button or any child element contains "Buy Now"
+				if ($button.text().indexOf('Buy Now') !== -1) {
+					// Replace text in button itself
+					$button.html($button.html().replace(/Buy Now/gi, 'Cumpără Acum'));
+					// Also replace in any child elements
+					$button.find('*').each(function() {
+						if ($(this).text().indexOf('Buy Now') !== -1) {
+							$(this).text($(this).text().replace(/Buy Now/gi, 'Cumpără Acum'));
+						}
+					});
+				}
+			});
+			
+			// Also check for buttons by text content
+			$('button, a.button').each(function() {
+				var $btn = $(this);
+				var text = $btn.text().trim();
+				if (text === 'Buy Now' || text.indexOf('Buy Now') !== -1) {
+					$btn.html($btn.html().replace(/Buy Now/gi, 'Cumpără Acum'));
+				}
+			});
+		}
+		
+		// Run immediately
+		replaceBuyNowText();
+		
+		// Run after a short delay to catch dynamically loaded content
+		setTimeout(replaceBuyNowText, 500);
+		setTimeout(replaceBuyNowText, 1000);
+		setTimeout(replaceBuyNowText, 2000);
+		
+		// Also run when AJAX content is loaded (for variations, etc.)
+		$(document.body).on('updated_wc_div wc_fragments_refreshed', function() {
+			setTimeout(replaceBuyNowText, 100);
+		});
+		
+		// Use MutationObserver to catch dynamically added buttons
+		if (typeof MutationObserver !== 'undefined') {
+			var observer = new MutationObserver(function(mutations) {
+				setTimeout(replaceBuyNowText, 100);
+			});
+			
+			var $product = $('.single-product, .product');
+			if ($product.length) {
+				$product.each(function() {
+					observer.observe(this, {
+						childList: true,
+						subtree: true
+					});
+				});
+			}
+		}
+	});
+	</script>
+	<?php
+}
+add_action( 'wp_footer', 'shopwell_change_buy_now_text', 20 );
 
+/**
+ * Remove halooToastContainer
+ */
+function shopwell_remove_haloo_toast_container() {
+	?>
+	<script>
+	jQuery(document).ready(function($) {
+		// Function to remove halooToastContainer
+		function removeHalooToastContainer() {
+			// Remove by ID
+			$('#halooToastContainer').remove();
+			// Remove by class
+			$('.halooToastContainer').remove();
+			// Also check for any element with halooToast in the name
+			$('[id*="halooToast"], [class*="halooToast"]').remove();
+		}
+		
+		// Run immediately
+		removeHalooToastContainer();
+		
+		// Run after a short delay to catch dynamically created elements
+		setTimeout(removeHalooToastContainer, 100);
+		setTimeout(removeHalooToastContainer, 500);
+		setTimeout(removeHalooToastContainer, 1000);
+		
+		// Use MutationObserver to catch dynamically added containers
+		if (typeof MutationObserver !== 'undefined') {
+			var observer = new MutationObserver(function(mutations) {
+				removeHalooToastContainer();
+			});
+			
+			observer.observe(document.body, {
+				childList: true,
+				subtree: true
+			});
+		}
+		
+		// Also prevent creation by intercepting appendChild if possible
+		var originalAppendChild = Element.prototype.appendChild;
+		Element.prototype.appendChild = function(child) {
+			if (child) {
+				// Check ID first (always a string if exists)
+				if (child.id === 'halooToastContainer' || 
+					(child.id && typeof child.id === 'string' && child.id.indexOf('halooToast') !== -1)) {
+					return child; // Don't append, just return
+				}
+				
+				// Check className - handle both string and DOMTokenList
+				if (child.className) {
+					var classNameStr = '';
+					if (typeof child.className === 'string') {
+						classNameStr = child.className;
+					} else if (child.className.baseVal !== undefined) {
+						// SVG elements use className.baseVal
+						classNameStr = child.className.baseVal || '';
+					} else if (typeof child.className.toString === 'function') {
+						classNameStr = child.className.toString();
+					} else if (child.classList && typeof child.classList.toString === 'function') {
+						// Fallback to classList if available
+						classNameStr = child.classList.toString();
+					}
+					
+					if (classNameStr && classNameStr.indexOf('halooToast') !== -1) {
+						return child; // Don't append, just return
+					}
+				}
+			}
+			return originalAppendChild.call(this, child);
+		};
+	});
+	</script>
+	<style>
+		/* Hide halooToastContainer via CSS as backup */
+		#halooToastContainer,
+		.halooToastContainer,
+		[id*="halooToast"],
+		[class*="halooToast"] {
+			display: none !important;
+			visibility: hidden !important;
+			opacity: 0 !important;
+			height: 0 !important;
+			width: 0 !important;
+			overflow: hidden !important;
+			position: absolute !important;
+			left: -9999px !important;
+		}
+	</style>
+	<?php
+}
+add_action( 'wp_footer', 'shopwell_remove_haloo_toast_container', 10 );
 
+/**
+ * Backend processing for hierarchical variation selection
+ * ALL processing is done here - frontend only handles user interactions
+ */
+function shopwell_process_variations_backend() {
+    // Only on single product pages
+    if (!is_product()) {
+        return;
+    }
+    
+    global $product;
+    
+    if (!$product || !$product->is_type('variable')) {
+        return;
+    }
+    
+    // Attribute hierarchy
+    $attribute_hierarchy = array(
+        'attribute_pa_culoare' => 1,
+        'attribute_culoare' => 1,
+        'attribute_pa_stare' => 2,
+        'attribute_stare' => 2,
+        'attribute_pa_memorie' => 3,
+        'attribute_memorie' => 3,
+        'attribute_pa_stocare' => 3,
+        'attribute_stocare' => 3,
+    );
+    
+    // Map simplified names to attribute names
+    $simplified_to_attribute = array(
+        'culoare' => array('attribute_pa_culoare', 'attribute_culoare'),
+        'stare' => array('attribute_pa_stare', 'attribute_stare'),
+        'memorie' => array('attribute_pa_memorie', 'attribute_memorie', 'attribute_pa_stocare', 'attribute_stocare'),
+    );
+    
+    // Get URL parameters
+    $url_params = array();
+    if (isset($_GET['culoare']) && !empty($_GET['culoare'])) {
+        $url_params['culoare'] = sanitize_text_field($_GET['culoare']);
+    }
+    if (isset($_GET['stare']) && !empty($_GET['stare'])) {
+        $url_params['stare'] = sanitize_text_field($_GET['stare']);
+    }
+    if (isset($_GET['memorie']) && !empty($_GET['memorie'])) {
+        $url_params['memorie'] = sanitize_text_field($_GET['memorie']);
+    }
+    
+    // Get available variations
+    $available_variations = $product->get_available_variations();
+    $attributes = $product->get_variation_attributes();
+    
+    // Calculate validated selections (verify availability)
+    $validated_selections = array();
+    foreach ($attributes as $attribute_name => $options) {
+        // Convert to variation attribute format
+        $variation_attr_name = 'attribute_' . $attribute_name;
+        $attr_level = shopwell_get_attribute_level($variation_attr_name, $attribute_hierarchy);
+        
+        // Find URL value for this attribute
+        $url_value = null;
+        foreach ($simplified_to_attribute as $param_name => $possible_attrs) {
+            if (in_array($variation_attr_name, $possible_attrs) && isset($url_params[$param_name])) {
+                $url_value = $url_params[$param_name];
+                break;
+            }
+        }
+        
+        if ($url_value) {
+            // Get higher level selections for availability check
+            $higher_level_selections = array();
+            foreach ($validated_selections as $sel_attr => $sel_val) {
+                if (shopwell_get_attribute_level($sel_attr, $attribute_hierarchy) < $attr_level) {
+                    $higher_level_selections[$sel_attr] = $sel_val;
+                }
+            }
+            
+            // Verify availability
+            $is_available = shopwell_is_attribute_value_available(
+                $variation_attr_name,
+                $url_value,
+                $higher_level_selections,
+                $available_variations,
+                $attr_level
+            );
+            
+            if ($is_available) {
+                $validated_selections[$variation_attr_name] = $url_value;
+            }
+        }
+    }
+    
+    // Calculate availability and prices for ALL swatches
+    $swatches_data = array();
+    foreach ($attributes as $attribute_name => $options) {
+        // Convert attribute name to match variation format (attribute_pa_xxx)
+        $variation_attr_name = 'attribute_' . $attribute_name;
+        $attr_level = shopwell_get_attribute_level($variation_attr_name, $attribute_hierarchy);
+        
+        // Get higher level selections (convert to variation format)
+        $higher_level_selections = array();
+        foreach ($validated_selections as $sel_attr => $sel_val) {
+            $sel_level = shopwell_get_attribute_level($sel_attr, $attribute_hierarchy);
+            if ($sel_level < $attr_level) {
+                $higher_level_selections[$sel_attr] = $sel_val;
+            }
+        }
+        
+        $has_higher_level_selection = !empty($higher_level_selections) || $attr_level === 1;
+        
+        $options_data = array();
+        foreach ($options as $option_value) {
+            // Check availability using variation attribute format
+            $is_available = false;
+            if ($attr_level === 1) {
+                // Level 1: always check availability
+                $is_available = shopwell_is_attribute_value_available(
+                    $variation_attr_name, $option_value, array(), $available_variations, $attr_level
+                );
+            } elseif ($has_higher_level_selection) {
+                // Other levels: need higher level selection
+                $is_available = shopwell_is_attribute_value_available(
+                    $variation_attr_name, $option_value, $higher_level_selections, $available_variations, $attr_level
+                );
+            }
+            
+            // Get price for this option
+            $price_html = '';
+            $test_attrs = $higher_level_selections;
+            $test_attrs[$variation_attr_name] = $option_value;
+            
+            foreach ($available_variations as $variation) {
+                if (!$variation['is_in_stock']) continue;
+                
+                $matches = true;
+                foreach ($test_attrs as $test_attr => $test_val) {
+                    $v_val = isset($variation['attributes'][$test_attr]) ? $variation['attributes'][$test_attr] : '';
+                    if ($v_val !== '' && strcasecmp($v_val, $test_val) !== 0) {
+                        $matches = false;
+                        break;
+                    }
+                }
+                
+                if ($matches && !empty($variation['price_html'])) {
+                    $price_html = $variation['price_html'];
+                    break;
+                }
+            }
+            
+            // If no price found, try to find ANY variation with this value
+            if (empty($price_html)) {
+                foreach ($available_variations as $variation) {
+                    if (!$variation['is_in_stock']) continue;
+                    
+                    $v_val = isset($variation['attributes'][$variation_attr_name]) ? $variation['attributes'][$variation_attr_name] : '';
+                    if ($v_val !== '' && strcasecmp($v_val, $option_value) === 0 && !empty($variation['price_html'])) {
+                        $price_html = $variation['price_html'];
+                        break;
+                    }
+                }
+            }
+            
+            $is_selected = isset($validated_selections[$variation_attr_name]) && 
+                           strcasecmp($validated_selections[$variation_attr_name], $option_value) === 0;
+            
+            $options_data[$option_value] = array(
+                'available' => $is_available,
+                'selected' => $is_selected,
+                'price_html' => $price_html,
+                'disabled' => !$is_available,
+            );
+        }
+        
+        // Use attribute_name as key (for JavaScript matching with select name)
+        $swatches_data[$variation_attr_name] = array(
+            'level' => $attr_level,
+            'selected_value' => isset($validated_selections[$variation_attr_name]) ? $validated_selections[$variation_attr_name] : null,
+            'options' => $options_data,
+        );
+    }
+    
+    // Store processed data for use in filters and templates
+    $GLOBALS['shopwell_variation_data'] = array(
+        'attribute_hierarchy' => $attribute_hierarchy,
+        'simplified_to_attribute' => $simplified_to_attribute,
+        'url_params' => $url_params,
+        'available_variations' => $available_variations,
+        'product' => $product,
+        'validated_selections' => $validated_selections,
+        'swatches_data' => $swatches_data,
+    );
+    
+    // Output processed data as JSON for frontend (interactions only)
+    add_action('wp_footer', 'shopwell_output_variation_data', 5);
+}
 
+/**
+ * Get attribute level from hierarchy
+ */
+function shopwell_get_attribute_level($attr_name, $hierarchy) {
+    return isset($hierarchy[$attr_name]) ? $hierarchy[$attr_name] : 999;
+}
+
+/**
+ * Check if attribute value is available given current selections
+ */
+function shopwell_is_attribute_value_available($attr_name, $attr_value, $selected_attrs, $available_variations, $attr_level) {
+    // For level 1 (colors), check if ANY variation exists with this color
+    if ($attr_level === 1) {
+        foreach ($available_variations as $variation) {
+            if (!$variation['is_in_stock']) {
+                continue;
+            }
+            
+            $v_val = isset($variation['attributes'][$attr_name]) ? $variation['attributes'][$attr_name] : '';
+            if ($v_val && (strcasecmp($v_val, $attr_value) === 0)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // For other levels, check if variation exists matching all higher level selections
+    $test_attrs = $selected_attrs;
+    $test_attrs[$attr_name] = $attr_value;
+    
+    foreach ($available_variations as $variation) {
+        if (!$variation['is_in_stock']) {
+            continue;
+        }
+        
+        $matches = true;
+        foreach ($test_attrs as $test_attr => $test_val) {
+            $v_val = isset($variation['attributes'][$test_attr]) ? $variation['attributes'][$test_attr] : '';
+            if ($v_val !== '' && strcasecmp($v_val, $test_val) !== 0) {
+                $matches = false;
+                break;
+            }
+        }
+        
+        if ($matches) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Modify variation dropdown HTML to pre-select values from URL
+ * Also verifies availability and deselects unavailable values
+ */
+function shopwell_modify_variation_dropdown_html($html, $args) {
+    if (!isset($GLOBALS['shopwell_variation_data'])) {
+        return $html;
+    }
+    
+    $data = $GLOBALS['shopwell_variation_data'];
+    $attribute_name = isset($args['attribute']) ? $args['attribute'] : '';
+    
+    if (!$attribute_name) {
+        return $html;
+    }
+    
+    $attr_level = shopwell_get_attribute_level($attribute_name, $data['attribute_hierarchy']);
+    
+    // Find corresponding URL parameter
+    $url_value = null;
+    foreach ($data['simplified_to_attribute'] as $param_name => $possible_attrs) {
+        if (in_array($attribute_name, $possible_attrs)) {
+            if (isset($data['url_params'][$param_name])) {
+                $url_value = $data['url_params'][$param_name];
+                break;
+            }
+        }
+    }
+    
+    // Get currently selected attributes from URL (only higher level ones)
+    $selected_attrs = array();
+    foreach ($data['url_params'] as $param_name => $param_value) {
+        $possible_attrs = isset($data['simplified_to_attribute'][$param_name]) ? $data['simplified_to_attribute'][$param_name] : array();
+        foreach ($possible_attrs as $possible_attr) {
+            $possible_level = shopwell_get_attribute_level($possible_attr, $data['attribute_hierarchy']);
+            if ($possible_level < $attr_level) {
+                $selected_attrs[$possible_attr] = $param_value;
+            }
+        }
+    }
+    
+    // If URL parameter exists, verify availability before pre-selecting
+    if ($url_value) {
+        $is_available = shopwell_is_attribute_value_available(
+            $attribute_name,
+            $url_value,
+            $selected_attrs,
+            $data['available_variations'],
+            $attr_level
+        );
+        
+        // Only pre-select if available
+        if ($is_available) {
+            // Modify the select to have the value selected
+            $html = preg_replace(
+                '/<option\s+value="' . preg_quote($url_value, '/') . '"[^>]*>/i',
+                '<option value="' . esc_attr($url_value) . '" selected="selected">',
+                $html
+            );
+        } else {
+            // Value is not available, remove it from URL params to prevent selection
+            // This will be handled by JavaScript, but we mark it in data
+            if (!isset($data['unavailable_selections'])) {
+                $data['unavailable_selections'] = array();
+            }
+            $data['unavailable_selections'][$attribute_name] = $url_value;
+            $GLOBALS['shopwell_variation_data'] = $data;
+        }
+    }
+    
+    return $html;
+}
+
+/**
+ * Output processed variation data for frontend
+ * ALL processing is done in backend - this just outputs the results
+ */
+function shopwell_output_variation_data() {
+    if (!isset($GLOBALS['shopwell_variation_data'])) {
+        return;
+    }
+    
+    $data = $GLOBALS['shopwell_variation_data'];
+    
+    if (!isset($data['swatches_data'])) {
+        return;
+    }
+    
+    $swatches_data = $data['swatches_data'];
+    $validated_selections = isset($data['validated_selections']) ? $data['validated_selections'] : array();
+    
+    // Debug: output data to console
+    ?>
+    <script type="text/javascript">
+    console.log('[SHOPWELL BACKEND] Swatches data:', <?php echo json_encode($swatches_data); ?>);
+    console.log('[SHOPWELL BACKEND] Validated selections:', <?php echo json_encode($validated_selections); ?>);
+    console.log('[SHOPWELL BACKEND] Available variations sample:', <?php echo json_encode(array_slice($data['available_variations'], 0, 3)); ?>);
+    </script>
+    <?php
+    
+    // Output JavaScript to apply backend-processed state to DOM
+    ?>
+    <script type="text/javascript">
+    (function($) {
+        'use strict';
+        
+        // Store backend data globally for frontend interactions
+        window.shopwellVariationData = <?php echo json_encode($swatches_data); ?>;
+        window.shopwellValidatedSelections = <?php echo json_encode($validated_selections); ?>;
+        
+        // Apply backend-processed state when DOM is ready
+        $(document).ready(function() {
+            var form = $('.variations_form');
+            if (!form.length) return;
+            
+            var swatchesData = window.shopwellVariationData;
+            
+            // Apply state for each attribute
+            for (var attrName in swatchesData) {
+                var attrData = swatchesData[attrName];
+                var $select = form.find('select[name="' + attrName + '"]');
+                
+                if (!$select.length) continue;
+                
+                var $container = $select.closest('.value');
+                if (!$container.length) {
+                    $container = $select.closest('tr').find('.value');
+                }
+                
+                // Apply selected value from backend
+                if (attrData.selected_value) {
+                    $select.val(attrData.selected_value);
+                }
+                
+                // Apply availability and selection state to swatches
+                $container.find('.wcboost-variation-swatches__item, .wcboost-variation-swatches_item, .product-variation-item').each(function() {
+                    var $swatch = $(this);
+                    var swatchValue = $swatch.data('value') || $swatch.attr('data-value');
+                    
+                    if (!swatchValue || !attrData.options) return;
+                    
+                    // Case-insensitive lookup
+                    var optionData = null;
+                    var swatchValueLower = swatchValue.toLowerCase();
+                    for (var optKey in attrData.options) {
+                        if (optKey.toLowerCase() === swatchValueLower) {
+                            optionData = attrData.options[optKey];
+                            break;
+                        }
+                    }
+                    
+                    if (!optionData) return;
+                    
+                    // Apply disabled state
+                    if (optionData.disabled || !optionData.available) {
+                        $swatch.addClass('disabled is-invalid shopwell-disabled');
+                        $swatch.removeClass('selected active is-selected');
+                        $swatch.attr('aria-pressed', 'false');
+                    } else {
+                        $swatch.removeClass('disabled is-invalid shopwell-disabled');
+                    }
+                    
+                    // Apply selected state
+                    if (optionData.selected && optionData.available) {
+                        $swatch.addClass('selected active is-selected');
+                        $swatch.attr('aria-pressed', 'true');
+                    }
+                    
+                    // Apply price from backend
+                    if (optionData.price_html) {
+                        var $name = $swatch.find('.wcboost-variation-swatches__name, .product-variation-item__name');
+                        if ($name.length) {
+                            var $price = $swatch.find('.sv-pill-price');
+                            if (!$price.length) {
+                                $price = $('<span/>', { 'class': 'sv-pill-price' }).appendTo($name);
+                            }
+                            $price.html(optionData.price_html);
+                        }
+                    } else if (optionData.disabled || !optionData.available) {
+                        // Show "indisponibil" for disabled items
+                        var $name = $swatch.find('.wcboost-variation-swatches__name, .product-variation-item__name');
+                        if ($name.length) {
+                            var $price = $swatch.find('.sv-pill-price');
+                            if (!$price.length) {
+                                $price = $('<span/>', { 'class': 'sv-pill-price' }).appendTo($name);
+                            }
+                            $price.html('<span class="sv-pill-price-unavailable">indisponibil</span>');
+                        }
+                    }
+                });
+            }
+            
+            // Trigger WooCommerce update
+            form.trigger('woocommerce_variation_select_change');
+            form.trigger('check_variations');
+        });
+    })(jQuery);
+    </script>
+    <?php
+}
+
+/**
+ * Add selected value to variation label in variations table
+ */
+function shopwell_add_selected_value_to_variation_label($label, $name, $product) {
+    if (!isset($GLOBALS['shopwell_variation_data'])) {
+        return $label;
+    }
+    
+    $data = $GLOBALS['shopwell_variation_data'];
+    
+    // Find if this attribute is selected from URL
+    $selected_value = null;
+    foreach ($data['simplified_to_attribute'] as $param_name => $possible_attrs) {
+        foreach ($possible_attrs as $attr) {
+            // Check if this label matches the attribute
+            $attr_label = wc_attribute_label($attr);
+            if ($label === $attr_label || $name === $attr) {
+                if (isset($data['url_params'][$param_name])) {
+                    $selected_value = $data['url_params'][$param_name];
+                    break 2;
+                }
+            }
+        }
+    }
+    
+    if ($selected_value) {
+        // Get display name for the value
+        $display_name = $selected_value;
+        
+        // Try to get term name if it's a taxonomy
+        foreach ($data['simplified_to_attribute'] as $param_name => $possible_attrs) {
+            if (isset($data['url_params'][$param_name]) && $data['url_params'][$param_name] === $selected_value) {
+                foreach ($possible_attrs as $attr) {
+                    $taxonomy = str_replace('attribute_', '', $attr);
+                    if (taxonomy_exists($taxonomy)) {
+                        $term = get_term_by('slug', $selected_value, $taxonomy);
+                        if ($term && !is_wp_error($term)) {
+                            $display_name = $term->name;
+                            break 2;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Add selected value to label if not already present
+        if (strpos($label, $display_name) === false) {
+            $label .= ': ' . esc_html($display_name);
+        }
+    }
+    
+    return $label;
+}
+
+// Hook into single product page
+add_action('woocommerce_before_single_product', 'shopwell_process_variations_backend', 5);
 

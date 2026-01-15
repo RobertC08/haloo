@@ -155,10 +155,19 @@
                 // Check all attributes in testAttrs
                 for (var attr in testAttrs) {
                     var vVal = v.attributes[attr];
-                    // If variation has this attribute set and it doesn't match, skip
-                    if (vVal !== "" && vVal !== testAttrs[attr]) {
-                        matches = false;
-                        break;
+                    var testVal = testAttrs[attr];
+                    
+                    // If variation has this attribute set (not empty), check if it matches
+                    // Empty value in variation means "any" - it matches all
+                    if (vVal && vVal !== "") {
+                        // Case-insensitive comparison
+                        var vValLower = vVal.toLowerCase();
+                        var testValLower = testVal ? testVal.toLowerCase() : "";
+                        
+                        if (vValLower !== testValLower) {
+                            matches = false;
+                            break;
+                        }
                     }
                 }
                 
@@ -172,6 +181,7 @@
         
         /**
          * Update availability for all attribute swatches based on current selections
+         * Uses isAttributeValueAvailable which checks against actual variations
          */
         function updateAttributeAvailability() {
             var selectedAttrs = getSelectedAttributes();
@@ -189,6 +199,16 @@
                 }
                 if (!$container.length) return;
                 
+                // Get higher level selections for availability check
+                var higherLevelAttrs = {};
+                var hasHigherLevelSelection = false;
+                for (var selAttr in selectedAttrs) {
+                    if (getAttributeLevel(selAttr) < attrLevel) {
+                        higherLevelAttrs[selAttr] = selectedAttrs[selAttr];
+                        hasHigherLevelSelection = true;
+                    }
+                }
+                
                 // Get all swatches for this attribute
                 var $swatches = $container.find(".wcboost-variation-swatches__item, .product-variation-item");
                 
@@ -200,43 +220,96 @@
                     // Check if this value should be available
                     var isAvailable = false;
                     
-                    // For level 1 (color), check if it has any in-stock variation
-                    // Colors should always be available if they exist, independent of other selections
                     if (attrLevel === 1) {
+                        // Level 1: always check availability
                         isAvailable = isAttributeValueAvailable(attrName, swatchValue, {}, 1);
-                    } else {
-                        // For other levels, check availability based on selected attributes from higher levels
-                        var higherLevelAttrs = {};
-                        var hasHigherLevelSelection = false;
-                        for (var selAttr in selectedAttrs) {
-                            if (getAttributeLevel(selAttr) < attrLevel) {
-                                higherLevelAttrs[selAttr] = selectedAttrs[selAttr];
-                                hasHigherLevelSelection = true;
-                            }
-                        }
-                        
-                        // Level 2 and 3 require selections from higher levels to be enabled
-                        if (hasHigherLevelSelection) {
-                            isAvailable = isAttributeValueAvailable(attrName, swatchValue, higherLevelAttrs, attrLevel);
-                        } else {
-                            // No higher level selection, so this should be disabled
-                            isAvailable = false;
-                        }
+                    } else if (hasHigherLevelSelection) {
+                        // Other levels: need higher level selection
+                        isAvailable = isAttributeValueAvailable(attrName, swatchValue, higherLevelAttrs, attrLevel);
                     }
+                    // If no higher level selection, isAvailable remains false
                     
                     // Update swatch state
                     if (isAvailable) {
                         $swatch.removeClass("disabled is-invalid shopwell-disabled");
                         $swatch.attr("aria-pressed", $swatch.hasClass("selected") ? "true" : "false");
                     } else {
-                        // Don't disable if it's already selected (user might be changing)
-                        if (!$swatch.hasClass("selected")) {
-                            $swatch.addClass("disabled is-invalid shopwell-disabled");
-                            $swatch.attr("aria-pressed", "false");
+                        // If swatch is not available, disable it
+                        $swatch.addClass("disabled is-invalid shopwell-disabled");
+                        $swatch.attr("aria-pressed", "false");
+                        
+                        // If it was selected but is no longer available, deselect it
+                        if ($swatch.hasClass("selected")) {
                             $swatch.removeClass("selected active is-selected");
+                            // Also clear the select value
+                            if ($select.val() === swatchValue) {
+                                $select.val("").trigger("change");
+                                // Clear label display
+                                clearSelectedAttributeDisplay(attrName);
+                            }
                         }
                     }
                 });
+                
+                // Update prices for swatches in this group
+                updateSwatchPricesForAttribute($select, attrName, attrLevel, higherLevelAttrs);
+            });
+        }
+        
+        /**
+         * Update prices for swatches of a specific attribute
+         */
+        function updateSwatchPricesForAttribute($select, attrName, attrLevel, higherLevelAttrs) {
+            var $container = $select.closest(".value");
+            if (!$container.length) {
+                $container = $select.closest("tr").find(".value");
+            }
+            if (!$container.length) return;
+            
+            $container.find(".wcboost-variation-swatches__item, .product-variation-item").each(function() {
+                var $swatch = $(this);
+                var swatchValue = $swatch.data("value") || $swatch.attr("data-value");
+                if (!swatchValue) return;
+                
+                var priceHtml = "";
+                var isDisabled = $swatch.hasClass("disabled") || $swatch.hasClass("shopwell-disabled");
+                
+                // Build test attributes
+                var testAttrs = $.extend({}, higherLevelAttrs);
+                testAttrs[attrName] = swatchValue;
+                
+                // Find variation matching these attributes
+                var variation = findVariation(testAttrs);
+                
+                if (variation && variation.price_html) {
+                    priceHtml = variation.price_html;
+                } else if (!isDisabled) {
+                    // Try to find ANY variation with this value
+                    for (var i = 0; i < variations.length; i++) {
+                        var v = variations[i];
+                        if (!v.is_in_stock) continue;
+                        
+                        var vVal = v.attributes[attrName];
+                        if (vVal && vVal.toLowerCase() === swatchValue.toLowerCase() && v.price_html) {
+                            priceHtml = v.price_html;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!priceHtml && isDisabled) {
+                    priceHtml = '<span class="sv-pill-price-unavailable">indisponibil</span>';
+                }
+                
+                // Apply price to swatch
+                var $name = $swatch.find(".wcboost-variation-swatches__name, .product-variation-item__name");
+                if ($name.length) {
+                    var $price = $swatch.find(".sv-pill-price");
+                    if (!$price.length) {
+                        $price = $("<span/>", { "class": "sv-pill-price" }).appendTo($name);
+                    }
+                    $price.html(priceHtml);
+                }
             });
         }
         
@@ -481,9 +554,18 @@
                 var matches = true;
                 for (var attr in attrs) {
                     var vVal = v.attributes[attr];
-                    if (vVal !== "" && vVal !== attrs[attr]) {
-                        matches = false;
-                        break;
+                    var testVal = attrs[attr];
+                    
+                    // Empty value in variation means "any" - it matches all
+                    if (vVal && vVal !== "") {
+                        // Case-insensitive comparison
+                        var vValLower = vVal.toLowerCase();
+                        var testValLower = testVal ? testVal.toLowerCase() : "";
+                        
+                        if (vValLower !== testValLower) {
+                            matches = false;
+                            break;
+                        }
                     }
                 }
                 if (matches) return v;
@@ -529,158 +611,9 @@
             return "";
         }
 
+        // Prices are now updated by updateSwatchPricesForAttribute in updateAttributeAvailability
         function updateSwatchPillPrices() {
-            // Update wcboost swatches
-            form.find(".wcboost-variation-swatches__item").each(function() {
-                var $item = $(this);
-                var $select = $item.closest(".value").find("select");
-                if (!$select.length) return;
-                
-                var attrName = $select.attr("name");
-                var attrLevel = getAttributeLevel(attrName);
-                var swatchValue = $item.data("value");
-                
-                var variation = null;
-                var priceHtml = "";
-                
-                // For level 1 (colors), find ANY variation with this color, regardless of other selections
-                if (attrLevel === 1) {
-                    // Find first available variation with this color
-                    for (var i = 0; i < variations.length; i++) {
-                        var v = variations[i];
-                        if (!v.is_in_stock) continue;
-                        
-                        var vVal = v.attributes[attrName];
-                        if (vVal && (vVal === swatchValue || vVal.toLowerCase() === swatchValue.toLowerCase())) {
-                            variation = v;
-                            break;
-                        }
-                    }
-                } else {
-                    // For other levels, build test attributes with current selections from higher levels
-                    var testAttrs = {};
-                    form.find("select").each(function() {
-                        var name = $(this).attr("name");
-                        var val = $(this).val();
-                        var level = getAttributeLevel(name);
-                        // Only include selections from same or higher levels
-                        if (name === attrName) {
-                            testAttrs[name] = swatchValue;
-                        } else if (val && level < attrLevel) {
-                            testAttrs[name] = val;
-                        }
-                    });
-                    variation = findVariation(testAttrs);
-                }
-                
-                priceHtml = formatVariationPrice(variation);
-                
-                // Only show "indisponibil" if swatch is actually disabled
-                // If swatch is enabled, it should show a price (even if it's the first available variation)
-                var isDisabled = $item.hasClass("disabled") || $item.hasClass("is-invalid") || $item.hasClass("shopwell-disabled");
-                if ((!priceHtml || priceHtml.trim() === "") && isDisabled) {
-                    priceHtml = '<span class="sv-pill-price-unavailable">indisponibil</span>';
-                } else if (!priceHtml || priceHtml.trim() === "") {
-                    // If enabled but no price found, try to find any variation with this value
-                    if (attrLevel === 1) {
-                        // Already tried above, so show "indisponibil" only if disabled
-                        if (isDisabled) {
-                            priceHtml = '<span class="sv-pill-price-unavailable">indisponibil</span>';
-                        }
-                    } else {
-                        priceHtml = '<span class="sv-pill-price-unavailable">indisponibil</span>';
-                    }
-                }
-                
-                var $name = $item.find(".wcboost-variation-swatches__name");
-                if (!$name.length) return;
-                
-                var $price = $item.find(".sv-pill-price");
-                if (!$price.length) {
-                    $price = $("<span/>", { "class": "sv-pill-price" }).appendTo($name);
-                }
-                $price.html(priceHtml);
-            });
-            
-            // Update product-variation-item swatches
-            form.find(".product-variation-item").each(function() {
-                var $item = $(this);
-                var $select = $item.closest(".value").find("select");
-                if (!$select.length) {
-                    $select = $item.closest("tr").find("select[name^='attribute_']");
-                }
-                if (!$select.length) return;
-                
-                var attrName = $select.attr("name");
-                var attrLevel = getAttributeLevel(attrName);
-                var swatchValue = $item.data("value") || $item.attr("data-value");
-                if (!swatchValue) return;
-                
-                var variation = null;
-                var priceHtml = "";
-                
-                // For level 1 (colors), find ANY variation with this color, regardless of other selections
-                if (attrLevel === 1) {
-                    // Find first available variation with this color
-                    for (var i = 0; i < variations.length; i++) {
-                        var v = variations[i];
-                        if (!v.is_in_stock) continue;
-                        
-                        var vVal = v.attributes[attrName];
-                        if (vVal && (vVal === swatchValue || vVal.toLowerCase() === swatchValue.toLowerCase())) {
-                            variation = v;
-                            break;
-                        }
-                    }
-                } else {
-                    // For other levels, build test attributes with current selections from higher levels
-                    var testAttrs = {};
-                    form.find("select").each(function() {
-                        var name = $(this).attr("name");
-                        var val = $(this).val();
-                        var level = getAttributeLevel(name);
-                        // Only include selections from same or higher levels
-                        if (name === attrName) {
-                            testAttrs[name] = swatchValue;
-                        } else if (val && level < attrLevel) {
-                            testAttrs[name] = val;
-                        }
-                    });
-                    variation = findVariation(testAttrs);
-                }
-                
-                priceHtml = formatVariationPrice(variation);
-                
-                // Only show "indisponibil" if swatch is actually disabled
-                var isDisabled = $item.hasClass("disabled") || $item.hasClass("is-invalid") || $item.hasClass("shopwell-disabled");
-                if ((!priceHtml || priceHtml.trim() === "") && isDisabled) {
-                    priceHtml = '<span class="sv-pill-price-unavailable">indisponibil</span>';
-                } else if (!priceHtml || priceHtml.trim() === "") {
-                    // If enabled but no price found, try to find any variation with this value
-                    if (attrLevel === 1) {
-                        // Already tried above, so show "indisponibil" only if disabled
-                        if (isDisabled) {
-                            priceHtml = '<span class="sv-pill-price-unavailable">indisponibil</span>';
-                        }
-                    } else {
-                        priceHtml = '<span class="sv-pill-price-unavailable">indisponibil</span>';
-                    }
-                }
-                
-                // Find or create price element
-                var $price = $item.find(".product-variation-item__price, .sv-pill-price, .price");
-                if (!$price.length) {
-                    // Try to find where price should be (usually after name or in a specific container)
-                    var $name = $item.find(".product-variation-item__name, .wcboost-variation-swatches__name");
-                    if ($name.length) {
-                        $price = $("<span/>", { "class": "sv-pill-price" }).appendTo($name);
-                    } else {
-                        // Append to item itself
-                        $price = $("<span/>", { "class": "sv-pill-price" }).appendTo($item);
-                    }
-                }
-                $price.html(priceHtml);
-            });
+            // This function is kept for compatibility but processing is done in updateAttributeAvailability
         }
         
         function hideDisabledSwatches() {
@@ -778,6 +711,11 @@
                 // Update URL
                 updateUrlParameters();
                 
+                // If color was deselected (level 1), reset product thumbnail to default
+                if (clickedLevel === 1) {
+                    resetProductThumbnail();
+                }
+                
                 // Update prices
                 scheduleSwatchPriceUpdate();
                 return;
@@ -811,6 +749,11 @@
             // Update URL
             updateUrlParameters();
             
+            // If color was selected (level 1), update product thumbnail
+            if (clickedLevel === 1) {
+                updateProductThumbnailForColor(clickedAttr, clickedValue);
+            }
+            
             // DO NOT auto-select other attributes - let user select them manually
             // Only update prices, don't apply full variation which would auto-select attributes
             
@@ -818,38 +761,151 @@
             scheduleSwatchPriceUpdate();
         }, true); // true = capturing phase
         
+        // Store original thumbnail data for reset
+        var originalThumbnail = null;
+        
+        /**
+         * Store the original thumbnail data on first load
+         */
+        function storeOriginalThumbnail() {
+            if (originalThumbnail) return; // Already stored
+            
+            var $gallery = $(".woocommerce-product-gallery, .product-gallery");
+            if (!$gallery.length) return;
+            
+            var $mainImage = $gallery.find(".woocommerce-product-gallery__image img, .product-gallery__image img, .wp-post-image").first();
+            if ($mainImage.length) {
+                originalThumbnail = {
+                    src: $mainImage.attr("src"),
+                    srcset: $mainImage.attr("srcset") || "",
+                    dataSrc: $mainImage.attr("data-src") || "",
+                    dataLargeImage: $mainImage.attr("data-large_image") || "",
+                    href: $mainImage.closest("a").attr("href") || ""
+                };
+            }
+        }
+        
+        // Store original thumbnail on load
+        storeOriginalThumbnail();
+        
+        /**
+         * Reset product thumbnail to original
+         */
+        function resetProductThumbnail() {
+            if (!originalThumbnail) return;
+            
+            var $gallery = $(".woocommerce-product-gallery, .product-gallery");
+            if (!$gallery.length) return;
+            
+            var $mainImage = $gallery.find(".woocommerce-product-gallery__image img, .product-gallery__image img, .wp-post-image").first();
+            if ($mainImage.length) {
+                $mainImage.attr("src", originalThumbnail.src);
+                $mainImage.attr("srcset", originalThumbnail.srcset);
+                $mainImage.attr("data-src", originalThumbnail.dataSrc);
+                $mainImage.attr("data-large_image", originalThumbnail.dataLargeImage);
+                
+                var $link = $mainImage.closest("a");
+                if ($link.length && originalThumbnail.href) {
+                    $link.attr("href", originalThumbnail.href);
+                }
+            }
+            
+            // Trigger gallery update event
+            $gallery.trigger("woocommerce_gallery_reset_slide_position");
+        }
+        
+        /**
+         * Update product thumbnail when a color is selected
+         * Finds any variation with that color and uses its thumbnail
+         */
+        function updateProductThumbnailForColor(attrName, colorValue) {
+            if (!colorValue) return;
+            
+            // Store original thumbnail if not already stored
+            storeOriginalThumbnail();
+            
+            // Find any variation with this color
+            var variation = null;
+            for (var i = 0; i < variations.length; i++) {
+                var v = variations[i];
+                var vVal = v.attributes[attrName];
+                
+                // Case-insensitive comparison
+                if (vVal && vVal.toLowerCase() === colorValue.toLowerCase()) {
+                    variation = v;
+                    break;
+                }
+            }
+            
+            if (!variation || !variation.image) return;
+            
+            var image = variation.image;
+            
+            // Update main product image
+            var $gallery = $(".woocommerce-product-gallery, .product-gallery");
+            if (!$gallery.length) return;
+            
+            // Update main image
+            var $mainImage = $gallery.find(".woocommerce-product-gallery__image img, .product-gallery__image img, .wp-post-image").first();
+            if ($mainImage.length && image.full_src) {
+                $mainImage.attr("src", image.full_src);
+                $mainImage.attr("srcset", image.srcset || "");
+                $mainImage.attr("data-src", image.full_src);
+                $mainImage.attr("data-large_image", image.full_src);
+                
+                // Update parent link if exists
+                var $link = $mainImage.closest("a");
+                if ($link.length) {
+                    $link.attr("href", image.full_src);
+                }
+            }
+            
+            // Update thumbnail in gallery if exists
+            var $thumbnail = $gallery.find(".flex-control-thumbs img, .woocommerce-product-gallery__trigger, .gallery-thumbnail img").first();
+            if ($thumbnail.length && image.gallery_thumbnail_src) {
+                $thumbnail.attr("src", image.gallery_thumbnail_src);
+            }
+            
+            // Update Shopwell specific gallery elements
+            var $shopwellMain = $gallery.find(".shopwell-product-gallery__image img, .product-gallery-image img").first();
+            if ($shopwellMain.length && image.full_src) {
+                $shopwellMain.attr("src", image.full_src);
+                $shopwellMain.attr("srcset", image.srcset || "");
+            }
+            
+            // Trigger gallery update event for plugins that listen
+            $gallery.trigger("woocommerce_gallery_reset_slide_position");
+            $(document.body).trigger("wc-product-gallery-after-init", [$gallery]);
+        }
+        
         // ============================================
         // INITIALIZATION
         // ============================================
         
-        // Sync from URL parameters first
-        var urlSynced = syncFromUrlParameters();
+        // Backend has already processed URL parameters and set initial state
+        // We only need to handle interactions from here on
         
-        // Initialize availability: all colors enabled, others disabled
-        if (!urlSynced) {
-            form.find("select[name^='attribute_']").each(function() {
-                var $select = $(this);
-                var attrName = $select.attr("name");
-                var attrLevel = getAttributeLevel(attrName);
-                
-                // Level 1 (color) should be enabled, others disabled initially
-                if (attrLevel > 1) {
-                    $select.val("").trigger("change");
-                }
-            });
-        }
-        
-        // Update availability based on current state
+        // Update availability based on current state (backend may have set some values)
         updateAttributeAvailability();
         
-        // Update UI display
+        // Update UI display (backend may have set some values)
         updateSelectedAttributeDisplay();
         
-        // Update URL if needed
+        // Update URL if needed (sync with backend state)
         updateUrlParameters();
         
         // Keep prices updated
         scheduleSwatchPriceUpdate();
+        
+        // Update thumbnail if a color is already selected (from URL)
+        var selectedAttrs = getSelectedAttributes();
+        for (var attrName in selectedAttrs) {
+            if (getAttributeLevel(attrName) === 1) {
+                // This is a color attribute, update thumbnail
+                updateProductThumbnailForColor(attrName, selectedAttrs[attrName]);
+                break;
+            }
+        }
         
         // Listen to WooCommerce events
         // Prevent auto-selection by intercepting variation changes
@@ -908,6 +964,51 @@
             var $select = $(this);
             var attrName = $select.attr("name");
             var attrLevel = getAttributeLevel(attrName);
+            var selectedValue = $select.val();
+            
+            // If a value is selected, verify it's still available
+            if (selectedValue && selectedValue !== "") {
+                var selectedAttrs = getSelectedAttributes();
+                
+                // Get higher level selections
+                var higherLevelAttrs = {};
+                for (var selAttr in selectedAttrs) {
+                    if (getAttributeLevel(selAttr) < attrLevel) {
+                        higherLevelAttrs[selAttr] = selectedAttrs[selAttr];
+                    }
+                }
+                
+                // Check if selected value is still available
+                var isAvailable = isAttributeValueAvailable(attrName, selectedValue, higherLevelAttrs, attrLevel);
+                
+                if (!isAvailable) {
+                    // Value is no longer available, deselect it
+                    $select.val("").trigger("change");
+                    
+                    // Also deselect the swatch
+                    var $container = $select.closest(".value");
+                    if (!$container.length) {
+                        $container = $select.closest("tr").find(".value");
+                    }
+                    if ($container.length) {
+                        $container.find(".wcboost-variation-swatches__item.selected, .product-variation-item.selected")
+                            .removeClass("selected active is-selected")
+                            .attr("aria-pressed", "false");
+                    }
+                    
+                    // Clear label display
+                    clearSelectedAttributeDisplay(attrName);
+                    
+                    // Deselect attributes below this level
+                    deselectAttributesBelowLevel(attrLevel);
+                    
+                    // Update availability and UI
+                    updateAttributeAvailability();
+                    updateSelectedAttributeDisplay();
+                    updateUrlParameters();
+                    return;
+                }
+            }
             
             // Deselect attributes below this level
             deselectAttributesBelowLevel(attrLevel);
