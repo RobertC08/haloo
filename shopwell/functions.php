@@ -4750,6 +4750,35 @@ function shopwell_process_variations_backend() {
     
     // Calculate availability and prices for ALL swatches
     $swatches_data = array();
+    
+    // If we have all selections (complete variation), find it once and use its price for all selected attributes
+    $complete_variation_price = '';
+    if (count($validated_selections) >= 3) {
+        // We have all 3 levels selected, find the complete variation
+        foreach ($available_variations as $variation) {
+            if (!$variation['is_in_stock']) continue;
+            if (empty($variation['price_html'])) continue;
+            
+            $matches_all = true;
+            
+            // Check if variation matches ALL selected attributes
+            foreach ($validated_selections as $sel_attr => $sel_val) {
+                $v_val = isset($variation['attributes'][$sel_attr]) ? $variation['attributes'][$sel_attr] : '';
+                
+                if ($v_val === '' || strcasecmp($v_val, $sel_val) !== 0) {
+                    $matches_all = false;
+                    break;
+                }
+            }
+            
+            // If this is the complete variation, use its price
+            if ($matches_all) {
+                $complete_variation_price = $variation['price_html'];
+                break;
+            }
+        }
+    }
+    
     foreach ($attributes as $attribute_name => $options) {
         // Convert attribute name to match variation format (attribute_pa_xxx)
         $variation_attr_name = 'attribute_' . $attribute_name;
@@ -4783,29 +4812,99 @@ function shopwell_process_variations_backend() {
             }
             
             // Get price for this option
+            // Strategy: When calculating price for any attribute, use the price from the MOST SPECIFIC selection
+            // If Color + State + Memory are all selected, all should show the complete variation price
+            // This ensures prices "trickle down" from higher level to lower level
             $price_html = '';
-            $test_attrs = $higher_level_selections;
-            $test_attrs[$variation_attr_name] = $option_value;
             
-            foreach ($available_variations as $variation) {
-                if (!$variation['is_in_stock']) continue;
-                
-                $matches = true;
-                foreach ($test_attrs as $test_attr => $test_val) {
-                    $v_val = isset($variation['attributes'][$test_attr]) ? $variation['attributes'][$test_attr] : '';
-                    if ($v_val !== '' && strcasecmp($v_val, $test_val) !== 0) {
-                        $matches = false;
-                        break;
-                    }
-                }
-                
-                if ($matches && !empty($variation['price_html'])) {
-                    $price_html = $variation['price_html'];
-                    break;
+            // Check if this option is currently selected
+            $is_currently_selected = isset($validated_selections[$variation_attr_name]) && 
+                                    strcasecmp($validated_selections[$variation_attr_name], $option_value) === 0;
+            
+            // Build test attributes: ALL currently selected attributes + this option
+            $test_attrs = array();
+            
+            // Add ALL other selected attributes (excluding current one we're calculating for)
+            foreach ($validated_selections as $sel_attr => $sel_val) {
+                if ($sel_attr !== $variation_attr_name) {
+                    $test_attrs[$sel_attr] = $sel_val;
                 }
             }
             
-            // If no price found, try to find ANY variation with this value
+            // Add the current option we're calculating price for
+            $test_attrs[$variation_attr_name] = $option_value;
+            
+            // Priority 1: If we have complete variation AND this option is selected, use complete variation price
+            // This ensures all selected attributes show the same price (the complete variation price)
+            if (!empty($complete_variation_price) && $is_currently_selected) {
+                $price_html = $complete_variation_price;
+            }
+            // Priority 2: If test_attrs matches all validated_selections (complete variation), use complete price
+            elseif (!empty($complete_variation_price) && count($test_attrs) === count($validated_selections)) {
+                $matches_complete = true;
+                foreach ($validated_selections as $sel_attr => $sel_val) {
+                    if (!isset($test_attrs[$sel_attr]) || strcasecmp($test_attrs[$sel_attr], $sel_val) !== 0) {
+                        $matches_complete = false;
+                        break;
+                    }
+                }
+                if ($matches_complete) {
+                    $price_html = $complete_variation_price;
+                }
+            }
+            
+            // Priority 3: Find variation matching ALL selected attributes + this option
+            if (empty($price_html) && !empty($test_attrs)) {
+                foreach ($available_variations as $variation) {
+                    if (!$variation['is_in_stock']) continue;
+                    if (empty($variation['price_html'])) continue;
+                    
+                    $matches_all = true;
+                    
+                    // Check if variation matches ALL attributes in test_attrs
+                    foreach ($test_attrs as $test_attr => $test_val) {
+                        $v_val = isset($variation['attributes'][$test_attr]) ? $variation['attributes'][$test_attr] : '';
+                        
+                        // Variation must have this attribute AND it must match (case-insensitive)
+                        if ($v_val === '' || strcasecmp($v_val, $test_val) !== 0) {
+                            $matches_all = false;
+                            break;
+                        }
+                    }
+                    
+                    // If this variation matches ALL attributes, use it immediately
+                    if ($matches_all) {
+                        $price_html = $variation['price_html'];
+                        break;
+                    }
+                }
+            }
+            
+            // Priority 3: If still no price, try with only higher level selections + this option
+            if (empty($price_html) && !empty($higher_level_selections)) {
+                $test_attrs = $higher_level_selections;
+                $test_attrs[$variation_attr_name] = $option_value;
+                
+                foreach ($available_variations as $variation) {
+                    if (!$variation['is_in_stock']) continue;
+                    
+                    $matches = true;
+                    foreach ($test_attrs as $test_attr => $test_val) {
+                        $v_val = isset($variation['attributes'][$test_attr]) ? $variation['attributes'][$test_attr] : '';
+                        if ($v_val !== '' && strcasecmp($v_val, $test_val) !== 0) {
+                            $matches = false;
+                            break;
+                        }
+                    }
+                    
+                    if ($matches && !empty($variation['price_html'])) {
+                        $price_html = $variation['price_html'];
+                        break;
+                    }
+                }
+            }
+            
+            // Priority 4: Fallback - find ANY variation with this value
             if (empty($price_html)) {
                 foreach ($available_variations as $variation) {
                     if (!$variation['is_in_stock']) continue;

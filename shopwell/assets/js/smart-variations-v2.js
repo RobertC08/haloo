@@ -258,6 +258,7 @@
         
         /**
          * Update prices for swatches of a specific attribute
+         * Uses ALL currently selected attributes to ensure prices sync across all swatches
          */
         function updateSwatchPricesForAttribute($select, attrName, attrLevel, higherLevelAttrs) {
             var $container = $select.closest(".value");
@@ -274,17 +275,43 @@
                 var priceHtml = "";
                 var isDisabled = $swatch.hasClass("disabled") || $swatch.hasClass("shopwell-disabled");
                 
-                // Build test attributes
-                var testAttrs = $.extend({}, higherLevelAttrs);
-                testAttrs[attrName] = swatchValue;
+                // Priority 1: Build test attributes with ALL currently selected attributes + this option
+                // This ensures prices sync: if Negru+Bun+256gb selected, all show same price
+                var testAttrsAll = {};
                 
-                // Find variation matching these attributes
-                var variation = findVariation(testAttrs);
+                // Add ALL other selected attributes (not just higher level)
+                form.find("select[name^='attribute_']").each(function() {
+                    var $sel = $(this);
+                    var selName = $sel.attr("name");
+                    var selVal = $sel.val();
+                    if (selName !== attrName && selVal) {
+                        testAttrsAll[selName] = selVal;
+                    }
+                });
+                
+                // Add the current option we're calculating price for
+                testAttrsAll[attrName] = swatchValue;
+                
+                // Find variation matching ALL these attributes
+                var variation = findVariation(testAttrsAll);
                 
                 if (variation && variation.price_html) {
                     priceHtml = variation.price_html;
-                } else if (!isDisabled) {
-                    // Try to find ANY variation with this value
+                }
+                
+                // Priority 2: If no match with all selections, try with only higher level selections + this option
+                if (!priceHtml && !isDisabled) {
+                    var testAttrsHigher = $.extend({}, higherLevelAttrs);
+                    testAttrsHigher[attrName] = swatchValue;
+                    
+                    variation = findVariation(testAttrsHigher);
+                    if (variation && variation.price_html) {
+                        priceHtml = variation.price_html;
+                    }
+                }
+                
+                // Priority 3: Fallback - try to find ANY variation with this value
+                if (!priceHtml && !isDisabled) {
                     for (var i = 0; i < variations.length; i++) {
                         var v = variations[i];
                         if (!v.is_in_stock) continue;
