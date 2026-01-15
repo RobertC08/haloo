@@ -36,6 +36,84 @@
     padding: 20px !important;
 }
 
+.benefits-ribbon .subtle-benefits {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 18px;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+}
+
+.benefits-ribbon .benefit-item-subtle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.benefits-ribbon .benefit-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #e8f6f0;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    color: #1d9a5f;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.benefits-ribbon .benefit-icon i {
+    color: inherit;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.benefits-ribbon .benefit-item-subtle span {
+    font-size: 14px;
+    color: #404040;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+@media (max-width: 1024px) {
+    .benefits-ribbon .subtle-benefits {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .benefits-ribbon {
+        margin: 12px auto 20px;
+        padding: 14px;
+    }
+
+    .benefits-ribbon .subtle-benefits {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .benefits-ribbon .benefit-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 16px;
+    }
+
+    .benefits-ribbon .benefit-item-subtle span {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 520px) {
+    .benefits-ribbon .subtle-benefits {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 /**
  * Cart Layout Fix - Ensure columns stay side-by-side on desktop
  * Only stack on smaller screens (below 992px)
@@ -158,6 +236,25 @@
     padding: 12px 16px !important;
 }
 
+/**
+ * Make both buttons have the same fixed height on mobile
+ */
+@media (max-width: 991px) {
+    .catalog-toolbar--top .button-filters,
+    .catalog-toolbar--top .mobile-catalog-toolbar__sort-button,
+    .catalog-toolbar--top .catalog-order {
+        height: 88px !important;
+        min-height: 88px !important;
+        max-height: 88px !important;
+    }
+    
+    .catalog-toolbar--top .catalog-order .select2-selection {
+        height: 88px !important;
+        min-height: 88px !important;
+        max-height: 88px !important;
+    }
+}
+
 .button-filters .shopwell-svg-icon {
     margin-right: 0 !important;
     margin-bottom: 0 !important;
@@ -181,7 +278,7 @@
 }
 
 .catalog-toolbar--top{
-    padding: 0px 24px 0px 0px !important;
+    padding: 0px 0px 0px 0px !important;
     margin-bottom: 12px !important;
 }
 
@@ -210,6 +307,11 @@
 
 .woocommerce-form-track-order .form-tracking-order-info{
     margin-top: 24px !important;
+}
+
+.woocommerce-form-track-order .form-tracking-order-info .input-text {
+    min-width: 100%;
+    width: 100%;
 }
 
 .page-id-20710 .woocommerce{
@@ -317,7 +419,6 @@
     width: 16px !important;
     height: 16px !important;
     border-radius: 50% !important;
-    margin-right: 8px !important;
     vertical-align: middle !important;
     flex-shrink: 0 !important;
     border: 1px solid rgba(0, 0, 0, 0.1) !important;
@@ -373,31 +474,559 @@
     color: #fff !important;
 }
 
-/**
- * PERFORMANCE FIX: Hide Google Pay and Pay with Link buttons on single product pages
- * These buttons are disabled to reduce request-uri and improve page
- */
-.single-product .wc-stripe-payment-request-button,
-.single-product .wc-stripe-payment-request-button-separator,
-.single-product .payment_request_button,
-.single-product .stripe-payment-request-button,
-.single-product .payment-request-button,
-.single-product [class*="payment-request"],
-.single-product [class*="google-pay"],
-.single-product [class*="apple-pay"],
-.single-product [id*="payment-request"],
-.single-product button[class*="Stripe"],
-.single-product .stripe-button-el,
-.single-product [data-testid*="payment-request"],
-.single-product [aria-label*="Google Pay"],
-.single-product [aria-label*="Pay with Link"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    height: 0 !important;
-    width: 0 !important;
-    overflow: hidden !important;
+
+
+.single-product div.product.layout-5 .related {
+    border-top: none !important;
+}
+
+.woocommerce-Tabs-panel {
+    border: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-top: 0 !important;
+}
+
+.single-product div.product.layout-5 .product-gallery-summary .woocommerce-product-gallery__image a img {
+    border: none !important;
+}
+
+/* Color swatches should always be visible, even when disabled/invalid */
+/* Apply a visual indicator for unavailable colors instead of hiding them */
+.single-product div.product .wcboost-variation-swatches--button li.wcboost-variation-swatches__item.has-color-circle.disabled.is-invalid,
+.single-product div.product .wcboost-variation-swatches--button li.wcboost-variation-swatches__item.has-color-circle.disabled[aria-pressed="false"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 0.4 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+}
+
+/* Style the color circle for disabled color swatches */
+.single-product div.product .wcboost-variation-swatches--button li.wcboost-variation-swatches__item.has-color-circle.disabled .color-circle,
+.single-product div.product .wcboost-variation-swatches--button li.wcboost-variation-swatches__item.has-color-circle.is-invalid .color-circle {
+    position: relative !important;
+}
+
+/* Add strikethrough line for unavailable colors */
+.single-product div.product .wcboost-variation-swatches--button li.wcboost-variation-swatches__item.has-color-circle.disabled .color-circle::after,
+.single-product div.product .wcboost-variation-swatches--button li.wcboost-variation-swatches__item.has-color-circle.is-invalid .color-circle::after {
+    content: "" !important;
     position: absolute !important;
-    left: -9999px !important;
-    top: -9999px !important;
+    top: 50% !important;
+    left: -2px !important;
+    right: -2px !important;
+    height: 2px !important;
+    background-color: #999 !important;
+    transform: rotate(-45deg) !important;
+}
+
+div#page-header {
+    border: 0 !important;
+}
+
+.site-header:after {
+    display: none !important;
+}
+
+/* Stock limit message and disabled add to cart button */
+.shopwell-stock-limit-message {
+	margin-bottom: 15px;
+	padding: 12px;
+	background-color: #fff3cd;
+	border-left: 4px solid #ffc107;
+	color: #856404;
+	border-radius: 4px;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.single_add_to_cart_button.disabled,
+.single_add_to_cart_button:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+.single_add_to_cart_button.disabled .single_add_to_cart_button--icon,
+.single_add_to_cart_button:disabled .single_add_to_cart_button--icon {
+	opacity: 0.5;
+}
+
+/**
+ * Add spacing below navigation dots in similar products section on mobile
+ */
+@media (max-width: 768px) {
+	.related.products .swiper-pagination {
+		margin-bottom: 24px !important;
+	}
+}
+
+/**
+ * Reorder product page elements on mobile
+ * Price and variations should be first after the product image
+ */
+@media (max-width: 768px) {
+	/* Make product container a flex container to reorder gallery and summary */
+	.single-product div.product {
+		display: flex !important;
+		flex-direction: column !important;
+	}
+	
+	/* Gallery should be first */
+	.single-product div.product .product-gallery-summary {
+		order: 1 !important;
+	}
+	
+	/* shopwell-icon-box-widget should be second (right after gallery, before entry-summary) */
+	.single-product div.product > .shopwell-icon-box-widget {
+		order: 2 !important;
+	}
+	
+	/* Entry summary should be third (after gallery and shopwell-icon-box-widget) */
+	.single-product div.product .entry-summary {
+		order: 3 !important;
+		display: flex !important;
+		flex-direction: column !important;
+	}
+	
+	/* All other elements after entry-summary */
+	.single-product div.product > *:not(.product-gallery-summary):not(.entry-summary):not(.shopwell-icon-box-widget) {
+		order: 4 !important;
+	}
+	
+	/* Set default order 3 for all direct children of entry-summary */
+	.single-product div.product .entry-summary > * {
+		order: 3 !important;
+	}
+	
+	/* Price and stock wrapper - order 1 (first after image) */
+	.single-product div.product .entry-summary > .shopwell-price-stock,
+	.single-product div.product .entry-summary .shopwell-price-stock {
+		order: 1 !important;
+		margin-bottom: 20px !important;
+	}
+	
+	/* Variations form - order 2 (right after price) */
+	.single-product div.product .entry-summary > .variations_form,
+	.single-product div.product .entry-summary > form.variations_form,
+	.single-product div.product .entry-summary .variations_form,
+	.single-product div.product .entry-summary form.variations_form,
+	.single-product div.product .entry-summary table.variations {
+		order: 2 !important;
+		margin-bottom: 20px !important;
+	}
+	
+	/* Single variation wrap (contains add to cart button for variable products) - order 2 */
+	.single-product div.product .entry-summary > .single_variation_wrap,
+	.single-product div.product .entry-summary .single_variation_wrap {
+		order: 2 !important;
+		margin-bottom: 20px !important;
+	}
+	
+	/* Add to cart button for variable products - order 2 (with variations) */
+	.single-product div.product .entry-summary .woocommerce-variation-add-to-cart {
+		order: 2 !important;
+	}
+	
+	/* Add to cart form for simple products - order 2 */
+	.single-product div.product .entry-summary > form.cart:not(.variations_form),
+	.single-product div.product .entry-summary form.cart:not(.variations_form) {
+		order: 2 !important;
+		margin-bottom: 20px !important;
+	}
+	
+	/* Quantity wrapper - order 2 (with variations/add to cart) */
+	.single-product div.product .entry-summary > .shopwell-quantity-wrapper,
+	.single-product div.product .entry-summary .shopwell-quantity-wrapper {
+		order: 2 !important;
+	}
+	
+	/* Stock message if outside price-stock wrapper - order 2 */
+	.single-product div.product .entry-summary > .stock:not(.shopwell-price-stock .stock),
+	.single-product div.product .entry-summary .stock:not(.shopwell-price-stock .stock) {
+		order: 2 !important;
+	}
+	
+	/* Ensure shopwell-icon-box-widget appears after price and variations */
+	.single-product div.product .entry-summary .shopwell-icon-box-widget,
+	.single-product div.product .entry-summary > .shopwell-icon-box-widget,
+	.single-product div.product .shopwell-icon-box-widget {
+		order: 3 !important;
+	}
+	
+	/* Ensure product-meta-wrapper appears after price and variations */
+	.single-product div.product .entry-summary .product-meta-wrapper,
+	.single-product div.product .entry-summary > .product-meta-wrapper {
+		order: 3 !important;
+	}
+	
+	/* Ensure product title appears after price and variations */
+	.single-product div.product .entry-summary .product_title,
+	.single-product div.product .entry-summary > .product_title,
+	.single-product div.product .entry-summary h1.product_title,
+	.single-product div.product .entry-summary > h1.product_title {
+		order: 3 !important;
+	}
+	
+	/* Ensure all other common elements appear after price and variations */
+	.single-product div.product .entry-summary .woocommerce-badges,
+	.single-product div.product .entry-summary > .woocommerce-badges,
+	.single-product div.product .entry-summary .short-description,
+	.single-product div.product .entry-summary > .short-description,
+	.single-product div.product .entry-summary .product-featured-icons,
+	.single-product div.product .entry-summary > .product-featured-icons,
+	.single-product div.product .entry-summary .product_meta,
+	.single-product div.product .entry-summary > .product_meta,
+	.single-product div.product .entry-summary .woocommerce-product-rating,
+	.single-product div.product .entry-summary > .woocommerce-product-rating,
+	.single-product div.product .entry-summary .single-product-extra-content,
+	.single-product div.product .entry-summary > .single-product-extra-content {
+		order: 3 !important;
+	}
+}
+
+/**
+ * Fix sticky add to cart layout on mobile
+ * Arrange elements vertically (stacked), centered and compact
+ */
+@media (max-width: 768px) {
+	#shopwell-sticky-add-to-cart {
+		display: flex !important;
+		flex-direction: column !important;
+		align-items: center !important;
+		justify-content: center !important;
+		gap: 6px !important;
+		padding: 8px 12px !important;
+	}
+	
+	.shopwell-sticky-add-to-cart__content {
+		display: flex !important;
+		flex-direction: column !important;
+		align-items: center !important;
+		flex: 1 !important;
+		gap: 4px !important;
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+	
+	.shopwell-sticky-add-to-cart__content-product-info {
+		display: flex !important;
+		flex-direction: column !important;
+		align-items: center !important;
+		flex: 1 !important;
+		gap: 4px !important;
+		width: 100% !important;
+		text-align: center !important;
+	}
+	
+	.shopwell-sticky-add-to-cart__content-title {
+		font-size: 13px !important;
+		line-height: 1.3 !important;
+		margin: 0 !important;
+		width: 100% !important;
+		white-space: normal !important;
+		overflow: visible !important;
+		text-overflow: clip !important;
+		text-align: center !important;
+	}
+	
+	.shopwell-sticky-add-to-cart__content-price {
+		gap: 2px !important;
+		width: 100% !important;
+		margin-top: 0 !important;
+		text-align: center !important;
+	}
+	
+	.shopwell-sticky-add-to-cart__button-group {
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		width: 100% !important;
+		max-width: 100% !important;
+		gap: 8px !important;
+		margin-top: 4px !important;
+	}
+	
+	.shopwell-sticky-add-to-cart__button {
+		flex: 1 !important;
+		max-width: 100% !important;
+		min-width: 0 !important;
+		text-align: center !important;
+	}
+}
+
+/**
+ * Remove border/line between taxonomy header and no products found message
+ */
+.woocommerce.archive .woocommerce-shop-loop-header,
+.woocommerce-page.archive .woocommerce-shop-loop-header,
+.tax-product_cat .woocommerce-shop-loop-header,
+.woocommerce-shop .woocommerce-shop-loop-header,
+.post-type-archive-product .woocommerce-shop-loop-header,
+.woocommerce.archive .woocommerce-product-taxonomy-archive-header,
+.woocommerce-page.archive .woocommerce-product-taxonomy-archive-header,
+.tax-product_cat .woocommerce-product-taxonomy-archive-header,
+.woocommerce-shop .woocommerce-product-taxonomy-archive-header,
+.post-type-archive-product .woocommerce-product-taxonomy-archive-header,
+.woocommerce.archive h1.woocommerce-products-header__title,
+.woocommerce-page.archive h1.woocommerce-products-header__title,
+.tax-product_cat h1.woocommerce-products-header__title,
+.woocommerce-shop h1.woocommerce-products-header__title,
+.post-type-archive-product h1.woocommerce-products-header__title,
+.woocommerce.archive .woocommerce-products-header,
+.woocommerce-page.archive .woocommerce-products-header,
+.tax-product_cat .woocommerce-products-header,
+.woocommerce-shop .woocommerce-products-header,
+.post-type-archive-product .woocommerce-products-header {
+	border-bottom: none !important;
+	margin-bottom: 0 !important;
+	padding-bottom: 0 !important;
+}
+
+/* Remove any border/line before woocommerce-info message */
+.woocommerce.archive .woocommerce-info,
+.woocommerce-page.archive .woocommerce-info,
+.tax-product_cat .woocommerce-info,
+.woocommerce-shop .woocommerce-info,
+.post-type-archive-product .woocommerce-info {
+	border-top: none !important;
+}
+
+/**
+ * Improved "No Products Found" message styling
+ * Better visual presentation for empty search/filter results
+ * Targets WooCommerce info messages on archive/shop pages
+ */
+.woocommerce.archive .woocommerce-info,
+.woocommerce-page.archive .woocommerce-info,
+.tax-product_cat .woocommerce-info,
+.woocommerce-shop .woocommerce-info,
+.post-type-archive-product .woocommerce-info,
+.woocommerce .woocommerce-info:not(.woocommerce-message):not(.woocommerce-error) {
+	background: #ffffff !important;
+	border: 2px solid #64b5f6 !important;
+	border-radius: 12px !important;
+	padding: 40px 30px !important;
+	margin: 40px auto !important;
+	max-width: 600px !important;
+	text-align: center !important;
+	font-size: 18px !important;
+	font-weight: 500 !important;
+	color: #1565c0 !important;
+	box-shadow: 0 4px 12px rgba(21, 101, 192, 0.15) !important;
+	position: relative !important;
+}
+
+/* Add search icon before the message on archive pages */
+.woocommerce.archive .woocommerce-info::before,
+.woocommerce-page.archive .woocommerce-info::before,
+.tax-product_cat .woocommerce-info::before,
+.woocommerce-shop .woocommerce-info::before,
+.post-type-archive-product .woocommerce-info::before {
+	content: "🔍" !important;
+	font-size: 48px !important;
+	display: block !important;
+	margin-bottom: 16px !important;
+	opacity: 0.8 !important;
+}
+
+/* Style paragraphs inside the message */
+.woocommerce.archive .woocommerce-info p,
+.woocommerce-page.archive .woocommerce-info p,
+.tax-product_cat .woocommerce-info p,
+.woocommerce-shop .woocommerce-info p,
+.post-type-archive-product .woocommerce-info p {
+	margin: 0 !important;
+	font-size: 18px !important;
+	line-height: 1.6 !important;
+	color: inherit !important;
+}
+
+/* Style list items if message is in a list */
+.woocommerce.archive .woocommerce-info li,
+.woocommerce-page.archive .woocommerce-info li,
+.tax-product_cat .woocommerce-info li,
+.woocommerce-shop .woocommerce-info li,
+.post-type-archive-product .woocommerce-info li {
+	font-size: 18px !important;
+	line-height: 1.6 !important;
+	color: inherit !important;
+}
+
+@media (max-width: 768px) {
+	/* Ensure parent containers allow margins */
+	.woocommerce.archive .woocommerce-notices-wrapper,
+	.woocommerce-page.archive .woocommerce-notices-wrapper,
+	.tax-product_cat .woocommerce-notices-wrapper,
+	.woocommerce-shop .woocommerce-notices-wrapper,
+	.post-type-archive-product .woocommerce-notices-wrapper {
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+		margin-left: 0 !important;
+		margin-right: 0 !important;
+	}
+	
+	.woocommerce.archive .woocommerce-info,
+	.woocommerce-page.archive .woocommerce-info,
+	.tax-product_cat .woocommerce-info,
+	.woocommerce-shop .woocommerce-info,
+	.post-type-archive-product .woocommerce-info,
+	.woocommerce .woocommerce-info:not(.woocommerce-message):not(.woocommerce-error) {
+		padding: 30px 20px !important;
+		font-size: 16px !important;
+		margin-top: 30px !important;
+		margin-bottom: 30px !important;
+		margin-left: 20px !important;
+		margin-right: 20px !important;
+		max-width: calc(100% - 40px) !important;
+		width: calc(100% - 40px) !important;
+		box-sizing: border-box !important;
+	}
+	
+	.woocommerce.archive .woocommerce-info::before,
+	.woocommerce-page.archive .woocommerce-info::before,
+	.tax-product_cat .woocommerce-info::before,
+	.woocommerce-shop .woocommerce-info::before,
+	.post-type-archive-product .woocommerce-info::before {
+		font-size: 36px !important;
+		margin-bottom: 12px !important;
+	}
+	
+	.woocommerce.archive .woocommerce-info p,
+	.woocommerce-page.archive .woocommerce-info p,
+	.tax-product_cat .woocommerce-info p,
+	.woocommerce-shop .woocommerce-info p,
+	.post-type-archive-product .woocommerce-info p {
+		font-size: 16px !important;
+	}
+}
+
+/**
+ * Footer sticky to bottom fix
+ * Ensure footer always sticks to the bottom of the page without extra space
+ */
+html {
+	height: 100% !important;
+}
+
+body {
+	min-height: 100vh !important;
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+#page.site {
+	min-height: 100vh !important;
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+#site-content {
+	flex: 1 0 auto !important;
+	min-height: 0 !important;
+}
+
+/* Ensure footer sticks to bottom */
+.footer-widget,
+footer,
+#colophon {
+	flex-shrink: 0 !important;
+	margin-top: auto !important;
+}
+
+/* Remove any bottom spacing that might create gaps */
+body .footer-widget {
+	margin-bottom: 0 !important;
+	padding-bottom: 0 !important;
+}
+
+/* Ensure content area doesn't create extra space */
+.site-content,
+.content-area,
+.site-main {
+	margin-bottom: 0 !important;
+}
+
+/**
+ * Add spacing between product variation details in order confirmation
+ */
+table.shop_table dl.variation dt {
+	margin-bottom: 0px !important;
+}
+
+table.shop_table .product-name .wc-item-meta li {
+	margin-bottom: 8px !important;
+}
+
+table.shop_table .product-name .wc-item-meta li:last-child {
+	margin-bottom: 0 !important;
+}
+
+table.order_details .product-name .wc-item-meta li {
+	margin-bottom: 8px !important;
+}
+
+table.order_details .product-name .wc-item-meta li:last-child {
+	margin-bottom: 0 !important;
+}
+
+table.order_details .product-name .wc-item-meta li > p {
+	margin-bottom: 0 !important;
+	line-height: 1.6 !important;
+}
+
+/* Alternative: if variations are displayed as plain text with line breaks */
+table.order_details .product-name {
+	line-height: 1.8 !important;
+}
+
+/**
+ * Display selected attribute value next to label
+ * Shows the selected value (e.g., "Culoare: Alb") in variations form
+ */
+.variations .label .selected-attribute-value,
+.variations tr .label .selected-attribute-value {
+	font-weight: 600 !important;
+	color: #1d2128 !important;
+	margin-left: 4px !important;
+}
+
+.variations .label label .selected-attribute-value,
+.variations tr .label label .selected-attribute-value {
+	font-weight: 600 !important;
+	color: #1d2128 !important;
+	margin-left: 4px !important;
+}
+
+/* Ensure all variation swatches remain visible */
+.variations .wcboost-variation-swatches__item,
+.variations .product-variation-item {
+	display: inline-flex !important;
+	visibility: visible !important;
+}
+
+/* Disabled swatches styling - visible but with reduced opacity */
+.variations .wcboost-variation-swatches__item.disabled,
+.variations .wcboost-variation-swatches__item.is-invalid,
+.variations .wcboost-variation-swatches__item.shopwell-disabled,
+.variations .product-variation-item.disabled,
+.variations .product-variation-item.is-invalid,
+.variations .product-variation-item.shopwell-disabled {
+	opacity: 0.4 !important;
+	pointer-events: none !important;
+	cursor: not-allowed !important;
+	display: inline-flex !important;
+	visibility: visible !important;
+}
+
+/* Color swatches should always be visible even when disabled */
+.variations .wcboost-variation-swatches__item.has-color-circle.disabled,
+.variations .wcboost-variation-swatches__item.has-color-circle.is-invalid,
+.variations .wcboost-variation-swatches__item.has-color-circle.shopwell-disabled {
+	opacity: 0.4 !important;
+	pointer-events: none !important;
+	cursor: not-allowed !important;
+	display: flex !important;
+	visibility: visible !important;
 }
