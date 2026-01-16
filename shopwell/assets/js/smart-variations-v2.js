@@ -132,10 +132,10 @@
                 for (var i = 0; i < variations.length; i++) {
                     var v = variations[i];
                     if (!v.is_in_stock) continue;
-                    
+
                     var vVal = v.attributes[attrName];
-                    // Check if variation has this color value (case-insensitive)
-                    if (vVal && (vVal === attrValue || vVal.toLowerCase() === attrValue.toLowerCase())) {
+                    // Match if: variation has this exact value OR variation has empty value (means "any")
+                    if ((vVal && (vVal === attrValue || vVal.toLowerCase() === attrValue.toLowerCase())) || !vVal || vVal === "") {
                         return true;
                     }
                 }
@@ -184,6 +184,25 @@
          * Uses isAttributeValueAvailable which checks against actual variations
          */
         function updateAttributeAvailability() {
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/1dc8efae-6dce-4ca7-82b7-cab20cf46244', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    sessionId: 'debug-session',
+                    runId: 'run1',
+                    hypothesisId: 'D',
+                    location: 'smart-variations-v2.js:updateAttributeAvailability',
+                    message: 'updateAttributeAvailability called',
+                    data: {
+                        formFound: form.length > 0,
+                        selectsCount: form.find("select[name^='attribute_']").length
+                    },
+                    timestamp: Date.now()
+                })
+            }).catch(function() {});
+            // #endregion
+            
             var selectedAttrs = getSelectedAttributes();
             
             // Process each attribute group
@@ -310,15 +329,29 @@
                     }
                 }
                 
-                // Priority 3: Fallback - try to find ANY variation with this value
+                // Priority 3: Fallback - try to find ANY variation with this value (including "any" matches)
                 if (!priceHtml && !isDisabled) {
                     for (var i = 0; i < variations.length; i++) {
                         var v = variations[i];
                         if (!v.is_in_stock) continue;
+                        if (!v.price_html) continue;
                         
                         var vVal = v.attributes[attrName];
-                        if (vVal && vVal.toLowerCase() === swatchValue.toLowerCase() && v.price_html) {
+                        // Match if: variation has this exact value OR variation has empty value (means "any")
+                        if ((vVal && vVal.toLowerCase() === swatchValue.toLowerCase()) || !vVal || vVal === "") {
                             priceHtml = v.price_html;
+                            break;
+                        }
+                    }
+                }
+                
+                // Priority 4: Ultimate fallback - if swatch is available but still no price, use first in-stock variation's price
+                // This ensures prices ALWAYS display for available options
+                if (!priceHtml && !isDisabled) {
+                    for (var j = 0; j < variations.length; j++) {
+                        var v2 = variations[j];
+                        if (v2.is_in_stock && v2.price_html) {
+                            priceHtml = v2.price_html;
                             break;
                         }
                     }
@@ -328,15 +361,49 @@
                     priceHtml = '<span class="sv-pill-price-unavailable">indisponibil</span>';
                 }
                 
-                // Apply price to swatch
-                var $name = $swatch.find(".wcboost-variation-swatches__name, .product-variation-item__name");
-                if ($name.length) {
-                    var $price = $swatch.find(".sv-pill-price");
-                    if (!$price.length) {
-                        $price = $("<span/>", { "class": "sv-pill-price" }).appendTo($name);
-                    }
+                // Apply price to swatch - try multiple possible containers
+                var $priceContainer = $swatch.find(".wcboost-variation-swatches__name, .product-variation-item__name");
+                
+                // If no name element found, use the swatch itself as container
+                if (!$priceContainer.length) {
+                    $priceContainer = $swatch;
+                }
+                
+                // Find or create price element
+                var $price = $swatch.find(".sv-pill-price");
+                if (!$price.length) {
+                    $price = $("<span/>", { "class": "sv-pill-price" }).appendTo($priceContainer);
+                }
+                
+                // Apply price HTML
+                if (priceHtml) {
                     $price.html(priceHtml);
                 }
+                
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/1dc8efae-6dce-4ca7-82b7-cab20cf46244', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        sessionId: 'debug-session',
+                        runId: 'run1',
+                        hypothesisId: 'B',
+                        location: 'smart-variations-v2.js:' + (typeof __LINE__ !== 'undefined' ? __LINE__ : '~362'),
+                        message: 'Frontend price application',
+                        data: {
+                            attrName: attrName,
+                            swatchValue: swatchValue,
+                            priceHtml: priceHtml ? priceHtml.substring(0, 50) : 'EMPTY',
+                            hasPriceHtml: !!priceHtml,
+                            isDisabled: isDisabled,
+                            priceContainerFound: $priceContainer.length > 0,
+                            priceElementFound: $price.length > 0,
+                            swatchHtml: $swatch[0] ? $swatch[0].outerHTML.substring(0, 100) : 'NO_SWATCH'
+                        },
+                        timestamp: Date.now()
+                    })
+                }).catch(function() {});
+                // #endregion
             });
         }
         
@@ -438,15 +505,24 @@
                     }
                     
                     // Check if label already contains this value (check both base and current text)
-                    // Look for patterns like "Label: Value" or "Label Value"
+                    // Look for patterns like "Label: Value" or "Label Value" or "Label: Value: Value" (duplicate)
                     var baseHasValue = baseLabelText.indexOf(": " + displayName) !== -1 || 
                                       baseLabelText.indexOf(":" + displayName) !== -1 ||
-                                      baseLabelText === displayName;
+                                      baseLabelText === displayName ||
+                                      baseLabelText.endsWith(": " + displayName) ||
+                                      baseLabelText.endsWith(":" + displayName);
                     var currentHasValue = currentLabelText.indexOf(": " + displayName) !== -1 || 
-                                         currentLabelText.indexOf(":" + displayName) !== -1;
+                                         currentLabelText.indexOf(":" + displayName) !== -1 ||
+                                         currentLabelText.endsWith(": " + displayName) ||
+                                         currentLabelText.endsWith(":" + displayName);
                     
-                    // Only add if not already present
-                    if (!baseHasValue && !currentHasValue) {
+                    // Also check if the label already ends with the value (to prevent "Label: Value: Value")
+                    var labelEndsWithValue = currentLabelText.endsWith(": " + displayName) || 
+                                            currentLabelText.endsWith(":" + displayName) ||
+                                            currentLabelText.endsWith(" " + displayName);
+                    
+                    // Only add if not already present (check all conditions)
+                    if (!baseHasValue && !currentHasValue && !labelEndsWithValue) {
                         var $display = $("<span/>", {
                             "class": "selected-attribute-value",
                             "text": ": " + displayName

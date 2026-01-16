@@ -1490,20 +1490,43 @@ function shopwell_auto_select_variations() {
     .sv-pill-price-unavailable {
         display: block !important;
         color: #999 !important;
-        font-size: 0.9em !important;
+        font-size: 0.85em !important;
         font-weight: normal !important;
         line-height: 1.2 !important;
         margin-top: 4px !important;
         min-height: 1.2em !important;
     }
-    /* Ensure price container maintains height even when empty */
+    /* Ensure price container is visible and styled properly */
     .sv-pill-price {
         min-height: 1.2em !important;
         display: block !important;
+        font-size: 0.85em !important;
+        color: #666 !important;
+        margin-top: 4px !important;
+        text-align: center !important;
+    }
+    /* Price inside swatch name element */
+    .wcboost-variation-swatches__name .sv-pill-price,
+    .product-variation-item__name .sv-pill-price {
+        display: block !important;
+        margin-top: 2px !important;
+    }
+    /* Price directly on swatch (when no name element exists) */
+    .wcboost-variation-swatches__item > .sv-pill-price,
+    .product-variation-item > .sv-pill-price {
+        display: block !important;
+        margin-top: 4px !important;
+        width: 100% !important;
     }
     .wcboost-variation-swatches__name,
     .product-variation-item__name {
         min-height: auto !important;
+    }
+    /* Ensure swatch items can display prices properly */
+    .wcboost-variation-swatches__item,
+    .product-variation-item {
+        flex-direction: column !important;
+        align-items: center !important;
     }
     </style>
     <script type="text/javascript" data-version="<?php echo esc_attr($version); ?>">
@@ -4708,6 +4731,39 @@ function shopwell_process_variations_backend() {
     $available_variations = $product->get_available_variations();
     $attributes = $product->get_variation_attributes();
     
+    // Ensure all variations have price_html - if not, calculate it
+    foreach ($available_variations as &$variation) {
+        if (empty($variation['price_html']) && isset($variation['variation_id'])) {
+            $variation_obj = wc_get_product($variation['variation_id']);
+            if ($variation_obj && $variation_obj->is_purchasable()) {
+                $variation['price_html'] = $variation_obj->get_price_html();
+            }
+        }
+    }
+    unset($variation); // Break reference
+    
+    // Check if there's only one valid variation - if so, auto-select all its attributes
+    $in_stock_variations = array();
+    foreach ($available_variations as $variation) {
+        if ($variation['is_in_stock']) {
+            $in_stock_variations[] = $variation;
+        }
+    }
+    
+    // If there's exactly one in-stock variation, auto-select all its attributes
+    $auto_select_attrs = array();
+    if (count($in_stock_variations) === 1 && empty($url_params)) {
+        // Only auto-select if no URL parameters are provided (user hasn't made manual selections)
+        $single_variation = $in_stock_variations[0];
+        if (isset($single_variation['attributes']) && is_array($single_variation['attributes'])) {
+            foreach ($single_variation['attributes'] as $attr_name => $attr_value) {
+                if (!empty($attr_value)) {
+                    $auto_select_attrs[$attr_name] = $attr_value;
+                }
+            }
+        }
+    }
+    
     // Calculate validated selections (verify availability)
     $validated_selections = array();
     foreach ($attributes as $attribute_name => $options) {
@@ -4724,6 +4780,7 @@ function shopwell_process_variations_backend() {
             }
         }
         
+        // Priority 1: Use URL parameter if provided
         if ($url_value) {
             // Get higher level selections for availability check
             $higher_level_selections = array();
@@ -4744,6 +4801,31 @@ function shopwell_process_variations_backend() {
             
             if ($is_available) {
                 $validated_selections[$variation_attr_name] = $url_value;
+            }
+        }
+        // Priority 2: If no URL parameter and we have auto-select attributes, use them
+        elseif (isset($auto_select_attrs[$variation_attr_name])) {
+            $auto_value = $auto_select_attrs[$variation_attr_name];
+            
+            // Get higher level selections for availability check
+            $higher_level_selections = array();
+            foreach ($validated_selections as $sel_attr => $sel_val) {
+                if (shopwell_get_attribute_level($sel_attr, $attribute_hierarchy) < $attr_level) {
+                    $higher_level_selections[$sel_attr] = $sel_val;
+                }
+            }
+            
+            // Verify availability
+            $is_available = shopwell_is_attribute_value_available(
+                $variation_attr_name,
+                $auto_value,
+                $higher_level_selections,
+                $available_variations,
+                $attr_level
+            );
+            
+            if ($is_available) {
+                $validated_selections[$variation_attr_name] = $auto_value;
             }
         }
     }
@@ -4865,11 +4947,14 @@ function shopwell_process_variations_backend() {
                     foreach ($test_attrs as $test_attr => $test_val) {
                         $v_val = isset($variation['attributes'][$test_attr]) ? $variation['attributes'][$test_attr] : '';
                         
-                        // Variation must have this attribute AND it must match (case-insensitive)
-                        if ($v_val === '' || strcasecmp($v_val, $test_val) !== 0) {
+                        // Variation matches if:
+                        // 1. Variation has this attribute AND it matches (case-insensitive), OR
+                        // 2. Variation has empty value for this attribute (means "any" - matches all)
+                        if ($v_val !== '' && strcasecmp($v_val, $test_val) !== 0) {
                             $matches_all = false;
                             break;
                         }
+                        // If $v_val === '', it means variation doesn't care about this attribute, so it matches
                     }
                     
                     // If this variation matches ALL attributes, use it immediately
@@ -4904,13 +4989,54 @@ function shopwell_process_variations_backend() {
                 }
             }
             
-            // Priority 4: Fallback - find ANY variation with this value
+            // Priority 4: Fallback - find ANY variation with this value (including "any" matches)
             if (empty($price_html)) {
                 foreach ($available_variations as $variation) {
                     if (!$variation['is_in_stock']) continue;
+                    if (empty($variation['price_html'])) continue;
                     
                     $v_val = isset($variation['attributes'][$variation_attr_name]) ? $variation['attributes'][$variation_attr_name] : '';
-                    if ($v_val !== '' && strcasecmp($v_val, $option_value) === 0 && !empty($variation['price_html'])) {
+                    
+                    // Match if: variation has this exact value OR variation has empty value (means "any")
+                    if (strcasecmp($v_val, $option_value) === 0 || $v_val === '') {
+                        $price_html = $variation['price_html'];
+                        break;
+                    }
+                }
+            }
+            
+            // Priority 5: Ultimate fallback - if option is available but still no price, use first in-stock variation's price
+            // This ensures prices ALWAYS display for available options
+            // IMPORTANT: This should work even if no selections are made yet
+            if (empty($price_html) && $is_available) {
+                foreach ($available_variations as $variation) {
+                    if ($variation['is_in_stock'] && !empty($variation['price_html'])) {
+                        $price_html = $variation['price_html'];
+                        break;
+                    }
+                }
+            }
+            
+            // Priority 6: Last resort - if still no price and option exists, use ANY in-stock variation price
+            // This handles edge cases where availability check might have failed
+            if (empty($price_html)) {
+                foreach ($available_variations as $variation) {
+                    if ($variation['is_in_stock'] && !empty($variation['price_html'])) {
+                        // Check if this variation could potentially match (has this value or empty)
+                        $v_val = isset($variation['attributes'][$variation_attr_name]) ? $variation['attributes'][$variation_attr_name] : '';
+                        if (strcasecmp($v_val, $option_value) === 0 || $v_val === '') {
+                            $price_html = $variation['price_html'];
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Priority 7: Absolute last resort - use ANY in-stock variation's price for available options
+            // This ensures prices ALWAYS display
+            if (empty($price_html) && $is_available) {
+                foreach ($available_variations as $variation) {
+                    if ($variation['is_in_stock'] && !empty($variation['price_html'])) {
                         $price_html = $variation['price_html'];
                         break;
                     }
@@ -4919,6 +5045,41 @@ function shopwell_process_variations_backend() {
             
             $is_selected = isset($validated_selections[$variation_attr_name]) && 
                            strcasecmp($validated_selections[$variation_attr_name], $option_value) === 0;
+            
+            // #region agent log
+            $sample_variations = array_slice($available_variations, 0, 3);
+            $sample_variations_data = array();
+            foreach ($sample_variations as $idx => $v) {
+                $sample_variations_data[] = array(
+                    'is_in_stock' => $v['is_in_stock'],
+                    'has_price_html' => !empty($v['price_html']),
+                    'price_html_preview' => !empty($v['price_html']) ? substr($v['price_html'], 0, 30) : 'EMPTY',
+                    'attributes' => isset($v['attributes']) ? array_keys($v['attributes']) : array(),
+                    'attr_value' => isset($v['attributes'][$variation_attr_name]) ? $v['attributes'][$variation_attr_name] : 'NOT_SET'
+                );
+            }
+            error_log(json_encode([
+                'sessionId' => 'debug-session',
+                'runId' => 'run1',
+                'hypothesisId' => 'A',
+                'location' => 'functions.php:' . __LINE__,
+                'message' => 'Backend price calculation result',
+                'data' => [
+                    'attr_name' => $variation_attr_name,
+                    'option_value' => $option_value,
+                    'is_available' => $is_available,
+                    'is_selected' => $is_selected,
+                    'price_html' => $price_html ? substr($price_html, 0, 50) : 'EMPTY',
+                    'has_price' => !empty($price_html),
+                    'test_attrs_count' => count($test_attrs),
+                    'validated_selections_count' => count($validated_selections),
+                    'available_variations_count' => count($available_variations),
+                    'sample_variations' => $sample_variations_data,
+                    'complete_variation_price' => !empty($complete_variation_price) ? substr($complete_variation_price, 0, 30) : 'EMPTY'
+                ],
+                'timestamp' => time() * 1000
+            ]));
+            // #endregion
             
             $options_data[$option_value] = array(
                 'available' => $is_available,
@@ -4968,38 +5129,44 @@ function shopwell_is_attribute_value_available($attr_name, $attr_value, $selecte
             if (!$variation['is_in_stock']) {
                 continue;
             }
-            
+
             $v_val = isset($variation['attributes'][$attr_name]) ? $variation['attributes'][$attr_name] : '';
-            if ($v_val && (strcasecmp($v_val, $attr_value) === 0)) {
+            // Match if: variation has this exact value OR variation has empty value (means "any")
+            if (($v_val && strcasecmp($v_val, $attr_value) === 0) || $v_val === '') {
                 return true;
             }
         }
         return false;
     }
-    
+
     // For other levels, check if variation exists matching all higher level selections
     $test_attrs = $selected_attrs;
     $test_attrs[$attr_name] = $attr_value;
-    
+
     foreach ($available_variations as $variation) {
         if (!$variation['is_in_stock']) {
             continue;
         }
-        
+
         $matches = true;
         foreach ($test_attrs as $test_attr => $test_val) {
             $v_val = isset($variation['attributes'][$test_attr]) ? $variation['attributes'][$test_attr] : '';
+            
+            // Variation matches if:
+            // 1. Variation has this attribute AND it matches (case-insensitive), OR
+            // 2. Variation has empty value for this attribute (means "any" - matches all)
             if ($v_val !== '' && strcasecmp($v_val, $test_val) !== 0) {
                 $matches = false;
                 break;
             }
+            // If $v_val === '', it means variation doesn't care about this attribute, so it matches
         }
-        
+
         if ($matches) {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -5044,7 +5211,7 @@ function shopwell_modify_variation_dropdown_html($html, $args) {
         }
     }
     
-    // If URL parameter exists, verify availability before pre-selecting
+    // Priority 1: If URL parameter exists, verify availability before pre-selecting
     if ($url_value) {
         $is_available = shopwell_is_attribute_value_available(
             $attribute_name,
@@ -5070,6 +5237,29 @@ function shopwell_modify_variation_dropdown_html($html, $args) {
             }
             $data['unavailable_selections'][$attribute_name] = $url_value;
             $GLOBALS['shopwell_variation_data'] = $data;
+        }
+    }
+    // Priority 2: If no URL parameter, check if we have auto-selected value from single variation
+    elseif (isset($data['validated_selections'][$attribute_name])) {
+        $auto_value = $data['validated_selections'][$attribute_name];
+        
+        // Verify availability
+        $is_available = shopwell_is_attribute_value_available(
+            $attribute_name,
+            $auto_value,
+            $selected_attrs,
+            $data['available_variations'],
+            $attr_level
+        );
+        
+        // Pre-select if available
+        if ($is_available) {
+            // Modify the select to have the value selected
+            $html = preg_replace(
+                '/<option\s+value="' . preg_quote($auto_value, '/') . '"[^>]*>/i',
+                '<option value="' . esc_attr($auto_value) . '" selected="selected">',
+                $html
+            );
         }
     }
     
@@ -5112,6 +5302,29 @@ function shopwell_output_variation_data() {
         // Store backend data globally for frontend interactions
         window.shopwellVariationData = <?php echo json_encode($swatches_data); ?>;
         window.shopwellValidatedSelections = <?php echo json_encode($validated_selections); ?>;
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/1dc8efae-6dce-4ca7-82b7-cab20cf46244', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                sessionId: 'debug-session',
+                runId: 'run1',
+                hypothesisId: 'A',
+                location: 'functions.php:shopwell_output_variation_data',
+                message: 'Backend data sent to frontend',
+                data: {
+                    swatchesDataKeys: Object.keys(<?php echo json_encode($swatches_data); ?>),
+                    validatedSelections: <?php echo json_encode($validated_selections); ?>,
+                    sampleSwatchData: <?php 
+                        $sample = array_slice($swatches_data, 0, 1, true);
+                        echo !empty($sample) ? json_encode($sample) : '{}';
+                    ?>
+                },
+                timestamp: Date.now()
+            })
+        }).catch(function() {});
+        // #endregion
         
         // Apply backend-processed state when DOM is ready
         $(document).ready(function() {
@@ -5171,29 +5384,65 @@ function shopwell_output_variation_data() {
                         $swatch.attr('aria-pressed', 'true');
                     }
                     
-                    // Apply price from backend
+                    // Apply price from backend - try multiple possible containers
+                    var $priceContainer = $swatch.find('.wcboost-variation-swatches__name, .product-variation-item__name');
+                    
+                    // If no name element found, use the swatch itself as container
+                    if (!$priceContainer.length) {
+                        $priceContainer = $swatch;
+                    }
+                    
+                    // #region agent log
+                    fetch('http://127.0.0.1:7243/ingest/1dc8efae-6dce-4ca7-82b7-cab20cf46244', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            sessionId: 'debug-session',
+                            runId: 'run1',
+                            hypothesisId: 'A',
+                            location: 'functions.php:backend_price_application',
+                            message: 'Backend applying price to swatch',
+                            data: {
+                                attrName: attrName,
+                                swatchValue: swatchValue,
+                                hasPriceHtml: !!optionData.price_html,
+                                priceHtml: optionData.price_html ? optionData.price_html.substring(0, 50) : 'EMPTY',
+                                isAvailable: optionData.available,
+                                isDisabled: optionData.disabled,
+                                priceContainerFound: $priceContainer.length > 0,
+                                swatchFound: $swatch.length > 0
+                            },
+                            timestamp: Date.now()
+                        })
+                    }).catch(function() {});
+                    // #endregion
+                    
                     if (optionData.price_html) {
-                        var $name = $swatch.find('.wcboost-variation-swatches__name, .product-variation-item__name');
-                        if ($name.length) {
-                            var $price = $swatch.find('.sv-pill-price');
-                            if (!$price.length) {
-                                $price = $('<span/>', { 'class': 'sv-pill-price' }).appendTo($name);
-                            }
-                            $price.html(optionData.price_html);
+                        var $price = $swatch.find('.sv-pill-price');
+                        if (!$price.length) {
+                            $price = $('<span/>', { 'class': 'sv-pill-price' }).appendTo($priceContainer);
                         }
+                        $price.html(optionData.price_html);
                     } else if (optionData.disabled || !optionData.available) {
                         // Show "indisponibil" for disabled items
-                        var $name = $swatch.find('.wcboost-variation-swatches__name, .product-variation-item__name');
-                        if ($name.length) {
-                            var $price = $swatch.find('.sv-pill-price');
-                            if (!$price.length) {
-                                $price = $('<span/>', { 'class': 'sv-pill-price' }).appendTo($name);
-                            }
-                            $price.html('<span class="sv-pill-price-unavailable">indisponibil</span>');
+                        var $price = $swatch.find('.sv-pill-price');
+                        if (!$price.length) {
+                            $price = $('<span/>', { 'class': 'sv-pill-price' }).appendTo($priceContainer);
                         }
+                        $price.html('<span class="sv-pill-price-unavailable">indisponibil</span>');
                     }
                 });
             }
+            
+            // Update prices for all attributes after applying backend state
+            // This ensures prices are displayed even for auto-selected attributes
+            // Note: Prices are already applied from backend data above, but we trigger update
+            // to ensure all prices are refreshed
+            setTimeout(function() {
+                // Trigger WooCommerce events to refresh prices
+                form.trigger('woocommerce_variation_select_change');
+                form.trigger('check_variations');
+            }, 100);
             
             // Trigger WooCommerce update
             form.trigger('woocommerce_variation_select_change');
@@ -5214,8 +5463,10 @@ function shopwell_add_selected_value_to_variation_label($label, $name, $product)
     
     $data = $GLOBALS['shopwell_variation_data'];
     
-    // Find if this attribute is selected from URL
+    // Find if this attribute is selected (from URL or auto-selected)
     $selected_value = null;
+    
+    // First check URL parameters
     foreach ($data['simplified_to_attribute'] as $param_name => $possible_attrs) {
         foreach ($possible_attrs as $attr) {
             // Check if this label matches the attribute
@@ -5223,6 +5474,19 @@ function shopwell_add_selected_value_to_variation_label($label, $name, $product)
             if ($label === $attr_label || $name === $attr) {
                 if (isset($data['url_params'][$param_name])) {
                     $selected_value = $data['url_params'][$param_name];
+                    break 2;
+                }
+            }
+        }
+    }
+    
+    // If not found in URL, check validated selections (includes auto-selected values)
+    if (!$selected_value && isset($data['validated_selections'])) {
+        foreach ($data['simplified_to_attribute'] as $param_name => $possible_attrs) {
+            foreach ($possible_attrs as $attr) {
+                $attr_label = wc_attribute_label($attr);
+                if (($label === $attr_label || $name === $attr) && isset($data['validated_selections'][$attr])) {
+                    $selected_value = $data['validated_selections'][$attr];
                     break 2;
                 }
             }
@@ -5250,7 +5514,19 @@ function shopwell_add_selected_value_to_variation_label($label, $name, $product)
         }
         
         // Add selected value to label if not already present
-        if (strpos($label, $display_name) === false) {
+        // Check both the display name and the original value to avoid duplicates
+        $label_has_value = false;
+        if (strpos($label, $display_name) !== false) {
+            $label_has_value = true;
+        } elseif (strpos($label, $selected_value) !== false) {
+            $label_has_value = true;
+        } elseif (preg_match('/:\s*' . preg_quote($display_name, '/') . '\s*$/i', $label)) {
+            $label_has_value = true;
+        } elseif (preg_match('/:\s*' . preg_quote($selected_value, '/') . '\s*$/i', $label)) {
+            $label_has_value = true;
+        }
+        
+        if (!$label_has_value) {
             $label .= ': ' . esc_html($display_name);
         }
     }
