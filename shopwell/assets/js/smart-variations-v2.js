@@ -736,7 +736,7 @@
          * Update URL parameters based on current selections
          */
         function updateUrlParameters() {
-            if (typeof window.history === 'undefined' || typeof window.history.pushState === 'undefined') {
+            if (typeof window.history === 'undefined' || typeof window.history.replaceState === 'undefined') {
                 return;
             }
             
@@ -784,7 +784,9 @@
                 if (window.location.hash) {
                     newUrl += window.location.hash;
                 }
-                window.history.pushState({}, '', newUrl);
+                // Use replaceState instead of pushState to avoid creating history entries
+                // This allows the browser back button to go directly to the previous page
+                window.history.replaceState({}, '', newUrl);
             }
         }
         
