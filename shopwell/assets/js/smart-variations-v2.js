@@ -184,25 +184,6 @@
          * Uses isAttributeValueAvailable which checks against actual variations
          */
         function updateAttributeAvailability() {
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/1dc8efae-6dce-4ca7-82b7-cab20cf46244', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    sessionId: 'debug-session',
-                    runId: 'run1',
-                    hypothesisId: 'D',
-                    location: 'smart-variations-v2.js:updateAttributeAvailability',
-                    message: 'updateAttributeAvailability called',
-                    data: {
-                        formFound: form.length > 0,
-                        selectsCount: form.find("select[name^='attribute_']").length
-                    },
-                    timestamp: Date.now()
-                })
-            }).catch(function() {});
-            // #endregion
-            
             var selectedAttrs = getSelectedAttributes();
             
             // Process each attribute group
@@ -294,6 +275,22 @@
                 var priceHtml = "";
                 var isDisabled = $swatch.hasClass("disabled") || $swatch.hasClass("shopwell-disabled");
                 
+                // Check if this is a single-variation product (all variations have same price)
+                var isSingleVariationProduct = variations.length === 1;
+                var allVariationsSamePrice = true;
+                if (variations.length > 1) {
+                    var firstPrice = variations[0].price_html || variations[0].display_price;
+                    for (var p = 1; p < variations.length; p++) {
+                        if (variations[p].price_html !== firstPrice && variations[p].display_price !== firstPrice) {
+                            allVariationsSamePrice = false;
+                            break;
+                        }
+                    }
+                }
+                
+                // For single-variation or same-price products, ignore disabled state for price lookup
+                var shouldLookupPrice = !isDisabled || isSingleVariationProduct || allVariationsSamePrice;
+                
                 // Priority 1: Build test attributes with ALL currently selected attributes + this option
                 // This ensures prices sync: if Negru+Bun+256gb selected, all show same price
                 var testAttrsAll = {};
@@ -319,7 +316,7 @@
                 }
                 
                 // Priority 2: If no match with all selections, try with only higher level selections + this option
-                if (!priceHtml && !isDisabled) {
+                if (!priceHtml && shouldLookupPrice) {
                     var testAttrsHigher = $.extend({}, higherLevelAttrs);
                     testAttrsHigher[attrName] = swatchValue;
                     
@@ -330,7 +327,8 @@
                 }
                 
                 // Priority 3: Fallback - try to find ANY variation with this value (including "any" matches)
-                if (!priceHtml && !isDisabled) {
+                // For single-variation products, this should always find the variation
+                if (!priceHtml && shouldLookupPrice) {
                     for (var i = 0; i < variations.length; i++) {
                         var v = variations[i];
                         if (!v.is_in_stock) continue;
@@ -338,7 +336,17 @@
                         
                         var vVal = v.attributes[attrName];
                         // Match if: variation has this exact value OR variation has empty value (means "any")
-                        if ((vVal && vVal.toLowerCase() === swatchValue.toLowerCase()) || !vVal || vVal === "") {
+                        // For single-variation products, empty value means it matches all attributes
+                        // Also match if this is the only variation (single-variation product)
+                        var matches = false;
+                        if (isSingleVariationProduct) {
+                            // For single variation, always match if in stock
+                            matches = true;
+                        } else if ((vVal && vVal.toLowerCase() === swatchValue.toLowerCase()) || !vVal || vVal === "") {
+                            matches = true;
+                        }
+                        
+                        if (matches) {
                             priceHtml = v.price_html;
                             break;
                         }
@@ -347,7 +355,8 @@
                 
                 // Priority 4: Ultimate fallback - if swatch is available but still no price, use first in-stock variation's price
                 // This ensures prices ALWAYS display for available options
-                if (!priceHtml && !isDisabled) {
+                // For single-variation or same-price products, always use this fallback
+                if (!priceHtml && shouldLookupPrice) {
                     for (var j = 0; j < variations.length; j++) {
                         var v2 = variations[j];
                         if (v2.is_in_stock && v2.price_html) {
@@ -357,7 +366,9 @@
                     }
                 }
                 
-                if (!priceHtml && isDisabled) {
+                // Only show "indisponibil" if swatch is actually disabled AND we couldn't find a price
+                // For single-variation products, we should always have a price
+                if (!priceHtml && isDisabled && !isSingleVariationProduct && !allVariationsSamePrice) {
                     priceHtml = '<span class="sv-pill-price-unavailable">indisponibil</span>';
                 }
                 
@@ -379,31 +390,6 @@
                 if (priceHtml) {
                     $price.html(priceHtml);
                 }
-                
-                // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/1dc8efae-6dce-4ca7-82b7-cab20cf46244', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        sessionId: 'debug-session',
-                        runId: 'run1',
-                        hypothesisId: 'B',
-                        location: 'smart-variations-v2.js:' + (typeof __LINE__ !== 'undefined' ? __LINE__ : '~362'),
-                        message: 'Frontend price application',
-                        data: {
-                            attrName: attrName,
-                            swatchValue: swatchValue,
-                            priceHtml: priceHtml ? priceHtml.substring(0, 50) : 'EMPTY',
-                            hasPriceHtml: !!priceHtml,
-                            isDisabled: isDisabled,
-                            priceContainerFound: $priceContainer.length > 0,
-                            priceElementFound: $price.length > 0,
-                            swatchHtml: $swatch[0] ? $swatch[0].outerHTML.substring(0, 100) : 'NO_SWATCH'
-                        },
-                        timestamp: Date.now()
-                    })
-                }).catch(function() {});
-                // #endregion
             });
         }
         
@@ -447,6 +433,194 @@
                 
                 // Also check current label text to see if value is already there
                 var currentLabelText = $label.text().trim();
+                
+                // Always check if the value is duplicated in the label text, even if WooBoost isn't detected yet
+                // This handles the case where backend PHP adds it and WooBoost will add it later
+                var needsCleanup = false;
+                if (selectedValue && selectedValue !== "") {
+                    // Get display name - try multiple sources
+                    var displayName = selectedValue;
+                    
+                    // Try to get from WooBoost display if it exists
+                    if (hasExistingDisplay) {
+                        var existingDisplayText = $existingDisplay.text().trim();
+                        if (existingDisplayText) {
+                            displayName = existingDisplayText
+                                .replace(/\d+[\.,]\d+\s*lei/gi, '')
+                                .replace(/\d+\s*lei/gi, '')
+                                .replace(/indisponibil/gi, '')
+                                .replace(/\s+/g, ' ')
+                                .trim() || displayName;
+                        }
+                    }
+                    
+                    // Also try to get from swatch
+                    var $container = $select.closest(".value");
+                    if (!$container.length) {
+                        $container = $select.closest("tr").find(".value");
+                    }
+                    if ($container.length) {
+                        var $selectedSwatch = $container.find(".wcboost-variation-swatches__item.selected, .product-variation-item.selected");
+                        if ($selectedSwatch.length) {
+                            var $nameEl = $selectedSwatch.find(".wcboost-variation-swatches__name, .product-variation-item__name");
+                            if ($nameEl.length) {
+                                var $nameClone = $nameEl.clone();
+                                $nameClone.find(".sv-pill-price, .price").remove();
+                                var fullText = $nameClone.text().trim();
+                                var cleanedName = fullText
+                                    .replace(/\d+[\.,]\d+\s*lei/gi, '')
+                                    .replace(/\d+\s*lei/gi, '')
+                                    .replace(/indisponibil/gi, '')
+                                    .replace(/\s+/g, ' ')
+                                    .trim();
+                                if (cleanedName) {
+                                    displayName = cleanedName;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Get label text without spans to check for duplicates
+                    var labelTextWithoutSpans = $label.clone();
+                    labelTextWithoutSpans.find(".wcboost-variation-swatches__selected-label, .selected-label, .selected-attribute-value").remove();
+                    var labelTextOnly = labelTextWithoutSpans.text().trim();
+                    
+                    // Escape special regex characters
+                    var escapedDisplayName = displayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    
+                    // Check if label text contains the value after a colon (backend PHP adds this)
+                    // Pattern to match ": value" or ": value:" or ": value: value"
+                    var valuePattern = new RegExp(':\\s*' + escapedDisplayName, 'i');
+                    if (valuePattern.test(labelTextOnly)) {
+                        needsCleanup = true;
+                    }
+                }
+                
+                // If WooBoost is displaying the value, we need to clean up any duplicate value in the label text
+                // This happens when backend PHP adds the value and WooBoost also adds it
+                if ((hasExistingDisplay || needsCleanup) && selectedValue && selectedValue !== "") {
+                    // Get display name from WooBoost display or use selected value
+                    var displayName = selectedValue;
+                    var existingDisplayText = $existingDisplay.text().trim();
+                    if (existingDisplayText) {
+                        displayName = existingDisplayText
+                            .replace(/\d+[\.,]\d+\s*lei/gi, '')
+                            .replace(/\d+\s*lei/gi, '')
+                            .replace(/indisponibil/gi, '')
+                            .replace(/\s+/g, ' ')
+                            .trim() || displayName;
+                    }
+                    
+                    // Also try to get display name from the swatch or option
+                    var $container = $select.closest(".value");
+                    if (!$container.length) {
+                        $container = $select.closest("tr").find(".value");
+                    }
+                    if ($container.length) {
+                        var $selectedSwatch = $container.find(".wcboost-variation-swatches__item.selected, .product-variation-item.selected");
+                        if ($selectedSwatch.length) {
+                            var $nameEl = $selectedSwatch.find(".wcboost-variation-swatches__name, .product-variation-item__name");
+                            if ($nameEl.length) {
+                                var $nameClone = $nameEl.clone();
+                                $nameClone.find(".sv-pill-price, .price").remove();
+                                var fullText = $nameClone.text().trim();
+                                var cleanedName = fullText
+                                    .replace(/\d+[\.,]\d+\s*lei/gi, '')
+                                    .replace(/\d+\s*lei/gi, '')
+                                    .replace(/indisponibil/gi, '')
+                                    .replace(/\s+/g, ' ')
+                                    .trim();
+                                if (cleanedName) {
+                                    displayName = cleanedName;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Get label text without spans to check for duplicates
+                    var labelTextWithoutSpans = $label.clone();
+                    labelTextWithoutSpans.find(".wcboost-variation-swatches__selected-label, .selected-label, .selected-attribute-value").remove();
+                    var labelTextOnly = labelTextWithoutSpans.text().trim();
+                    
+                    // Escape special regex characters
+                    var escapedDisplayName = displayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    
+                    // Check if label text contains the value (could be duplicated like ": Verde: Verde")
+                    // More aggressive pattern matching to catch all variations
+                    var hasDuplicate = false;
+                    
+                    // Check for patterns like "Label: Value: Value" or "Label: Value" (when WooBoost also shows it)
+                    var duplicatePatterns = [
+                        new RegExp(':\\s*' + escapedDisplayName + '\\s*:\\s*' + escapedDisplayName, 'gi'), // ": Verde: Verde"
+                        new RegExp(':\\s*' + escapedDisplayName + '\\s*:\\s*' + escapedDisplayName + '\\s*:', 'gi'), // ": Verde: Verde:"
+                    ];
+                    
+                    for (var p = 0; p < duplicatePatterns.length; p++) {
+                        if (duplicatePatterns[p].test(labelTextOnly)) {
+                            hasDuplicate = true;
+                            break;
+                        }
+                    }
+                    
+                    // Also check if label contains the value after a colon (backend PHP adds it)
+                    // Since WooBoost is displaying it, we should remove it from the text
+                    if (!hasDuplicate) {
+                        // Check if value appears after a colon (means backend added it)
+                        var valueAfterColon = new RegExp(':\\s*' + escapedDisplayName, 'i').test(labelTextOnly);
+                        if (valueAfterColon) {
+                            hasDuplicate = true;
+                        }
+                    }
+                    
+                    // Also check if label ends with the value
+                    if (!hasDuplicate) {
+                        var labelEndsWithValue = labelTextOnly.endsWith(": " + displayName) || 
+                                                labelTextOnly.endsWith(":" + displayName) ||
+                                                labelTextOnly.endsWith(" " + displayName);
+                        if (labelEndsWithValue) {
+                            hasDuplicate = true;
+                        }
+                    }
+                    
+                    if (hasDuplicate) {
+                        // Remove the value pattern from the label text, keeping only the base label
+                        // Process each text node separately to preserve other elements
+                        var $labelContents = $label.contents();
+                        var updated = false;
+                        
+                        $labelContents.each(function() {
+                            if (this.nodeType === 3) { // Text node
+                                var text = $(this).text();
+                                var originalText = text;
+                                
+                                // Remove duplicate patterns first
+                                for (var pat = 0; pat < duplicatePatterns.length; pat++) {
+                                    text = text.replace(duplicatePatterns[pat], '');
+                                }
+                                
+                                // Remove ": value" pattern (backend PHP adds this, WooBoost also shows it)
+                                text = text.replace(new RegExp(':\\s*' + escapedDisplayName + '(?:\\s*:|\\s*$)', 'gi'), '');
+                                
+                                // Also handle trailing ": value" at end of string
+                                text = text.replace(new RegExp(':\\s*' + escapedDisplayName + '\\s*$', 'i'), '');
+                                text = text.replace(new RegExp('\\s+' + escapedDisplayName + '\\s*$', 'i'), '');
+                                
+                                // Clean up any double colons or spaces left behind
+                                text = text.replace(/:\s*:\s*/g, ': ');
+                                text = text.replace(/:\s*$/, ''); // Remove trailing colon
+                                text = text.replace(/\s+/g, ' ').trim();
+                                
+                                if (text !== originalText) {
+                                    $(this).replaceWith(document.createTextNode(text));
+                                    updated = true;
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Don't add our own display since WooBoost is handling it
+                    return;
+                }
                 
                 // If there's a selected value, display it (only if WooBoost doesn't already display it)
                 if (selectedValue && selectedValue !== "" && !hasExistingDisplay) {
@@ -914,7 +1088,24 @@
             }
             
             // Trigger gallery update event
-            $gallery.trigger("woocommerce_gallery_reset_slide_position");
+            // Only trigger if flexslider is initialized to prevent errors
+            try {
+                var $flexslider = $gallery.find('.flexslider');
+                if ($flexslider.length && typeof $flexslider.flexslider === 'function') {
+                    $gallery.trigger("woocommerce_gallery_reset_slide_position");
+                } else {
+                    // Use a small delay to allow flexslider to initialize
+                    setTimeout(function() {
+                        try {
+                            $gallery.trigger("woocommerce_gallery_reset_slide_position");
+                        } catch(e) {
+                            // Silently fail if flexslider still not ready
+                        }
+                    }, 100);
+                }
+            } catch(e) {
+                // Silently fail if there's an error
+            }
         }
         
         /**
@@ -977,8 +1168,32 @@
             }
             
             // Trigger gallery update event for plugins that listen
-            $gallery.trigger("woocommerce_gallery_reset_slide_position");
-            $(document.body).trigger("wc-product-gallery-after-init", [$gallery]);
+            // Only trigger if flexslider is initialized to prevent errors
+            try {
+                // Check if flexslider is available before triggering
+                var $flexslider = $gallery.find('.flexslider');
+                if ($flexslider.length && typeof $flexslider.flexslider === 'function') {
+                    $gallery.trigger("woocommerce_gallery_reset_slide_position");
+                } else {
+                    // Use a small delay to allow flexslider to initialize
+                    setTimeout(function() {
+                        try {
+                            $gallery.trigger("woocommerce_gallery_reset_slide_position");
+                        } catch(e) {
+                            // Silently fail if flexslider still not ready
+                        }
+                    }, 100);
+                }
+            } catch(e) {
+                // Silently fail if there's an error
+            }
+            
+            // Trigger WooCommerce gallery init event
+            try {
+                $(document.body).trigger("wc-product-gallery-after-init", [$gallery]);
+            } catch(e) {
+                // Silently fail if there's an error
+            }
         }
         
         // ============================================
@@ -993,6 +1208,82 @@
         
         // Update UI display (backend may have set some values)
         updateSelectedAttributeDisplay();
+        
+        // Clean up any duplicate values in labels immediately (backend PHP may have added them)
+        // This runs before WooBoost fully initializes
+        setTimeout(function() {
+            form.find("select[name^='attribute_']").each(function() {
+                var $select = $(this);
+                var attrName = $select.attr("name");
+                var selectedValue = $select.val();
+                
+                if (!selectedValue) return;
+                
+                var $labelContainer = $select.closest("tr").find(".label");
+                if (!$labelContainer.length) {
+                    $labelContainer = $select.closest(".value").siblings(".label");
+                }
+                if (!$labelContainer.length) return;
+                
+                var $label = $labelContainer.find("label");
+                if (!$label.length) {
+                    $label = $labelContainer;
+                }
+                
+                // Check if WooBoost is displaying the value
+                var $existingDisplay = $label.find(".wcboost-variation-swatches__selected-label, .selected-label");
+                if ($existingDisplay.length > 0) {
+                    // Get display name
+                    var displayName = selectedValue;
+                    var existingDisplayText = $existingDisplay.text().trim();
+                    if (existingDisplayText) {
+                        displayName = existingDisplayText
+                            .replace(/\d+[\.,]\d+\s*lei/gi, '')
+                            .replace(/\d+\s*lei/gi, '')
+                            .replace(/indisponibil/gi, '')
+                            .replace(/\s+/g, ' ')
+                            .trim() || displayName;
+                    }
+                    
+                    // Get label text without spans
+                    var labelTextWithoutSpans = $label.clone();
+                    labelTextWithoutSpans.find(".wcboost-variation-swatches__selected-label, .selected-label, .selected-attribute-value").remove();
+                    var labelTextOnly = labelTextWithoutSpans.text().trim();
+                    
+                    // Escape special regex characters
+                    var escapedDisplayName = displayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    
+                    // Check if label contains the value (backend PHP added it)
+                    if (new RegExp(':\\s*' + escapedDisplayName, 'i').test(labelTextOnly)) {
+                        // Remove the value from label text nodes
+                        var $labelContents = $label.contents();
+                        $labelContents.each(function() {
+                            if (this.nodeType === 3) { // Text node
+                                var text = $(this).text();
+                                var originalText = text;
+                                
+                                // Remove ": value" pattern
+                                text = text.replace(new RegExp(':\\s*' + escapedDisplayName + '(?:\\s*:|\\s*$)', 'gi'), '');
+                                text = text.replace(/:\s*$/, ''); // Remove trailing colon
+                                text = text.replace(/\s+/g, ' ').trim();
+                                
+                                if (text !== originalText) {
+                                    $(this).replaceWith(document.createTextNode(text));
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+            
+            // Run updateSelectedAttributeDisplay again to ensure everything is clean
+            updateSelectedAttributeDisplay();
+        }, 100);
+        
+        // Also run cleanup after a longer delay to catch WooBoost initialization
+        setTimeout(function() {
+            updateSelectedAttributeDisplay();
+        }, 500);
         
         // Update URL if needed (sync with backend state)
         updateUrlParameters();

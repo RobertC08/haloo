@@ -1447,6 +1447,40 @@ require_once get_template_directory() . '/inc/product-search-autocomplete.php';
 require_once get_template_directory() . '/assets/css/load-refactored-styles.php';
 
 /**
+ * Define shopwellLog early in wp_head so it's available for all scripts
+ */
+function shopwell_define_logging_function() {
+    ?>
+    <script type="text/javascript">
+    // Define shopwellLog early so it's available for all scripts
+    if (typeof window.shopwellLog === 'undefined') {
+        window.shopwellLog = function(message, data) {
+            // Only log if WP_DEBUG is enabled or debug_logging is set in shopwellData
+            var shouldLog = false;
+            if (typeof shopwellData !== 'undefined' && shopwellData.debug_logging) {
+                shouldLog = true;
+            } else if (typeof wp !== 'undefined' && wp.debug && wp.debug === true) {
+                shouldLog = true;
+            }
+            
+            if (shouldLog && typeof ajaxurl !== 'undefined' && typeof jQuery !== 'undefined') {
+                jQuery.post(ajaxurl, {
+                    action: 'shopwell_log_message',
+                    nonce: '<?php echo wp_create_nonce( 'shopwell_log_nonce' ); ?>',
+                    message: message,
+                    data: data ? JSON.stringify(data) : null
+                }).fail(function() {
+                    // Silently fail - don't break functionality if logging fails
+                });
+            }
+        };
+    }
+    </script>
+    <?php
+}
+add_action('wp_head', 'shopwell_define_logging_function', 5);
+
+/**
  * Auto-select first variation on single product and filter-selected variations on catalog
  */
 function shopwell_auto_select_variations() {
@@ -1578,28 +1612,12 @@ function shopwell_auto_select_variations() {
         }
     });
     
-    // Logging function that writes to file instead of console
-    // Make it globally available
-    window.shopwellLog = function(message, data) {
-        // Only log if WP_DEBUG is enabled or debug_logging is set in shopwellData
-        var shouldLog = false;
-        if (typeof shopwellData !== 'undefined' && shopwellData.debug_logging) {
-            shouldLog = true;
-        } else if (typeof wp !== 'undefined' && wp.debug && wp.debug === true) {
-            shouldLog = true;
-        }
-        
-        if (shouldLog && typeof ajaxurl !== 'undefined') {
-            jQuery.post(ajaxurl, {
-                action: 'shopwell_log_message',
-                nonce: '<?php echo wp_create_nonce( 'shopwell_log_nonce' ); ?>',
-                message: message,
-                data: data ? JSON.stringify(data) : null
-            }).fail(function() {
-                // Silently fail - don't break functionality if logging fails
-            });
-        }
-    };
+    // shopwellLog is now defined in wp_head, but ensure it exists here too as fallback
+    if (typeof window.shopwellLog === 'undefined') {
+        window.shopwellLog = function(message, data) {
+            // Fallback - silently do nothing if not properly initialized
+        };
+    }
     
     jQuery(document).ready(function($) {
         // Helper function to convert simplified URL parameter to attribute name
@@ -5536,4 +5554,3 @@ function shopwell_add_selected_value_to_variation_label($label, $name, $product)
 
 // Hook into single product page
 add_action('woocommerce_before_single_product', 'shopwell_process_variations_backend', 5);
-
