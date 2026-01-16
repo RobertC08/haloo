@@ -903,14 +903,80 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="testimonial-content">
                                     <div class="testimonial-author">
                                         <div class="author-avatar">
-                                            <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=60&h=60&fit=crop&crop=face" alt="Maria Popescu">
+                                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" alt="Alexandru Ionescu">
                                         </div>
                                         <div class="author-info">
-                                            <h4 class="author-name">Maria Popescu</h4>
-                                            <p class="author-title">Client din București</p>
+                                            <h4 class="author-name">Alexandru Ionescu</h4>
+                                            <p class="author-title">Client din Cluj-Napoca</p>
                                         </div>
                                     </div>
-                                    <p class="testimonial-text">"Serviciul excelent și produsele de calitate! Am primit telefonul refurbished exact cum era descris și livrarea a fost foarte rapidă. Recomand cu încredere!"</p>
+                                    <p class="testimonial-text">"Garanția de 2 ani și prețurile accesibile m-au convins să cumpăr de aici. Telefoanele refurbished arată ca noi și funcționează perfect!"</p>
+                                    <div class="testimonial-rating">
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="testimonial-item">
+                                <div class="testimonial-content">
+                                    <div class="testimonial-author">
+                                        <div class="author-avatar">
+                                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face" alt="Elena Dumitrescu">
+                                        </div>
+                                        <div class="author-info">
+                                            <h4 class="author-name">Elena Dumitrescu</h4>
+                                            <p class="author-title">Client din Timișoara</p>
+                                        </div>
+                                    </div>
+                                    <p class="testimonial-text">"Am cumpărat un iPhone refurbished și arată ca nou! Procesul de comandă a fost simplu și am primit confirmarea rapid. Calitatea este excepțională!"</p>
+                                    <div class="testimonial-rating">
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="testimonial-item">
+                                <div class="testimonial-content">
+                                    <div class="testimonial-author">
+                                        <div class="author-avatar">
+                                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face" alt="Cristian Popescu">
+                                        </div>
+                                        <div class="author-info">
+                                            <h4 class="author-name">Cristian Popescu</h4>
+                                            <p class="author-title">Client din Iași</p>
+                                        </div>
+                                    </div>
+                                    <p class="testimonial-text">"Calitatea telefoanelor refurbished este excepțională! Am fost impresionat de atenția la detalii și de serviciul post-vânzare."</p>
+                                    <div class="testimonial-rating">
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                        <span class="star">★</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="testimonial-item">
+                                <div class="testimonial-content">
+                                    <div class="testimonial-author">
+                                        <div class="author-avatar">
+                                            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=60&h=60&fit=crop&crop=face" alt="Ana Maria">
+                                        </div>
+                                        <div class="author-info">
+                                            <h4 class="author-name">Ana Maria</h4>
+                                            <p class="author-title">Client din Constanța</p>
+                                        </div>
+                                    </div>
+                                    <p class="testimonial-text">"Felicitări echipei! Am primit un telefon refurbished de calitate superioară care a depășit toate așteptările mele. Recomand cu încredere!"</p>
                                     <div class="testimonial-rating">
                                         <span class="star">★</span>
                                         <span class="star">★</span>
@@ -987,85 +1053,18 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                             </div>
                             
-                            <!-- Duplicate content for seamless loop -->
                             <div class="testimonial-item">
                                 <div class="testimonial-content">
                                     <div class="testimonial-author">
                                         <div class="author-avatar">
-                                            <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=60&h=60&fit=crop&crop=face" alt="Maria Popescu">
+                                            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=60&h=60&fit=crop&crop=face" alt="Ana Maria">
                                         </div>
                                         <div class="author-info">
-                                            <h4 class="author-name">Maria Popescu</h4>
-                                            <p class="author-title">Client din București</p>
+                                            <h4 class="author-name">Ana Maria</h4>
+                                            <p class="author-title">Client din Constanța</p>
                                         </div>
                                     </div>
-                                    <p class="testimonial-text">"Serviciul excelent și produsele de calitate! Am primit telefonul refurbished exact cum era descris și livrarea a fost foarte rapidă. Recomand cu încredere!"</p>
-                                    <div class="testimonial-rating">
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="testimonial-item">
-                                <div class="testimonial-content">
-                                    <div class="testimonial-author">
-                                        <div class="author-avatar">
-                                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" alt="Alexandru Ionescu">
-                                        </div>
-                                        <div class="author-info">
-                                            <h4 class="author-name">Alexandru Ionescu</h4>
-                                            <p class="author-title">Client din Cluj-Napoca</p>
-                                        </div>
-                                    </div>
-                                    <p class="testimonial-text">"Garanția de 2 ani și prețurile accesibile m-au convins să cumpăr de aici. Telefoanele refurbished arată ca noi și funcționează perfect!"</p>
-                                    <div class="testimonial-rating">
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="testimonial-item">
-                                <div class="testimonial-content">
-                                    <div class="testimonial-author">
-                                        <div class="author-avatar">
-                                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face" alt="Elena Dumitrescu">
-                                        </div>
-                                        <div class="author-info">
-                                            <h4 class="author-name">Elena Dumitrescu</h4>
-                                            <p class="author-title">Client din Timișoara</p>
-                                        </div>
-                                    </div>
-                                    <p class="testimonial-text">"Am cumpărat un iPhone refurbished și arată ca nou! Procesul de comandă a fost simplu și am primit confirmarea rapid. Calitatea este excepțională!"</p>
-                                    <div class="testimonial-rating">
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                        <span class="star">★</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="testimonial-item">
-                                <div class="testimonial-content">
-                                    <div class="testimonial-author">
-                                        <div class="author-avatar">
-                                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face" alt="Cristian Popescu">
-                                        </div>
-                                        <div class="author-info">
-                                            <h4 class="author-name">Cristian Popescu</h4>
-                                            <p class="author-title">Client din Iași</p>
-                                        </div>
-                                    </div>
-                                    <p class="testimonial-text">"Calitatea telefoanelor refurbished este excepțională! Am fost impresionat de atenția la detalii și de serviciul post-vânzare."</p>
+                                    <p class="testimonial-text">"Felicitări echipei! Am primit un telefon refurbished de calitate superioară care a depășit toate așteptările mele. Recomand cu încredere!"</p>
                                     <div class="testimonial-rating">
                                         <span class="star">★</span>
                                         <span class="star">★</span>
