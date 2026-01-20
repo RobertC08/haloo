@@ -48,6 +48,10 @@ class Cart {
 		add_action( 'woocommerce_cart_actions', array( $this, 'empty_cart_button' ) );
 		add_action( 'template_redirect', array( $this, 'empty_cart_action' ) );
 
+		// Clear cart after order is placed - use high priority to run early.
+		add_action( 'woocommerce_checkout_order_processed', array( $this, 'clear_cart_after_order' ), 5, 1 );
+		add_action( 'woocommerce_thankyou', array( $this, 'clear_cart_after_order' ), 5, 1 );
+
 		// Add image to empty cart message.
 		add_filter( 'wc_empty_cart_message', array( $this, 'empty_cart_message' ) );
 
@@ -85,6 +89,52 @@ class Cart {
 			wp_safe_redirect( $referer );
 			exit;
 		}
+	}
+
+	/**
+	 * Clear cart after order is successfully placed.
+	 * Removes cart from session to prevent restoration.
+	 *
+	 * @param int $order_id Order ID.
+	 * @return void
+	 */
+	public function clear_cart_after_order( $order_id ) {
+		if ( ! $order_id ) {
+			return;
+		}
+
+		// Get the order.
+		$order = wc_get_order( $order_id );
+
+		// Only clear cart if order exists and is valid.
+		if ( ! $order ) {
+			return;
+		}
+
+		// Check if cart was already cleared for this order (prevent multiple clears).
+		$cart_cleared = $order->get_meta( '_cart_cleared_after_order' );
+		
+		if ( $cart_cleared ) {
+			return;
+		}
+
+		// Empty the cart object.
+		if ( WC()->cart && ! WC()->cart->is_empty() ) {
+			WC()->cart->empty_cart();
+		}
+
+		// Remove cart from session to prevent restoration.
+		if ( WC()->session ) {
+			// Remove cart data from session.
+			WC()->session->__unset( 'cart' );
+			// Also remove cart hash to force recalculation.
+			WC()->session->__unset( 'cart_totals' );
+			WC()->session->__unset( 'cart_fees' );
+		}
+
+		// Mark that cart was cleared for this order.
+		$order->update_meta_data( '_cart_cleared_after_order', 'yes' );
+		$order->save();
 	}
 
 	/**

@@ -56,6 +56,9 @@ if ( ! class_exists( '\Shopwell\WooCommerce\Checkout' ) ) {
 			add_filter( 'woocommerce_checkout_coupon_message', array( $this, 'coupon_form_name' ), 10 );
 
 			add_filter( 'woocommerce_cart_item_name', array( $this, 'review_product_name_html' ), 10, 3 );
+
+			// Add "Return to Shop" button on thank you page.
+			add_action( 'woocommerce_thankyou', array( $this, 'thankyou_return_to_shop_button' ), 25 );
 		}
 
 		/**
@@ -144,6 +147,34 @@ if ( ! class_exists( '\Shopwell\WooCommerce\Checkout' ) ) {
 			$product   = $cart_item['data'];
 			$thumbnail = $product->get_image( 'thumbnail' );
 			return '<span class="checkout-review-product-name">' . $thumbnail . $name . '</span>';
+		}
+
+		/**
+		 * Add "Return to Shop" button on thank you page.
+		 *
+		 * @param int $order_id Order ID.
+		 * @return void
+		 */
+		public function thankyou_return_to_shop_button( $order_id ) {
+			if ( ! $order_id ) {
+				return;
+			}
+
+			// Get shop page URL.
+			$shop_url = wc_get_page_permalink( 'shop' );
+			
+			if ( ! $shop_url ) {
+				// Fallback to homepage if shop page doesn't exist.
+				$shop_url = home_url( '/' );
+			}
+
+			?>
+			<div class="shopwell-thankyou-return-to-shop" style="margin-top: 30px; margin-bottom: 30px; text-align: center;">
+				<a href="<?php echo esc_url( $shop_url ); ?>" class="button shopwell-button shopwell-button--primary">
+					<?php esc_html_e( 'Întoarce-te la magazin', 'shopwell' ); ?>
+				</a>
+			</div>
+			<?php
 		}
 
 	}
