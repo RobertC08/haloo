@@ -11,12 +11,10 @@
         var form = $(".variations_form");
         if (!form.length) return;
         
-        var variations = form.data("product_variations") || [];
-        // variations may be empty array when WooCommerce uses AJAX loading (too many variants).
-        // We still set up click/UI handlers; availability checks are skipped when data is unavailable.
-        var variationsAvailable = variations && variations.length > 0;
+        var variations = form.data("product_variations");
+        if (!variations) return;
         
-        // Known attribute hierarchy (semantic order takes priority over DOM order)
+        // Attribute hierarchy definition
         var attributeHierarchy = {
             'attribute_pa_culoare': 1,
             'attribute_culoare': 1,
@@ -27,14 +25,6 @@
             'attribute_pa_stocare': 3,
             'attribute_stocare': 3
         };
-        
-        // Extend hierarchy with DOM-order levels for any attributes not in the known map
-        form.find("select[name^='attribute_']").each(function(domIndex) {
-            var attrName = $(this).attr("name");
-            if (!attributeHierarchy[attrName]) {
-                attributeHierarchy[attrName] = domIndex + 1;
-            }
-        });
         
         // Map simplified names to attribute names
         var simplifiedToAttribute = {
@@ -71,28 +61,6 @@
          */
         function getAttributeLevel(attrName) {
             return attributeHierarchy[attrName] || 999; // Unknown attributes go to bottom
-        }
-        
-        /**
-         * Set a select's value using case-insensitive matching against its options.
-         * Returns the actual option value that was matched, or null if no match.
-         */
-        function setSelectValueCaseInsensitive($select, value) {
-            if (!value) {
-                $select.val("");
-                return "";
-            }
-            var valueLower = value.toLowerCase();
-            var matched = null;
-            $select.find("option").each(function() {
-                var optVal = $(this).val();
-                if (optVal && optVal.toLowerCase() === valueLower) {
-                    matched = optVal;
-                    return false; // break
-                }
-            });
-            $select.val(matched !== null ? matched : value);
-            return matched;
         }
         
         /**
@@ -158,9 +126,6 @@
          * For other levels, checks if variation exists matching all higher level selections
          */
         function isAttributeValueAvailable(attrName, attrValue, selectedAttrs, attrLevel) {
-            // No inline variation data (AJAX-loaded products): treat all as available
-            if (!variationsAvailable) return true;
-            
             // For level 1 (colors), check if ANY variation exists with this color value
             // Independent of other selections - colors should always be available if they exist
             if (attrLevel === 1) {
@@ -220,19 +185,6 @@
          */
         function updateAttributeAvailability() {
             var selectedAttrs = getSelectedAttributes();
-            
-            // No inline variation data: enable all swatches and let WooCommerce
-            // handle invalid combinations natively via check_variations.
-            if (!variationsAvailable) {
-                form.find("select[name^='attribute_']").each(function() {
-                    var $select = $(this);
-                    var $container = $select.closest(".value");
-                    if (!$container.length) $container = $select.closest("tr").find(".value");
-                    $container.find(".wcboost-variation-swatches__item, .product-variation-item")
-                        .removeClass("disabled is-invalid shopwell-disabled");
-                });
-                return;
-            }
             
             // Process each attribute group
             form.find("select[name^='attribute_']").each(function() {
@@ -853,9 +805,10 @@
                         for (var i = 0; i < possibleAttrs.length; i++) {
                             var $select = form.find("select[name='" + possibleAttrs[i] + "']");
                             if ($select.length) {
-                                var matched = setSelectValueCaseInsensitive($select, value);
-                                if (matched !== null) {
-                                    $select.trigger("change");
+                                // Check if value exists in options
+                                var $option = $select.find("option[value='" + value + "']");
+                                if ($option.length) {
+                                    $select.val(value).trigger("change");
                                     hasSelections = true;
                                     break;
                                 }
@@ -1015,8 +968,8 @@
             e.preventDefault();
             e.stopPropagation();
             
-            var currentValue = $select.val() || "";
-            var isCurrentlySelected = (currentValue.toLowerCase() === clickedValue.toLowerCase()) || swatch.hasClass("selected");
+            var currentValue = $select.val();
+            var isCurrentlySelected = (currentValue === clickedValue) || swatch.hasClass("selected");
             
             // If clicking on already selected attribute, unselect it
             if (isCurrentlySelected) {
@@ -1050,9 +1003,8 @@
             // Deselect all attributes below the clicked level
             deselectAttributesBelowLevel(clickedLevel);
             
-            // Set the selected value (case-insensitive match against actual option values)
-            setSelectValueCaseInsensitive($select, clickedValue);
-            $select.trigger("change");
+            // Set the selected value
+            $select.val(clickedValue).trigger("change");
             
             // Update swatch visual state
             var $container = $select.closest(".value");
@@ -1403,13 +1355,67 @@
             scheduleSwatchPriceUpdate();
         });
         
-        // Listen to select changes triggered externally (e.g. WooCommerce reset or URL restore),
-        // but ONLY update availability/UI — do NOT cascade deselection here because our click
-        // handler already handles that, and re-running it from a WC-triggered change event
-        // can clear selects that were just set.
+        // Also listen to select changes
         form.on("change", "select[name^='attribute_']", function() {
+            var $select = $(this);
+            var attrName = $select.attr("name");
+            var attrLevel = getAttributeLevel(attrName);
+            var selectedValue = $select.val();
+            
+            // If a value is selected, verify it's still available
+            if (selectedValue && selectedValue !== "") {
+                var selectedAttrs = getSelectedAttributes();
+                
+                // Get higher level selections
+                var higherLevelAttrs = {};
+                for (var selAttr in selectedAttrs) {
+                    if (getAttributeLevel(selAttr) < attrLevel) {
+                        higherLevelAttrs[selAttr] = selectedAttrs[selAttr];
+                    }
+                }
+                
+                // Check if selected value is still available
+                var isAvailable = isAttributeValueAvailable(attrName, selectedValue, higherLevelAttrs, attrLevel);
+                
+                if (!isAvailable) {
+                    // Value is no longer available, deselect it
+                    $select.val("").trigger("change");
+                    
+                    // Also deselect the swatch
+                    var $container = $select.closest(".value");
+                    if (!$container.length) {
+                        $container = $select.closest("tr").find(".value");
+                    }
+                    if ($container.length) {
+                        $container.find(".wcboost-variation-swatches__item.selected, .product-variation-item.selected")
+                            .removeClass("selected active is-selected")
+                            .attr("aria-pressed", "false");
+                    }
+                    
+                    // Clear label display
+                    clearSelectedAttributeDisplay(attrName);
+                    
+                    // Deselect attributes below this level
+                    deselectAttributesBelowLevel(attrLevel);
+                    
+                    // Update availability and UI
+                    updateAttributeAvailability();
+                    updateSelectedAttributeDisplay();
+                    updateUrlParameters();
+                    return;
+                }
+            }
+            
+            // Deselect attributes below this level
+            deselectAttributesBelowLevel(attrLevel);
+            
+            // Update availability
             updateAttributeAvailability();
+            
+            // Update UI display
             updateSelectedAttributeDisplay();
+            
+            // Update URL
             updateUrlParameters();
         });
         

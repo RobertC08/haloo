@@ -149,10 +149,6 @@ class Sku_Availability {
 	 * @return void
 	 */
 	public function check_sku_availability() {
-		if ( session_id() ) {
-			session_write_close();
-		}
-
 		// Verify nonce.
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'check_sku_availability_nonce' ) ) {
 			wp_send_json_error( array( 'message' => esc_html__( 'Security check failed.', 'shopwell' ) ) );

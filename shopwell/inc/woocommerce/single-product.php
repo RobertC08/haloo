@@ -189,17 +189,6 @@ class Single_Product {
 			array( 'strategy' => 'defer' )
 		);
 
-		// Smart variations system (hierarchical Color -> State -> Memory)
-		if ( ! wp_script_is( 'shopwell-smart-variations', 'enqueued' ) && ! wp_script_is( 'shopwell-smart-variations', 'registered' ) ) {
-			wp_enqueue_script(
-				'shopwell-smart-variations',
-				get_template_directory_uri() . '/assets/js/smart-variations-v2.js',
-				array( 'jquery' ),
-				'20260421',
-				true
-			);
-		}
-
 
 		// OPTIMIZATION: Load countdown only if needed (deferred)
 		wp_enqueue_script( 
