@@ -407,27 +407,28 @@
  */
 .single-product div.product .wcboost-variation-swatches__item.has-color-circle {
     display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
     justify-content: flex-start !important;
     flex-wrap: nowrap !important;
     background-color: transparent !important;
     min-width: auto !important;
+    padding-top: 8px !important;
 }
 
 .single-product div.product .wcboost-variation-swatches__item.has-color-circle .color-circle {
-    display: inline-block !important;
+    display: block !important;
     width: 16px !important;
     height: 16px !important;
     border-radius: 50% !important;
-    vertical-align: middle !important;
     flex-shrink: 0 !important;
     border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    margin-bottom: 4px !important;
 }
 
 .single-product div.product .wcboost-variation-swatches__item.has-color-circle .wcboost-variation-swatches__name {
-    display: inline-flex !important;
-    align-items: center !important;
-    flex: 0 1 auto !important;
+    display: block !important;
+    text-align: center !important;
     transition: none !important;
     white-space: nowrap !important;
     margin-right: 0 !important;
@@ -453,6 +454,7 @@
 /* Override color swatch styles for button format */
 .single-product div.product .wcboost-variation-swatches--button .wcboost-variation-swatches__item.has-color-circle {
     display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
     justify-content: flex-start !important;
     background-color: transparent !important;
@@ -1029,4 +1031,41 @@ table.order_details .product-name {
 	cursor: not-allowed !important;
 	display: flex !important;
 	visibility: visible !important;
+}
+
+/* SKU reservation (other carts hold stock) — product page */
+.single-product .shopwell-atc-reserved {
+	opacity: 0.65;
+	cursor: not-allowed !important;
+	pointer-events: none;
+}
+
+.single-product .shopwell-reservation-notice {
+	margin: 0.75rem 0 0;
+	padding: 0.75rem 1rem;
+	border-radius: 6px;
+	background: #fff4f4;
+	border: 1px solid #f0c2c2;
+	color: #1d2128;
+	font-size: 0.95rem;
+	line-height: 1.45;
+}
+
+.single-product .shopwell-reservation-notice__title {
+	display: block;
+	margin-bottom: 0.35rem;
+}
+
+.single-product .shopwell-reservation-notice__body {
+	margin: 0;
+}
+
+.single-product p.stock.shopwell-reserved-stock,
+.single-product .stock.shopwell-reserved-stock {
+	margin-top: 0.5rem;
+}
+
+.single-product .shopwell-reserved-line-sub {
+	font-size: 0.9em;
+	opacity: 0.85;
 }

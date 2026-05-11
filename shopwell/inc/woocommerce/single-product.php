@@ -53,6 +53,7 @@ class Single_Product {
 	 * @return void
 	 */
 	public function __construct() {
+		add_filter( 'woocommerce_ajax_variation_threshold', array( $this, 'variation_threshold' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ), 20 );
 		add_filter( 'shopwell_wp_script_data', array( $this, 'single_product_script_data' ), 10, 3 );
 		add_filter( 'body_class', array( $this, 'body_classes' ) );
@@ -185,7 +186,7 @@ class Single_Product {
 				'jquery',
 				'shopwell', // Add shopwell as dependency to ensure shopwellData is available
 			),
-			'20250105',
+			'20250511',
 			array( 'strategy' => 'defer' )
 		);
 
@@ -1634,5 +1635,15 @@ class Single_Product {
 	 */
 	public function product_gallery_fixed_spacing() {
 		echo '<div class="product-fixed-gallery-spacing"></div>';
+	}
+
+	/**
+	 * Raise the variation AJAX threshold so products with up to 100 variations
+	 * load their swatches inline instead of via AJAX.
+	 *
+	 * @return int
+	 */
+	public function variation_threshold(): int {
+		return 100;
 	}
 }

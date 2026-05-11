@@ -75,6 +75,7 @@
         this.productImageZoom();
 
         this.productVariation();
+        this.skuReservationProductUi();
         this.productTabs();
         this.countDownHandler();
 
@@ -502,6 +503,174 @@
             }
         });
     }
+
+    /**
+     * Market API + cart reservations: disable add-to-cart and show message when others hold the last unit(s).
+     */
+    shopwell.skuReservationProductUi = function () {
+        if ( typeof shopwellSkuReservation === 'undefined' ) {
+            return;
+        }
+
+        var cfg = shopwellSkuReservation;
+        var pollTimer = null;
+        var lastSku = '';
+        var lastVariation = null;
+        var $product = $( '.single-product div.product' );
+
+        if ( ! $product.length ) {
+            return;
+        }
+
+        var $form = $product.find( 'form.cart' ).first();
+        if ( ! $form.length ) {
+            return;
+        }
+
+        function stopPoll() {
+            if ( pollTimer ) {
+                clearInterval( pollTimer );
+                pollTimer = null;
+            }
+        }
+
+        function findStockEl() {
+            var $v = $product.find( '.product-gallery-summary .variations-attribute-change .stock' ).first();
+            if ( $v.length ) {
+                return $v;
+            }
+            return $product.find( 'p.stock' ).first();
+        }
+
+        function clearReservationUi() {
+            stopPoll();
+            $form.find( '.shopwell-reservation-notice' ).remove();
+            var $st = findStockEl();
+            if ( $st.length ) {
+                var orig = $st.data( 'shopwellOrigHtml' );
+                if ( orig ) {
+                    $st.html( orig ).removeData( 'shopwellOrigHtml' ).removeClass( 'shopwell-stock-virtual shopwell-reserved-stock out-of-stock' );
+                }
+            }
+            var $btn = $form.find( '.single_add_to_cart_button' );
+            if ( $btn.attr( 'data-shopwell-reserved' ) === '1' ) {
+                $btn.removeAttr( 'data-shopwell-reserved' ).removeClass( 'shopwell-atc-reserved' );
+                if ( $form.hasClass( 'variations_form' ) ) {
+                    $form.trigger( 'check_variations' );
+                } else if ( $product.hasClass( 'instock' ) ) {
+                    $btn.prop( 'disabled', false ).removeClass( 'disabled' );
+                }
+            }
+        }
+
+        function applyReservationUi( data, variation ) {
+            var $btn = $form.find( '.single_add_to_cart_button' );
+            if ( data.skip ) {
+                clearReservationUi();
+                return;
+            }
+
+            var cannot = data.cannot_add === true;
+            var held = data.held_elsewhere === true && parseInt( data.api_qty, 10 ) > 0;
+
+            if ( ! cannot ) {
+                if ( $btn.attr( 'data-shopwell-reserved' ) === '1' ) {
+                    $btn.removeAttr( 'data-shopwell-reserved' ).removeClass( 'shopwell-atc-reserved' );
+                    if ( variation && variation.is_in_stock && variation.is_purchasable ) {
+                        $btn.prop( 'disabled', false ).removeClass( 'disabled' );
+                    } else if ( ! variation && ! $form.hasClass( 'variations_form' ) && $product.hasClass( 'instock' ) ) {
+                        $btn.prop( 'disabled', false ).removeClass( 'disabled' );
+                    }
+                }
+                var $stClear = findStockEl();
+                if ( $stClear.length ) {
+                    var o = $stClear.data( 'shopwellOrigHtml' );
+                    if ( o ) {
+                        $stClear.html( o ).removeData( 'shopwellOrigHtml' ).removeClass( 'shopwell-stock-virtual shopwell-reserved-stock out-of-stock' );
+                    }
+                }
+                $form.find( '.shopwell-reservation-notice' ).remove();
+                stopPoll();
+                return;
+            }
+
+            $btn.attr( 'data-shopwell-reserved', '1' ).addClass( 'disabled shopwell-atc-reserved' ).prop( 'disabled', true );
+
+            $form.find( '.shopwell-reservation-notice' ).remove();
+            if ( held ) {
+                var $wrap = $( '<div class="shopwell-reservation-notice shopwell-reservation-notice--held" role="alert"></div>' );
+                $wrap.append( $( '<strong class="shopwell-reservation-notice__title"/>' ).text( cfg.i18n.reservedTitle ) );
+                $wrap.append( $( '<p class="shopwell-reservation-notice__body"/>' ).text( cfg.i18n.reservedBody ) );
+                $wrap.insertBefore( $btn );
+            } else {
+                $( '<p class="shopwell-reservation-notice shopwell-reservation-notice--empty stock out-of-stock" role="alert"></p>' )
+                    .text( cfg.i18n.supplierEmpty )
+                    .insertBefore( $btn );
+            }
+
+            var $stock = findStockEl();
+            if ( $stock.length ) {
+                $stock.removeData( 'shopwellOrigHtml' );
+                $stock.data( 'shopwellOrigHtml', $stock.html() );
+                var eff = String( Math.max( 0, parseInt( data.effective, 10 ) || 0 ) );
+                var lineMain = ( cfg.i18n.stockForYou || '' ).replace( '%s', eff );
+                var lineSub = '';
+                if ( held && data.reserved_by_others ) {
+                    lineSub = ( cfg.i18n.heldInCarts || '' ).replace( '%d', String( data.reserved_by_others ) );
+                }
+                $stock.addClass( 'shopwell-stock-virtual shopwell-reserved-stock out-of-stock' ).empty();
+                $stock.append( $( '<span class="shopwell-reserved-line-main"/>' ).text( lineMain ) );
+                if ( lineSub ) {
+                    $stock.append( $( '<br/>' ) );
+                    $stock.append( $( '<span class="shopwell-reserved-line-sub"/>' ).text( lineSub ) );
+                }
+            }
+
+            stopPoll();
+            if ( cannot && held ) {
+                pollTimer = window.setInterval( function () {
+                    checkSku( lastSku, lastVariation );
+                }, cfg.pollMs || 30000 );
+            }
+        }
+
+        function checkSku( sku, variation ) {
+            if ( ! sku ) {
+                clearReservationUi();
+                return;
+            }
+            lastSku = sku;
+            lastVariation = variation || null;
+            $.post( cfg.ajaxUrl, {
+                action: 'shopwell_sku_reservation_state',
+                nonce: cfg.nonce,
+                sku: sku
+            } ).done( function ( res ) {
+                if ( ! res || ! res.success || ! res.data ) {
+                    return;
+                }
+                applyReservationUi( res.data, lastVariation );
+            } );
+        }
+
+        $product.find( '.variations_form' ).on( 'show_variation', function ( event, variation ) {
+            window.setTimeout( function () {
+                if ( variation && variation.sku ) {
+                    checkSku( variation.sku, variation );
+                }
+            }, 0 );
+        } );
+
+        $product.find( '.variations_form' ).on( 'hide_variation', function () {
+            clearReservationUi();
+        } );
+
+        if ( cfg.simpleSku ) {
+            window.setTimeout( function () {
+                checkSku( cfg.simpleSku, null );
+            }, 0 );
+        }
+    };
 
     /**
      * Related Product Carousel.
@@ -1203,27 +1372,24 @@
 				// Check if color circle already exists
 				if ($item.find('.color-circle').length === 0) {
 					// Create color circle element
-					var $circle = $('<span class="color-circle"></span>');
-					$circle.css({
-						'display': 'inline-block',
-						'width': '16px',
-						'height': '16px',
-						'border-radius': '50%',
-						'background-color': fullOpacityColor,
-						'margin-right': '8px',
-						'vertical-align': 'middle',
-						'flex-shrink': '0',
-						'border': '1px solid rgba(0, 0, 0, 0.1)'
-					});
-					
-					// Insert circle before the text content
-					var $nameSpan = $item.find('.wcboost-variation-swatches__name');
-					if ($nameSpan.length) {
-						$nameSpan.prepend($circle);
-					} else {
-						// If no name span, prepend to the item itself
-						$item.prepend($circle);
-					}
+				var $circle = $('<span class="color-circle"></span>');
+				$circle.css({
+					'display': 'block',
+					'width': '16px',
+					'height': '16px',
+					'border-radius': '50%',
+					'background-color': fullOpacityColor,
+					'flex-shrink': '0',
+					'border': '1px solid rgba(0, 0, 0, 0.1)'
+				});
+
+				// Insert circle as its own element above the name
+				var $nameSpan = $item.find('.wcboost-variation-swatches__name');
+				if ($nameSpan.length) {
+					$nameSpan.before($circle);
+				} else {
+					$item.prepend($circle);
+				}
 					
 					// Mark as processed
 					$item.attr('data-color-circle-applied', 'true');

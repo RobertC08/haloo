@@ -48,11 +48,491 @@ class Sku_Availability {
 		// Enqueue scripts only on checkout page.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_checkout_scripts' ), 20 );
 
+		// Validate stock via Market API before adding to cart.
+		add_filter( 'woocommerce_add_to_cart_validation', array( $this, 'validate_add_to_cart' ), 10, 5 );
+
+		// Sync reservations after cart changes.
+		add_action( 'woocommerce_add_to_cart', array( $this, 'on_cart_item_added' ), 10, 6 );
+		add_action( 'woocommerce_cart_item_removed', array( $this, 'sync_all_session_reservations' ) );
+		add_action( 'woocommerce_after_cart_item_quantity_update', array( $this, 'sync_all_session_reservations' ) );
+		add_action( 'woocommerce_cart_emptied', array( $this, 'on_cart_emptied' ) );
+		add_action( 'woocommerce_checkout_order_created', array( $this, 'on_order_created' ) );
+
 		// Register AJAX handlers.
 		add_action( 'wp_ajax_check_sku_availability', array( $this, 'check_sku_availability' ) );
 		add_action( 'wp_ajax_nopriv_check_sku_availability', array( $this, 'check_sku_availability' ) );
 		add_action( 'wp_ajax_get_checkout_cart_skus', array( $this, 'get_checkout_cart_skus' ) );
 		add_action( 'wp_ajax_nopriv_get_checkout_cart_skus', array( $this, 'get_checkout_cart_skus' ) );
+		add_action( 'wp_ajax_shopwell_sku_reservation_state', array( $this, 'ajax_sku_reservation_state' ) );
+		add_action( 'wp_ajax_nopriv_shopwell_sku_reservation_state', array( $this, 'ajax_sku_reservation_state' ) );
+
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_product_reservation_data' ), 30 );
+	}
+
+	/**
+	 * Get the current WooCommerce session ID.
+	 *
+	 * @return string
+	 */
+	private function get_session_id() {
+		if ( function_exists( 'WC' ) && WC()->session ) {
+			return (string) WC()->session->get_customer_id();
+		}
+		return '';
+	}
+
+	/**
+	 * Get the transient key for a SKU's reservation map.
+	 *
+	 * @param string $sku
+	 * @return string
+	 */
+	private function reservation_key( $sku ) {
+		return 'shopwell_rsv_' . md5( $sku );
+	}
+
+	/**
+	 * Get all reservations for a SKU: ['session_id' => qty, ...].
+	 *
+	 * @param string $sku
+	 * @return array
+	 */
+	private function get_reservations( $sku ) {
+		return get_transient( $this->reservation_key( $sku ) ) ?: array();
+	}
+
+	/**
+	 * Set (or clear) the reservation for a session + SKU.
+	 *
+	 * @param string $sku
+	 * @param string $session_id
+	 * @param int    $qty 0 removes the reservation.
+	 */
+	private function set_reservation( $sku, $session_id, $qty ) {
+		if ( empty( $session_id ) ) {
+			return;
+		}
+
+		$reservations = $this->get_reservations( $sku );
+
+		if ( $qty <= 0 ) {
+			unset( $reservations[ $session_id ] );
+		} else {
+			$reservations[ $session_id ] = $qty;
+		}
+
+		if ( empty( $reservations ) ) {
+			delete_transient( $this->reservation_key( $sku ) );
+		} else {
+			set_transient( $this->reservation_key( $sku ), $reservations, HOUR_IN_SECONDS );
+		}
+	}
+
+	/**
+	 * Sum of reserved quantities by all sessions except the current one.
+	 *
+	 * @param string $sku
+	 * @param string $session_id Current session to exclude.
+	 * @return int
+	 */
+	private function get_reserved_by_others( $sku, $session_id ) {
+		$total = 0;
+		foreach ( $this->get_reservations( $sku ) as $sid => $qty ) {
+			if ( $sid !== $session_id ) {
+				$total += $qty;
+			}
+		}
+		return $total;
+	}
+
+	/**
+	 * Get the total quantity of a SKU currently in the session's cart.
+	 *
+	 * @param string $sku
+	 * @return int
+	 */
+	private function get_cart_qty_for_sku( $sku ) {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return 0;
+		}
+		$total = 0;
+		foreach ( WC()->cart->get_cart() as $item ) {
+			if ( $item['data'] && $item['data']->get_sku() === $sku ) {
+				$total += $item['quantity'];
+			}
+		}
+		return $total;
+	}
+
+	/**
+	 * Recalculate and persist all SKU reservations for the current session
+	 * based on what's actually in the cart right now.
+	 * Also clears reservations for SKUs no longer in the cart.
+	 *
+	 * @return void
+	 */
+	public function sync_all_session_reservations() {
+		$session_id = $this->get_session_id();
+		if ( empty( $session_id ) || ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return;
+		}
+
+		$sku_qtys   = array();
+		$prev_skus  = get_transient( 'shopwell_sess_skus_' . md5( $session_id ) ) ?: array();
+
+		foreach ( WC()->cart->get_cart() as $item ) {
+			$product = $item['data'];
+			if ( ! $product ) {
+				continue;
+			}
+			$sku = $product->get_sku();
+			if ( empty( $sku ) ) {
+				continue;
+			}
+			$sku_qtys[ $sku ] = ( isset( $sku_qtys[ $sku ] ) ? $sku_qtys[ $sku ] : 0 ) + $item['quantity'];
+		}
+
+		foreach ( $sku_qtys as $sku => $qty ) {
+			$this->set_reservation( $sku, $session_id, $qty );
+		}
+
+		foreach ( $prev_skus as $sku ) {
+			if ( ! isset( $sku_qtys[ $sku ] ) ) {
+				$this->set_reservation( $sku, $session_id, 0 );
+			}
+		}
+
+		if ( ! empty( $sku_qtys ) ) {
+			set_transient( 'shopwell_sess_skus_' . md5( $session_id ), array_keys( $sku_qtys ), HOUR_IN_SECONDS );
+		} else {
+			delete_transient( 'shopwell_sess_skus_' . md5( $session_id ) );
+		}
+	}
+
+	/**
+	 * Sync reservation after an item is successfully added to cart.
+	 *
+	 * @param string $cart_item_key
+	 * @param int    $product_id
+	 * @param int    $quantity
+	 * @param int    $variation_id
+	 * @param array  $variation
+	 * @param array  $cart_item_data
+	 * @return void
+	 */
+	public function on_cart_item_added( $cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data ) {
+		$this->sync_all_session_reservations();
+	}
+
+	/**
+	 * Release all reservations for this session when the cart is emptied.
+	 *
+	 * @return void
+	 */
+	public function on_cart_emptied() {
+		$session_id = $this->get_session_id();
+		if ( empty( $session_id ) ) {
+			return;
+		}
+
+		$prev_skus = get_transient( 'shopwell_sess_skus_' . md5( $session_id ) ) ?: array();
+		foreach ( $prev_skus as $sku ) {
+			$this->set_reservation( $sku, $session_id, 0 );
+		}
+		delete_transient( 'shopwell_sess_skus_' . md5( $session_id ) );
+	}
+
+	/**
+	 * Release all reservations for this session when an order is created.
+	 *
+	 * @param \WC_Order $order
+	 * @return void
+	 */
+	public function on_order_created( $order ) {
+		$this->on_cart_emptied();
+	}
+
+	/**
+	 * Fetch SKU data from Market API.
+	 *
+	 * @param string $sku The product SKU.
+	 * @return array|WP_Error Array with 'quantity' and 'price' on success, WP_Error on failure.
+	 */
+	private function fetch_sku_from_api( $sku ) {
+		$api_base_url = defined( 'MARKET_API_BASE_URL' ) ? MARKET_API_BASE_URL : get_option( 'market_api_base_url', '' );
+
+		if ( empty( $api_base_url ) ) {
+			return new \WP_Error( 'missing_config', __( 'Market API configuration missing.', 'shopwell' ) );
+		}
+
+		$api_key = defined( 'MARKET_API_KEY' ) ? MARKET_API_KEY : get_option( 'market_api_key', '' );
+		$api_url = trailingslashit( $api_base_url ) . 'api/v1/sku/' . rawurlencode( $sku );
+
+		$headers = array( 'accept' => '*/*' );
+
+		if ( ! empty( $api_key ) ) {
+			$header_type             = defined( 'MARKET_API_KEY_HEADER_TYPE' ) ? MARKET_API_KEY_HEADER_TYPE : 'X-ApiKey';
+			$headers[ $header_type ] = $api_key;
+		}
+
+		$response = wp_remote_get(
+			$api_url,
+			array(
+				'timeout'     => 10,
+				'httpversion' => '1.1',
+				'sslverify'   => true,
+				'headers'     => $headers,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		if ( 200 !== $response_code ) {
+			return new \WP_Error( 'api_error', sprintf( 'API returned HTTP %d', $response_code ) );
+		}
+
+		$data = json_decode( $response_body, true );
+
+		if ( ! $data || ! isset( $data['quantity'] ) || ! isset( $data['price'] ) ) {
+			return new \WP_Error( 'invalid_response', __( 'Invalid API response.', 'shopwell' ) );
+		}
+
+		return array(
+			'quantity' => intval( $data['quantity'] ),
+			'price'    => floatval( $data['price'] ),
+		);
+	}
+
+	/**
+	 * Effective quantity available for this visitor (Market API minus other sessions' cart reservations).
+	 *
+	 * @param string $sku Product SKU.
+	 * @return array|null Keys: api_qty, reserved_by_others, effective. Null if SKU empty or API unavailable (fail-open).
+	 */
+	private function get_effective_availability_for_sku( $sku ) {
+		if ( empty( $sku ) ) {
+			return null;
+		}
+
+		$api_data = $this->fetch_sku_from_api( $sku );
+		if ( is_wp_error( $api_data ) ) {
+			$this->write_log(
+				'get_effective_availability_for_sku - API fail (fail-open)',
+				array(
+					'sku'   => $sku,
+					'error' => $api_data->get_error_message(),
+				)
+			);
+			return null;
+		}
+
+		$session_id          = $this->get_session_id();
+		$api_qty             = (int) $api_data['quantity'];
+		$reserved_by_others  = $this->get_reserved_by_others( $sku, $session_id );
+		$effective           = $api_qty - $reserved_by_others;
+
+		return array(
+			'api_qty'            => $api_qty,
+			'reserved_by_others' => $reserved_by_others,
+			'effective'          => $effective,
+		);
+	}
+
+	/**
+	 * AJAX: current reservation-aware availability for a SKU (product page UI).
+	 *
+	 * @return void
+	 */
+	public function ajax_sku_reservation_state() {
+		check_ajax_referer( 'shopwell_sku_reservation', 'nonce' );
+
+		$sku = isset( $_POST['sku'] ) ? sanitize_text_field( wp_unslash( $_POST['sku'] ) ) : '';
+		if ( '' === $sku ) {
+			wp_send_json_success(
+				array(
+					'skip' => true,
+				)
+			);
+			return;
+		}
+
+		$info = $this->get_effective_availability_for_sku( $sku );
+		if ( null === $info ) {
+			wp_send_json_success(
+				array(
+					'skip' => true,
+				)
+			);
+			return;
+		}
+
+		$cannot_add      = $info['effective'] <= 0;
+		$held_elsewhere  = $info['reserved_by_others'] > 0;
+
+		wp_send_json_success(
+			array(
+				'skip'               => false,
+				'api_qty'            => $info['api_qty'],
+				'reserved_by_others' => $info['reserved_by_others'],
+				'effective'          => $info['effective'],
+				'cannot_add'         => $cannot_add,
+				'held_elsewhere'     => $held_elsewhere,
+			)
+		);
+	}
+
+	/**
+	 * Pass reservation check config to single-product script on product pages.
+	 *
+	 * @return void
+	 */
+	public function enqueue_product_reservation_data() {
+		if ( ! function_exists( 'is_product' ) || ! is_product() ) {
+			return;
+		}
+
+		if ( ! wp_script_is( 'shopwell-single-product', 'enqueued' ) ) {
+			return;
+		}
+
+		$product_id = get_queried_object_id();
+		$simple_sku  = '';
+		if ( $product_id && function_exists( 'wc_get_product' ) ) {
+			$product = wc_get_product( $product_id );
+			if ( $product && $product->is_type( 'simple' ) ) {
+				$simple_sku = (string) $product->get_sku();
+			}
+		}
+
+		wp_localize_script(
+			'shopwell-single-product',
+			'shopwellSkuReservation',
+			array(
+				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+				'nonce'     => wp_create_nonce( 'shopwell_sku_reservation' ),
+				'simpleSku' => $simple_sku,
+				'pollMs'    => 30000,
+				'i18n'      => array(
+					'reservedTitle'   => esc_html__( 'Momentan indisponibil pentru comandă', 'shopwell' ),
+					'reservedBody'    => esc_html__( 'Acest exemplar este deja în coșul altui client. Reîmprospătează pagina peste câteva minute sau alege altă configurație.', 'shopwell' ),
+					'stockForYou'     => esc_html__( 'Disponibil pentru tine acum: %s', 'shopwell' ),
+					'heldInCarts'     => esc_html__( 'Reținut în alte coșuri: %d', 'shopwell' ),
+					'ajaxBlockedHint' => esc_html__( 'Nu se poate adăuga: exemplarul este deja rezervat în alt coș.', 'shopwell' ),
+					'supplierEmpty'   => esc_html__( 'Stoc indisponibil la furnizor pentru această configurație.', 'shopwell' ),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Validate stock via Market API before adding a product to cart.
+	 * Fails open: if the API is unreachable, the add-to-cart is allowed.
+	 *
+	 * @param bool  $passed       Whether validation has passed so far.
+	 * @param int   $product_id   The product (parent) ID being added.
+	 * @param int   $quantity     The quantity being added.
+	 * @param int   $variation_id The variation ID (0 for simple products).
+	 * @param array $variation    The variation attributes.
+	 * @return bool
+	 */
+	public function validate_add_to_cart( $passed, $product_id, $quantity, $variation_id = 0, $variation = array() ) {
+		if ( ! $passed ) {
+			return $passed;
+		}
+
+		// For variable products, use the variation to get the correct SKU.
+		$product_to_check = $variation_id ? wc_get_product( $variation_id ) : wc_get_product( $product_id );
+
+		if ( ! $product_to_check ) {
+			return $passed;
+		}
+
+		$sku = $product_to_check->get_sku();
+
+		// Fallback to parent SKU if variation has none.
+		if ( empty( $sku ) && $variation_id ) {
+			$parent = wc_get_product( $product_id );
+			if ( $parent ) {
+				$sku = $parent->get_sku();
+			}
+		}
+
+		if ( empty( $sku ) ) {
+			return $passed;
+		}
+
+		$product = $product_to_check;
+
+		$availability = $this->get_effective_availability_for_sku( $sku );
+
+		if ( null === $availability ) {
+			return $passed;
+		}
+
+		$session_id             = $this->get_session_id();
+		$api_qty                = $availability['api_qty'];
+		$reserved_by_others     = $availability['reserved_by_others'];
+		$effective_available    = $availability['effective'];
+
+		$this->write_log(
+			'Add-to-cart validation',
+			array(
+				'sku'                 => $sku,
+				'session_id'          => $session_id,
+				'requested'           => $quantity,
+				'api_qty'             => $api_qty,
+				'reserved_by_others'  => $reserved_by_others,
+				'all_reservations'    => $this->get_reservations( $sku ),
+				'effective_available' => $effective_available,
+			)
+		);
+
+		if ( $effective_available <= 0 ) {
+			if ( $api_qty > 0 && $reserved_by_others > 0 ) {
+				wc_add_notice(
+					sprintf(
+						/* translators: %s: product name */
+						esc_html__( '"%1$s" — exemplarul este momentan în coșul altui client și nu poate fi adăugat. Încearcă din nou mai târziu sau alege altă configurație.', 'shopwell' ),
+						$product->get_name()
+					),
+					'error'
+				);
+			} else {
+				wc_add_notice(
+					sprintf(
+						/* translators: %s: product name */
+						esc_html__( '"%s" nu mai este disponibil în stoc.', 'shopwell' ),
+						$product->get_name()
+					),
+					'error'
+				);
+			}
+			return false;
+		}
+
+		if ( $quantity > $effective_available ) {
+			wc_add_notice(
+				sprintf(
+					/* translators: 1: product name, 2: available quantity */
+					esc_html__( 'Cantitate insuficientă pentru "%1$s". Disponibil: %2$d.', 'shopwell' ),
+					$product->get_name(),
+					$effective_available
+				),
+				'error'
+			);
+			return false;
+		}
+
+		// Optimistically reserve immediately so concurrent requests see this reservation.
+		$current_in_cart = $this->get_cart_qty_for_sku( $sku );
+		$this->set_reservation( $sku, $session_id, $current_in_cart + $quantity );
+
+		return $passed;
 	}
 
 	/**
@@ -149,172 +629,51 @@ class Sku_Availability {
 	 * @return void
 	 */
 	public function check_sku_availability() {
-		// Verify nonce.
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'check_sku_availability_nonce' ) ) {
 			wp_send_json_error( array( 'message' => esc_html__( 'Security check failed.', 'shopwell' ) ) );
 			return;
 		}
 
-		// Get SKU from POST data.
 		if ( ! isset( $_POST['sku'] ) || empty( $_POST['sku'] ) ) {
 			wp_send_json_error( array( 'message' => esc_html__( 'SKU is required.', 'shopwell' ) ) );
 			return;
 		}
 
-		$sku = sanitize_text_field( wp_unslash( $_POST['sku'] ) );
+		$sku      = sanitize_text_field( wp_unslash( $_POST['sku'] ) );
+		$api_data = $this->fetch_sku_from_api( $sku );
 
-		// Get Market API base URL from options or constant.
-		$api_base_url = defined( 'MARKET_API_BASE_URL' ) ? MARKET_API_BASE_URL : get_option( 'market_api_base_url', '' );
-
-		if ( empty( $api_base_url ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Market API configuration missing.', 'shopwell' ) ) );
-			return;
-		}
-
-		// Get Market API key from constant or option.
-		$api_key = defined( 'MARKET_API_KEY' ) ? MARKET_API_KEY : get_option( 'market_api_key', '' );
-
-		// Construct API endpoint.
-		$api_url = trailingslashit( $api_base_url ) . 'api/v1/sku/' . $sku;
-
-		// Prepare request headers.
-		$headers = array(
-			'accept' => '*/*',
-		);
-
-		// Add API key to headers if provided.
-		if ( ! empty( $api_key ) ) {
-			// Get header type from constant or use default
-			$header_type = defined( 'MARKET_API_KEY_HEADER_TYPE' ) ? MARKET_API_KEY_HEADER_TYPE : 'X-ApiKey';
-			$headers[ $header_type ] = $api_key;
-		}
-
-		// Log request details
-		$this->write_log(
-			'SKU Availability Check - Request',
-			array(
-				'sku'            => $sku,
-				'method'         => 'GET',
-				'url'            => $api_url,
-				'headers'        => $headers,
-				'api_base_url'   => $api_base_url,
-			)
-		);
-
-		// Make API request.
-		$response = wp_remote_get(
-			$api_url,
-			array(
-				'timeout'     => 10,
-				'httpversion' => '1.1',
-				'sslverify'   => true,
-				'headers'     => $headers,
-			)
-		);
-
-		// Check for errors.
-		if ( is_wp_error( $response ) ) {
-			$error_message = $response->get_error_message();
-			
-			// Log error
+		if ( is_wp_error( $api_data ) ) {
 			$this->write_log(
-				'SKU Availability Check - WP Error',
+				'SKU Availability Check - Error',
 				array(
-					'sku'    => $sku,
-					'url'    => $api_url,
-					'error'  => $error_message,
+					'sku'   => $sku,
+					'error' => $api_data->get_error_message(),
 				)
 			);
 
 			wp_send_json_error(
 				array(
 					'message' => esc_html__( 'Eroare la verificarea disponibilității produsului.', 'shopwell' ),
-					'error'   => $error_message,
+					'error'   => $api_data->get_error_message(),
 				)
 			);
 			return;
 		}
 
-		$response_code = wp_remote_retrieve_response_code( $response );
-		$response_body = wp_remote_retrieve_body( $response );
-
-		// Log response details
 		$this->write_log(
-			'SKU Availability Check - Response',
+			'SKU Availability Check - Success',
 			array(
-				'sku'           => $sku,
-				'response_code' => $response_code,
-				'response_body' => $response_body,
-				'url'           => $api_url,
+				'sku'      => $sku,
+				'quantity' => $api_data['quantity'],
+				'price'    => $api_data['price'],
 			)
 		);
 
-		// Debug info for console logging.
-		$debug_info = array(
-			'request_url'     => $api_url,
-			'request_headers' => $headers,
-			'request_method' => 'GET',
-			'sku'             => $sku,
-			'response_code'   => $response_code,
-			'response_body'   => $response_body,
-		);
-
-		// Handle different response codes.
-		if ( 200 !== $response_code ) {
-			$error_message = esc_html__( 'Produsul nu a fost găsit în sistem.', 'shopwell' );
-			
-			// Provide more specific error messages based on response code.
-			switch ( $response_code ) {
-				case 401:
-					$error_message = esc_html__( 'Eroare de autentificare API. Verifică API key-ul.', 'shopwell' );
-					break;
-				case 403:
-					$error_message = esc_html__( 'Acces interzis la API. Verifică permisiunile API key-ului.', 'shopwell' );
-					break;
-				case 404:
-					$error_message = esc_html__( 'Produsul nu a fost găsit în sistem.', 'shopwell' );
-					break;
-				case 500:
-				case 502:
-				case 503:
-					$error_message = esc_html__( 'Eroare server API. Te rugăm să încerci mai târziu.', 'shopwell' );
-					break;
-			}
-
-			// Add API response code and body to the error message for debugging
-			$error_message .= ' [HTTP ' . $response_code . ']';
-			if ( ! empty( $response_body ) ) {
-				// Truncate response body if too long (max 200 chars)
-				$body_preview = strlen( $response_body ) > 200 ? substr( $response_body, 0, 200 ) . '...' : $response_body;
-				$error_message .= ' Response: ' . esc_html( $body_preview );
-			}
-
-			wp_send_json_error(
-				array(
-					'message'    => $error_message,
-					'code'       => $response_code,
-					'body'       => $response_body,
-					'debug_info' => $debug_info, // Include debug info in error response.
-				)
-			);
-			return;
-		}
-
-		// Decode JSON response.
-		$api_data = json_decode( $response_body, true );
-
-		if ( ! $api_data || ! isset( $api_data['quantity'] ) || ! isset( $api_data['price'] ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Răspuns invalid de la API.', 'shopwell' ) ) );
-			return;
-		}
-
-		// Return success with availability data.
 		wp_send_json_success(
 			array(
-				'sku'        => $sku,
-				'quantity'   => intval( $api_data['quantity'] ),
-				'price'      => floatval( $api_data['price'] ),
-				'debug_info' => $debug_info, // Include debug info in success response.
+				'sku'      => $sku,
+				'quantity' => $api_data['quantity'],
+				'price'    => $api_data['price'],
 			)
 		);
 	}
