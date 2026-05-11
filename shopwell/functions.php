@@ -81,10 +81,19 @@ function shopwell_ajax_log_message() {
 add_action( 'wp_ajax_shopwell_log_message', 'shopwell_ajax_log_message' );
 add_action( 'wp_ajax_nopriv_shopwell_log_message', 'shopwell_ajax_log_message' );
 
-// Start session for general functionality
-if (!session_id()) {
-    session_start();
+/**
+ * Start native PHP session only when safe (avoids warnings if headers already sent / BOM / prior output).
+ */
+function shopwell_start_theme_session() {
+	if ( session_status() !== PHP_SESSION_NONE ) {
+		return;
+	}
+	if ( headers_sent() ) {
+		return;
+	}
+	session_start();
 }
+add_action( 'init', 'shopwell_start_theme_session', 0 );
 
 // Close session before REST API requests to avoid blocking
 // This allows session to be used for reading/writing, but closes it before HTTP requests
@@ -1440,6 +1449,11 @@ add_action('woocommerce_before_shop_loop', 'fix_variable_product_price_display')
  * Product Search Autocomplete Shortcode
  */
 require_once get_template_directory() . '/inc/product-search-autocomplete.php';
+
+/**
+ * Concurs form → CPT (reusable-ajax-form-entries)
+ */
+require_once get_template_directory() . '/inc/concurs-entries-bootstrap.php';
 
 /**
  * Load Refactored Styles

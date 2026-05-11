@@ -37,7 +37,10 @@ function shopwell_enqueue_refactored_styles() {
     $is_privacy_page = $current_template === 'page-politica-de-confidentialitate.php';
     $is_delivery_page = $current_template === 'page-livrare-si-delivery.php';
     $is_moneyback_page = $current_template === 'page-politica-banii-inapoi.php';
-    
+    $is_concurs_page = $current_template === 'page-concurs.php' ||
+                       (is_page() && get_the_ID() && get_page_template_slug(get_the_ID()) === 'page-concurs.php') ||
+                       (is_page() && strpos((string) get_page_template(), 'page-concurs.php') !== false);
+
     // Base styles that are always loaded
     wp_enqueue_style(
         'shopwell-refactored-base',
@@ -217,6 +220,15 @@ function shopwell_enqueue_refactored_styles() {
             get_template_directory_uri() . '/assets/css/pages/politica-banii-inapoi.css',
             array('shopwell-refactored-base'),
             '1.0.0'
+        );
+    }
+
+    if ($is_concurs_page) {
+        wp_enqueue_style(
+            'shopwell-concurs-styles',
+            get_template_directory_uri() . '/assets/css/pages/concurs.css',
+            array('shopwell-refactored-base'),
+            '1.0.6'
         );
     }
     
