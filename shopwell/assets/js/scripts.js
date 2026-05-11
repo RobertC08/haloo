@@ -2140,8 +2140,6 @@
 					$target.removeClass( 'loading' );
 					$target.addClass( 'modal--open' );
 
-					shopwell.addToCartSingleAjax();
-
 					shopwell.$body.trigger( 'shopwell_product_quick_view_loaded' );
 
 					if ( $container.find('.deal-expire-countdown').length > 0) {
@@ -2343,19 +2341,19 @@
 	};
 
     shopwell.addToCartSingleAjax = function () {
-		var $selector = $('div.product, #shopwell-sticky-add-to-cart, .shopwell-elementor-add-to-cart');
-
-		if ($selector.length < 1) {
+		if (shopwell.singleAddToCartAjaxBound) {
 			return;
 		}
+		shopwell.singleAddToCartAjaxBound = true;
 
-		if (!$selector.hasClass('product-add-to-cart-ajax')) {
-			return;
-		}
-
-		$selector.find('form.cart').on('click', '.single_add_to_cart_button', function (e) {
+		shopwell.$body.on('click.shopwellSingleAtc', 'form.cart .single_add_to_cart_button', function (e) {
 			var $el = $(this),
-				$cartForm = $el.closest('form.cart');
+				$cartForm = $el.closest('form.cart'),
+				$productWrap = $el.closest('div.product, #shopwell-sticky-add-to-cart, .shopwell-elementor-add-to-cart');
+
+			if (!$productWrap.length || !$productWrap.hasClass('product-add-to-cart-ajax')) {
+				return;
+			}
 
 			if ($el.closest('.product').hasClass('product-type-external')) {
 				return;
@@ -2388,13 +2386,7 @@
 
 		$cartButton.data('requestRunning', true);
 
-		var found = false;
-
 		$cartButtonLoading.addClass('loading');
-		if (found) {
-			return;
-		}
-		found = true;
 
 		var formData = $cartForm.serializeArray(),
 			formAction = $cartForm.attr('action');
@@ -2409,12 +2401,13 @@
 			url: formAction,
 			method: 'post',
 			data: formData,
-			error: function (response) {
+			error: function () {
 				window.location = formAction;
 			},
 			success: function (response) {
 				if (!response) {
 					window.location = formAction;
+					return;
 				}
 
 				if (typeof wc_add_to_cart_params !== 'undefined') {
@@ -2424,35 +2417,31 @@
 					}
 				}
 
-                var $message = '',
-					className = 'info';
-				if ($(response).find('.woocommerce-notices-wrapper .woocommerce-message').length || $(response).find('.woocommerce-notices-wrapper .wc-block-components-notice-banner.is-success').length ) {
-					$(document.body).trigger('wc_fragment_refresh');
+			var $r = $(response),
+				hasErr = $r.find('.woocommerce-notices-wrapper .woocommerce-error').length > 0
+					|| $r.find('.woocommerce-notices-wrapper .wc-block-components-notice-banner.is-error').length > 0,
+				hasOk = $r.find('.woocommerce-notices-wrapper .woocommerce-message').length > 0
+					|| $r.find('.woocommerce-notices-wrapper .wc-block-components-notice-banner.is-success').length > 0,
+				hasLooseSuccess = !hasOk && $r.find('.woocommerce-message').length > 0
+					&& $r.find('.woocommerce-message').closest('.woocommerce-error').length === 0;
 
-					if( $('.single-product div.product').find('.shopwell-free-shipping-bar').length && $(response).find('div.product .shopwell-free-shipping-bar').length ) {
-						$('.single-product div.product').find('.shopwell-free-shipping-bar').replaceWith($(response).find('div.product .shopwell-free-shipping-bar'));
-					}
-
-				} else {
-					if (!$.fn.notify) {
-						return;
-					}
-
-					var $checkIcon = '<span class="shopwell-svg-icon message-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>',
+			if (hasErr) {
+				if (!$.fn.notify) {
+					return;
+				}
+					var $message = '',
+						className = 'info',
+						$checkIcon = '<span class="shopwell-svg-icon message-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>',
 						$closeIcon = '<span class="shopwell-svg-icon svg-active"><svg class="svg-icon" aria-hidden="true" role="img" focusable="false" width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 1L1 14M1 1L14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>';
 
-					if ($(response).find('.woocommerce-notices-wrapper .woocommerce-error').length > 0) {
-						$message = $(response).find('.woocommerce-notices-wrapper .woocommerce-error').html();
+					if ($r.find('.woocommerce-notices-wrapper .woocommerce-error').length > 0) {
+						$message = $r.find('.woocommerce-notices-wrapper .woocommerce-error').html();
 						className = 'error';
 						$checkIcon = '<span class="shopwell-svg-icon message-icon"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><g data-name="1" id="_1"><path d="M257,461.46c-114,0-206.73-92.74-206.73-206.73S143,48,257,48s206.73,92.74,206.73,206.73S371,461.46,257,461.46ZM257,78C159.55,78,80.27,157.28,80.27,254.73S159.55,431.46,257,431.46s176.73-79.28,176.73-176.73S354.45,78,257,78Z"/><path d="M342.92,358a15,15,0,0,1-10.61-4.39L160.47,181.76a15,15,0,1,1,21.21-21.21L353.53,332.4A15,15,0,0,1,342.92,358Z"/><path d="M171.07,358a15,15,0,0,1-10.6-25.6L332.31,160.55a15,15,0,0,1,21.22,21.21L181.68,353.61A15,15,0,0,1,171.07,358Z"/></g></svg></span>';
-					} else if ($(response).find('.woocommerce-notices-wrapper .woocommerce-info').length > 0) {
-						$message = $(response).find('.woocommerce-notices-wrapper .woocommerce-info').html();
-					} else if ($(response).find('.woocommerce-notices-wrapper .wc-block-components-notice-banner.is-error').length) {
+					} else if ($r.find('.woocommerce-notices-wrapper .wc-block-components-notice-banner.is-error').length) {
 						className = 'error';
-						$message = $(response).find('.woocommerce-notices-wrapper .wc-block-components-notice-banner.is-error .wc-block-components-notice-banner__content').html();
+						$message = $r.find('.woocommerce-notices-wrapper .wc-block-components-notice-banner.is-error .wc-block-components-notice-banner__content').html();
 						$checkIcon = '<span class="shopwell-svg-icon message-icon"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><g data-name="1" id="_1"><path d="M257,461.46c-114,0-206.73-92.74-206.73-206.73S143,48,257,48s206.73,92.74,206.73,206.73S371,461.46,257,461.46ZM257,78C159.55,78,80.27,157.28,80.27,254.73S159.55,431.46,257,431.46s176.73-79.28,176.73-176.73S354.45,78,257,78Z"/><path d="M342.92,358a15,15,0,0,1-10.61-4.39L160.47,181.76a15,15,0,1,1,21.21-21.21L353.53,332.4A15,15,0,0,1,342.92,358Z"/><path d="M171.07,358a15,15,0,0,1-10.6-25.6L332.31,160.55a15,15,0,0,1,21.22,21.21L181.68,353.61A15,15,0,0,1,171.07,358Z"/></g></svg></span>';
-					} else if ($(response).find('.woocommerce-notices-wrapper .wc-block-components-notice-banner').length > 0) {
-						$message = $(response).find('.woocommerce-notices-wrapper .wc-block-components-notice-banner .wc-block-components-notice-banner__content').html();
 					}
 
 					$.notify.addStyle('shopwell', {
@@ -2466,13 +2455,47 @@
 						showAnimation: 'fadeIn',
 						hideAnimation: 'fadeOut'
 					});
+					return;
 				}
 
+			$(document.body).trigger('wc_fragment_refresh');
+
+			if ($('.single-product div.product').find('.shopwell-free-shipping-bar').length && $r.find('div.product .shopwell-free-shipping-bar').length) {
+				$('.single-product div.product').find('.shopwell-free-shipping-bar').replaceWith($r.find('div.product .shopwell-free-shipping-bar'));
+			}
+
+			if (!hasOk && !hasLooseSuccess && $.fn.notify) {
+					var $message2 = '',
+						className2 = 'info',
+						$checkIcon2 = '<span class="shopwell-svg-icon message-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>',
+						$closeIcon2 = '<span class="shopwell-svg-icon svg-active"><svg class="svg-icon" aria-hidden="true" role="img" focusable="false" width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 1L1 14M1 1L14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>';
+
+					if ($r.find('.woocommerce-notices-wrapper .woocommerce-info').length > 0) {
+						$message2 = $r.find('.woocommerce-notices-wrapper .woocommerce-info').html();
+					} else if ($r.find('.woocommerce-notices-wrapper .wc-block-components-notice-banner').length > 0) {
+						$message2 = $r.find('.woocommerce-notices-wrapper .wc-block-components-notice-banner .wc-block-components-notice-banner__content').html();
+					}
+
+					if ($message2) {
+						$.notify.addStyle('shopwell', {
+							html: '<div>' + $checkIcon2 + '<ul class="message-box">' + $message2 + '</ul>' + $closeIcon2 + '</div>'
+						});
+
+						$.notify('&nbsp', {
+							autoHideDelay: 5000,
+							className: className2,
+							style: 'shopwell',
+							showAnimation: 'fadeIn',
+							hideAnimation: 'fadeOut'
+						});
+					}
+				}
+
+			},
+			complete: function () {
 				$cartButton.data('requestRunning', false);
 				$cartButton.removeClass('loading');
 				$cartButtonLoading.removeClass('loading');
-				found = false;
-
 			}
 		});
 	};

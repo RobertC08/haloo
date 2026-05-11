@@ -53,6 +53,8 @@ class General {
 		// Update counter via ajax.
 		add_filter( 'woocommerce_add_to_cart_fragments', array( $this, 'cart_link_fragment' ) );
 
+		add_action( 'wp_footer', array( $this, 'cart_fragments_resync_script' ), 99 );
+
 		// Change mini cart button
 		remove_action( 'woocommerce_widget_shopping_cart_buttons', 'woocommerce_widget_shopping_cart_button_view_cart', 10 );
 		remove_action( 'woocommerce_widget_shopping_cart_buttons', 'woocommerce_widget_shopping_cart_proceed_to_checkout', 20 );
@@ -168,6 +170,9 @@ class General {
 		}
 
 		wp_enqueue_script( 'wc-cart-fragments' );
+
+		$cart_count = ( WC()->cart && ! WC()->cart->is_empty() ) ? WC()->cart->get_cart_contents_count() : 0;
+		wp_add_inline_script( 'wc-cart-fragments', 'var shopwellCartContentsCount=' . absint( $cart_count ) . ';', 'before' );
 	}
 
 	/**
@@ -208,7 +213,74 @@ class General {
 		$fragments['span.cart-dropdown__counter'] = '<span class="cart-dropdown__counter ' . esc_attr( $hidden ) . '"> (' . intval( WC()->cart->get_cart_contents_count() ) . ') </span>';
 		$fragments['span.cart-counter']           = '<span class="counter cart-counter ' . esc_attr( $hidden ) . '">' . intval( WC()->cart->get_cart_contents_count() ) . '</span>';
 
+		ob_start();
+		woocommerce_mini_cart();
+		$mini_cart_html = ob_get_clean();
+
+		$fragments['#cart-panel .widget_shopping_cart_content'] = '<div class="widget_shopping_cart_content">' . $mini_cart_html . '</div>';
+
+		if ( 'dropdown' === Helper::get_option( 'header_cart_icon_behaviour' ) ) {
+			$fragments['.header-cart .cart-dropdown .widget_shopping_cart_content'] = '<div class="widget_shopping_cart_content">' . $mini_cart_html . '</div>';
+		}
+
 		return $fragments;
+	}
+
+	/**
+	 * Fix mini-cart UI when cookies say the cart has lines but markup still shows empty (stale HTML cache or sessionStorage fragments).
+	 *
+	 * @return void
+	 */
+	public function cart_fragments_resync_script() {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return;
+		}
+
+		if ( \Shopwell\WooCommerce\Helper::is_cart_page_context() || is_checkout() || is_account_page() ) {
+			return;
+		}
+
+		if ( ! wp_script_is( 'wc-cart-fragments', 'enqueued' ) ) {
+			return;
+		}
+
+		?>
+<script>
+jQuery( function( $ ) {
+	if ( typeof wc_cart_fragments_params === 'undefined' || typeof Cookies === 'undefined' ) {
+		return;
+	}
+	var inCart = parseInt( Cookies.get( 'woocommerce_items_in_cart' ), 10 ) || 0;
+	var phpCount = typeof shopwellCartContentsCount !== 'undefined' ? parseInt( shopwellCartContentsCount, 10 ) : -1;
+	if ( isNaN( phpCount ) ) {
+		phpCount = -1;
+	}
+	if ( inCart < 1 && phpCount < 1 ) {
+		return;
+	}
+	var $targets = $( '#cart-panel .widget_shopping_cart_content' ).add( '.header-cart .cart-dropdown .widget_shopping_cart_content' );
+	if ( ! $targets.length ) {
+		$targets = $( 'div.widget_shopping_cart_content' ).filter( function() {
+			return $( this ).closest( '#shopwell-popup-add-to-cart' ).length === 0;
+		} );
+	}
+	if ( ! $targets.length ) {
+		return;
+	}
+	var mismatch = false;
+	$targets.each( function() {
+		var $t = $( this );
+		if ( $t.find( '.woocommerce-mini-cart__empty-message' ).length && ! $t.find( 'ul.woocommerce-mini-cart li.woocommerce-mini-cart-item' ).length ) {
+			mismatch = true;
+			return false;
+		}
+	} );
+	if ( mismatch ) {
+		$( document.body ).trigger( 'wc_fragment_refresh' );
+	}
+} );
+</script>
+		<?php
 	}
 
 	/**
@@ -229,14 +301,14 @@ class General {
 
 		check_admin_referer( 'shopwell-update-cart-qty--' . $cart_item_key, 'security' );
 
-		ob_start();
-		WC()->cart->set_quantity( $cart_item_key, $qty );
+		$updated = WC()->cart->set_quantity( $cart_item_key, $qty );
 
-		if ( $cart_item_key && false !== WC()->cart->set_quantity( $cart_item_key, $qty ) ) {
-			\WC_AJAX::get_refreshed_fragments();
-		} else {
+		if ( false === $updated ) {
 			wp_send_json_error();
+			return;
 		}
+
+		\WC_AJAX::get_refreshed_fragments();
 	}
 
 	/**

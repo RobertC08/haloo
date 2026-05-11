@@ -77,7 +77,7 @@ class Sku_Availability {
 			'shopwell-checkout-sku-check',
 			get_template_directory_uri() . '/assets/js/woocommerce/checkout.js',
 			array( 'jquery', 'wc-checkout' ),
-			'1.0.1',
+			'1.0.4',
 			true
 		);
 
@@ -109,6 +109,7 @@ class Sku_Availability {
 				'checkingText'      => esc_html__( 'Verificăm disponibilitatea produselor...', 'shopwell' ),
 				'unavailableText'   => esc_html__( 'Nu mai este disponibil.', 'shopwell' ),
 				'insufficientText'  => esc_html__( 'Cantitate insuficientă în stoc. Disponibil:', 'shopwell' ),
+				'placeOrderLockedTitle' => esc_attr__( 'Completează toate câmpurile obligatorii (inclusiv bifările obligatorii) înainte de a plasa comanda.', 'shopwell' ),
 				'cartSkus'          => $cart_skus,
 			)
 		);

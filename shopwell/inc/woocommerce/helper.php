@@ -39,6 +39,36 @@ class Helper {
 	}
 
 
+	/**
+	 * Whether the current view is a cart screen (WC cart page, or page with cart block/shortcode).
+	 *
+	 * @return bool
+	 */
+	public static function is_cart_page_context() {
+		if ( function_exists( 'is_cart' ) && is_cart() ) {
+			return true;
+		}
+
+		if ( ! function_exists( 'is_singular' ) || ! is_singular() ) {
+			return false;
+		}
+
+		global $post;
+		if ( ! $post instanceof \WP_Post ) {
+			return false;
+		}
+
+		if ( function_exists( 'has_block' ) && has_block( 'woocommerce/cart', $post ) ) {
+			return true;
+		}
+
+		if ( function_exists( 'wc_post_content_has_shortcode' ) && wc_post_content_has_shortcode( $post->post_content, 'woocommerce_cart' ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public static function is_cartflows_template() {
 		if ( ! class_exists( 'Cartflows_Loader' ) || ! function_exists( '_get_wcf_step_id' ) ) {
 			return false;

@@ -54,6 +54,149 @@
         // Store original submit handler
         let isCheckingAvailability = false;
         let checkoutSubmitBlocked = false;
+        let placeOrderRefreshTimer = null;
+
+        function isCheckoutRowVisible($row) {
+            if (!$row.length) {
+                return false;
+            }
+            if ($row.closest('.woocommerce-hidden').length) {
+                return false;
+            }
+            return $row.is(':visible');
+        }
+
+        function isCheckoutRequiredFieldsFilled($form) {
+            if ($form.find('input[name="payment_method"]').length &&
+                !$form.find('input[name="payment_method"]:checked').length) {
+                return false;
+            }
+
+            let ok = true;
+
+            $form.find('.validate-required').each(function() {
+                const $row = $(this);
+                if (!isCheckoutRowVisible($row)) {
+                    return;
+                }
+
+                const $controls = $row.find('input, select, textarea').filter(function() {
+                    const el = this;
+                    if (el.type === 'hidden' || el.disabled) {
+                        return false;
+                    }
+                    return true;
+                });
+
+                if (!$controls.length) {
+                    return;
+                }
+
+                const seenRadioNames = {};
+                $controls.each(function() {
+                    const el = this;
+                    if (el.type === 'checkbox') {
+                        if (!el.checked) {
+                            ok = false;
+                        }
+                    } else if (el.type === 'radio') {
+                        if (seenRadioNames[el.name]) {
+                            return;
+                        }
+                        seenRadioNames[el.name] = true;
+                        const hasChecked = $form.find('input[type="radio"]').filter(function() {
+                            return this.name === el.name && this.checked;
+                        }).length > 0;
+                        if (!hasChecked) {
+                            ok = false;
+                        }
+                    } else {
+                        const v = (el.value || '').toString().trim();
+                        if (!v) {
+                            ok = false;
+                        }
+                    }
+                });
+            });
+
+            $form.find('#terms, input[name="terms"]').each(function() {
+                const el = this;
+                if (el.disabled) {
+                    return;
+                }
+                const $cb = $(el);
+                const $wrap = $cb.closest('.woocommerce-terms-and-conditions-wrapper, p.form-row, .form-row');
+                if (!$wrap.length || !isCheckoutRowVisible($wrap)) {
+                    return;
+                }
+                const required = el.required ||
+                    $wrap.hasClass('validate-required') ||
+                    $cb.attr('aria-required') === 'true';
+                if (!required) {
+                    return;
+                }
+                if (!el.checked) {
+                    ok = false;
+                }
+            });
+
+            $form.find('input[required], select[required], textarea[required]').each(function() {
+                const el = this;
+                if (el.disabled || el.type === 'hidden') {
+                    return;
+                }
+                if ($(el).closest('.validate-required').length) {
+                    return;
+                }
+                const $wrap = $(el).closest('p.form-row, .form-row, li, .woocommerce-additional-fields__field-wrapper');
+                if ($wrap.length && !isCheckoutRowVisible($wrap)) {
+                    return;
+                }
+                if (el.type === 'checkbox') {
+                    if (!el.checked) {
+                        ok = false;
+                    }
+                } else if (el.type === 'radio') {
+                    const name = el.name;
+                    if (name) {
+                        const has = $form.find('input[type="radio"]').filter(function() {
+                            return this.name === name && this.checked;
+                        }).length > 0;
+                        if (!has) {
+                            ok = false;
+                        }
+                    }
+                } else if (!(el.value || '').toString().trim()) {
+                    ok = false;
+                }
+            });
+
+            return ok;
+        }
+
+        function refreshPlaceOrderButtonState() {
+            const $btn = checkoutForm.find('button[name="woocommerce_checkout_place_order"]');
+            if (!$btn.length) {
+                return;
+            }
+            if (isCheckingAvailability || checkoutSubmitBlocked) {
+                return;
+            }
+            if (!isCheckoutRequiredFieldsFilled(checkoutForm)) {
+                $btn.prop('disabled', true).addClass('shopwell-checkout-place-order--fields-incomplete');
+                if (typeof shopwellCheckoutSku.placeOrderLockedTitle === 'string') {
+                    $btn.attr('title', shopwellCheckoutSku.placeOrderLockedTitle);
+                }
+            } else {
+                $btn.prop('disabled', false).removeClass('shopwell-checkout-place-order--fields-incomplete');
+                $btn.removeAttr('title');
+            }
+        }
+
+        function schedulePlaceOrderStateRefresh() {
+            clearTimeout(placeOrderRefreshTimer);
+            placeOrderRefreshTimer = setTimeout(refreshPlaceOrderButtonState, 80);
+        }
 
         /**
          * Get all SKUs from cart items
@@ -257,13 +400,11 @@
                     }
                 }
 
-                // Restore button
-                $placeOrderBtn.prop('disabled', false).text(originalBtnText);
+                $placeOrderBtn.text(originalBtnText);
 
                 return { results: results, errors: errors };
             } catch (error) {
-                // Restore button
-                $placeOrderBtn.prop('disabled', false).text(originalBtnText);
+                $placeOrderBtn.text(originalBtnText);
                 throw error;
             }
         }
@@ -324,6 +465,33 @@
             }, 500);
         }
 
+        /**
+         * Continue checkout through WooCommerce and browser validation.
+         * HTMLFormElement.prototype.submit() does not fire the submit event and bypasses WC + HTML5 checks.
+         */
+        function triggerWooCommerceCheckoutSubmit($form) {
+            const el = $form[0];
+            if (!el) {
+                return;
+            }
+            const btn = $form.find('button[name="woocommerce_checkout_place_order"]')[0];
+            if (typeof el.requestSubmit === 'function') {
+                try {
+                    if (btn) {
+                        el.requestSubmit(btn);
+                    } else {
+                        el.requestSubmit();
+                    }
+                    return;
+                } catch (err) {
+                    shopwellLog('Checkout submit stopped (validation or requestSubmit).', err);
+                    return;
+                }
+            }
+            if (btn) {
+                btn.click();
+            }
+        }
 
         /**
          * Intercept checkout form submission
@@ -336,12 +504,35 @@
             }
         });
 
+        checkoutForm.on(
+            'input change blur click',
+            'input, select, textarea',
+            schedulePlaceOrderStateRefresh
+        );
+        $(document.body).on(
+            'updated_checkout init_checkout country_to_state_changed',
+            schedulePlaceOrderStateRefresh
+        );
+        setTimeout(schedulePlaceOrderStateRefresh, 0);
+        setTimeout(schedulePlaceOrderStateRefresh, 400);
+
         // Intercept form submit
         const submitHandler = async function(e) {
             // If we're already checking, block submission
             if (isCheckingAvailability || checkoutSubmitBlocked) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
+                return false;
+            }
+
+            if (!isCheckoutRequiredFieldsFilled(checkoutForm)) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                const formEl = checkoutForm[0];
+                if (formEl && typeof formEl.reportValidity === 'function') {
+                    formEl.reportValidity();
+                }
+                schedulePlaceOrderStateRefresh();
                 return false;
             }
 
@@ -365,12 +556,11 @@
                         shopwellLog('Could not retrieve cart SKUs, allowing submission');
                         isCheckingAvailability = false;
                         checkoutForm.off('submit', submitHandler);
-                        const formElement = checkoutForm[0];
-                        if (formElement && typeof formElement.submit === 'function') {
-                            formElement.submit();
-                        } else {
-                            checkoutForm.submit();
+                        schedulePlaceOrderStateRefresh();
+                        if (!isCheckoutRequiredFieldsFilled(checkoutForm)) {
+                            return false;
                         }
+                        triggerWooCommerceCheckoutSubmit(checkoutForm);
                         return false;
                     }
                 }
@@ -381,13 +571,12 @@
                 if (cartSkus.length === 0) {
                     shopwellLog('No valid SKUs found, allowing submission');
                     isCheckingAvailability = false;
-                    checkoutForm.off('submit', arguments.callee);
-                    const formElement = checkoutForm[0];
-                    if (formElement && typeof formElement.submit === 'function') {
-                        formElement.submit();
-                    } else {
-                        checkoutForm.submit();
+                    checkoutForm.off('submit', submitHandler);
+                    schedulePlaceOrderStateRefresh();
+                    if (!isCheckoutRequiredFieldsFilled(checkoutForm)) {
+                        return false;
                     }
+                    triggerWooCommerceCheckoutSubmit(checkoutForm);
                     return false;
                 }
 
@@ -395,6 +584,7 @@
                 const checkResult = await checkAllSkusAvailability(cartSkus);
 
                 isCheckingAvailability = false;
+                schedulePlaceOrderStateRefresh();
 
                 // If there are errors, display them and block submission
                 if (checkResult.errors.length > 0) {
@@ -404,6 +594,7 @@
                     // Re-enable submit after a short delay
                     setTimeout(function() {
                         checkoutSubmitBlocked = false;
+                        schedulePlaceOrderStateRefresh();
                     }, 1000);
                     
                     return false;
@@ -429,36 +620,25 @@
                     }
                 });
                 
-                // Allow normal form submission by removing our handler temporarily
-                // and triggering the native submit
-                checkoutForm.off('submit', arguments.callee);
-                
-                // Use native form submission to ensure WooCommerce processes it correctly
-                const formElement = checkoutForm[0];
-                if (formElement && typeof formElement.submit === 'function') {
-                    formElement.submit();
-                } else {
-                    checkoutForm.submit();
+                checkoutForm.off('submit', submitHandler);
+                schedulePlaceOrderStateRefresh();
+                if (!isCheckoutRequiredFieldsFilled(checkoutForm)) {
+                    return false;
                 }
+                triggerWooCommerceCheckoutSubmit(checkoutForm);
                 return false;
 
             } catch (error) {
                 shopwellLog('Error checking SKU availability', error);
                 isCheckingAvailability = false;
                 checkoutSubmitBlocked = false;
-                
-                // On error, allow submission (fail open)
-                // Or you can uncomment to block:
-                // displayAvailabilityErrors([{ type: 'error', error: 'Eroare la verificare disponibilitate. Te rugăm să încerci din nou.' }]);
-                // return false;
-                
-                checkoutForm.off('submit', arguments.callee);
-                const formElement = checkoutForm[0];
-                if (formElement && typeof formElement.submit === 'function') {
-                    formElement.submit();
-                } else {
-                    checkoutForm.submit();
+
+                checkoutForm.off('submit', submitHandler);
+                schedulePlaceOrderStateRefresh();
+                if (!isCheckoutRequiredFieldsFilled(checkoutForm)) {
+                    return false;
                 }
+                triggerWooCommerceCheckoutSubmit(checkoutForm);
                 return false;
             }
         };

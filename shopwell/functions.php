@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Functions and definitions
  *
@@ -3001,24 +3001,23 @@ function shopwell_disable_payment_request_buttons_single_product() {
 	// Remove Stripe Payment Request buttons completely
 	// This removes Google Pay, Apple Pay, and Pay with Link buttons
 	remove_action( 'woocommerce_single_product_summary', array( 'WC_Stripe_Payment_Request_Button_Handler', 'display_payment_request_button_html' ), 1 );
-	remove_action( 'woocommerce_single_product_summary', array( 'WC_Stripe_Payment_Request_Button_Handler', 'display_payment_request_button', 'display_payment_request_button_html' ), 1 );
 	
 	// Remove via filter - prevent payment request buttons from rendering
 	add_filter( 'wc_stripe_show_payment_request_on_product_page', '__return_false', 999 );
 	add_filter( 'woocommerce_stripe_show_payment_request_on_product_page', '__return_false', 999 );
 	
-	// Disable payment request button scripts completely
-	add_filter( 'woocommerce_stripe_payment_request_button_locale', '__return_false', 999 );
-	add_filter( 'wc_stripe_payment_request_button_locale', '__return_false', 999 );
+	// Do not force locale to false here: it overrides shopwell_fix_google_pay_locale and breaks Apple/Google Pay with DEVELOPER_ERROR.
 	
-	// Prevent script enqueuing for payment request buttons
+	// Prevent script enqueuing for payment request buttons (narrow match only — never strip all stripe.js v3).
 	add_filter( 'script_loader_tag', function( $tag, $handle, $src ) {
-		// Block payment request button scripts
-		if ( strpos( $handle, 'payment-request-button' ) !== false ||
-			 strpos( $src, 'payment-request-button' ) !== false ||
-			 ( strpos( $src, 'stripe.com/v3' ) !== false && strpos( $src, 'payment-request' ) !== false ) ||
-			 strpos( $src, 'js.stripe.com/v3' ) !== false ) {
-			return ''; // Return empty to prevent script from loading
+		if ( ! is_product() ) {
+			return $tag;
+		}
+		$block = ( strpos( $handle, 'payment-request-button' ) !== false
+			|| strpos( $src, 'payment-request-button' ) !== false
+			|| ( strpos( $src, 'js.stripe.com' ) !== false && strpos( $src, 'payment-request' ) !== false ) );
+		if ( $block ) {
+			return '';
 		}
 		return $tag;
 	}, 999, 3 );
